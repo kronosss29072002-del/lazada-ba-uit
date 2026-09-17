@@ -166,7 +166,7 @@
   <p class="overline">IE203 — Hệ thống Quản trị Quy trình Nghiệp vụ • Đồ án cuối kỳ</p>
   <h1>Phân tích Hệ thống<br>Quy trình Nghiệp vụ</h1>
   <p class="brand">Lazada <span>Việt Nam</span></p>
-  <p>BPMN 2.0 — 10 quy trình AS-IS &amp; TO-BE • Kiểm chứng Petri Net • VA/BVA/NVA • Pareto 80/20</p>
+  <p>BPMN 2.0 — 10 quy trình AS-IS &amp; TO-BE • Kiểm chứng Petri Net 20/20 • VA/BVA/NVA • Pareto 80/20 • ROI</p>
   <div class="team">
     <div class="member"><div class="avatar">K</div><div><div class="n">Trần Quốc Khánh</div><div class="m">MSSV: 24730254</div></div></div>
     <div class="member"><div class="avatar b">M</div><div><div class="n">Nguyễn Lưu Nhật Minh</div><div class="m">MSSV: 23730190</div></div></div>
@@ -187,9 +187,10 @@
       <li>Phân tích 4 quy trình trọng điểm — AS-IS (BPMN) + VA/BVA/NVA + Cycle Time + Root Cause</li>
     </ol></div>
     <div class="card"><ol start="5">
-      <li>Đề xuất cải tiến TO-BE &amp; so sánh AS-IS / TO-BE</li>
-      <li>Kiểm chứng Petri Net (10/10 SOUND) + Pareto 80/20</li>
-      <li>Kết luận, hạn chế &amp; hướng phát triển + Phụ lục toàn bộ sơ đồ BPMN</li>
+      <li>Đề xuất cải tiến TO-BE — ROI &amp; so sánh AS-IS / TO-BE</li>
+      <li>Kiểm chứng Petri Net (20/20 SOUND) + Pareto 80/20</li>
+      <li>Ma trận RACI &amp; Lộ trình triển khai</li>
+      <li>Kết luận, hạn chế &amp; hướng phát triển + Phụ lục BPMN AS-IS / TO-BE</li>
     </ol></div>
   </div>
   <div class="kpi-row">
@@ -497,6 +498,27 @@
   </div>
 </div></section>
 
+<!-- ================= 13b. ROI & HIỆU QUẢ ================= -->
+<section class="slide" id="s13b"><div class="wrap">
+  <p class="overline">Phần 5 — Đề xuất &amp; so sánh</p>
+  <h2>5.0 ROI — Hiệu quả đầu tư 10 TO-BE</h2>
+  <div class="kpi-row">
+    <div class="kpi"><div class="v gr">~146 tỷ</div><div class="l">Lợi ích ròng năm đầu (cơ sở)</div></div>
+    <div class="kpi drk"><div class="v gr">~21 ngày</div><div class="l">Hoàn vốn — kịch bản cơ sở (P08)</div></div>
+    <div class="kpi gld"><div class="v gr">~713 tỷ</div><div class="l">Lợi ích ròng 5 năm (cơ sở)</div></div>
+    <div class="kpi"><div class="v gr">~87%</div><div class="l">Lãng phí tập trung 3 nhóm Pareto đầu</div></div>
+  </div>
+  <table><thead><tr><th>Quy trình</th><th>Đầu tư</th><th>Payback cơ sở</th><th>Payback thận trọng</th><th>Ghi chú</th></tr></thead><tbody>
+    <tr><td><strong>Đơn hàng ★</strong></td><td>5,1 tỷ</td><td class="green">~0,4 tháng</td><td class="green">~1,2 tháng</td><td>ROI cao nhất — mọi đơn đều đi qua</td></tr>
+    <tr><td><strong>Thanh toán ★</strong></td><td>8,5 tỷ</td><td class="green">~21 ngày</td><td class="green">~2,6 tháng</td><td>COD discrepancy 2–3% → 0,5% (−153 tỷ/năm)</td></tr>
+    <tr><td>Hoàn trả</td><td>4,8 tỷ</td><td class="green">~10 tháng</td><td>~24 tháng</td><td>Instant Refund + AI inspection</td></tr>
+    <tr><td>Seller Mgmt</td><td>4,1 tỷ</td><td class="green">~10,4 tháng</td><td>~36 tháng</td><td>eKYC −95% chi phí duyệt</td></tr>
+    <tr><td>Nhân sự &amp; ĐT</td><td>5,6 tỷ</td><td>~19,6 tháng</td><td>14,6 tháng (tích cực)</td><td>LMS AI onboarding</td></tr>
+    <tr><td>Tranh chấp</td><td>4,7 tỷ</td><td>~4,5 năm</td><td>chưa hoàn vốn 3 năm</td><td>ROI chậm nhất — cần scale region</td></tr>
+  </tbody></table>
+  <blockquote><strong>Chiến lược:</strong> ưu tiên các quy trình có volume lớn (Đơn hàng, Thanh toán) — payback &lt; 1–3 tháng, vốn giải phóng sớm để tái đầu tư cho các gói AI dài hạn.</blockquote>
+</div></section>
+
 <!-- ================= 14. SO SÁNH ================= -->
 <section class="slide" id="s14"><div class="wrap">
   <p class="overline">Phần 5 — Đề xuất &amp; so sánh</p>
@@ -592,6 +614,35 @@
   <p style="margin-top:8px">Cấu trúc: mỗi activity <b>1-in-1-out</b> (20/20) • loop qua gateway join • parity AS-IS ↔ TO-BE</p>
 </div></section>
 
+<!-- ================= 17b. PETRI NET CHI TIẾT ================= -->
+<section class="slide" id="s17b"><div class="wrap">
+  <p class="overline">Phần 6 — Kiểm chứng &amp; đề xuất</p>
+  <h2>6.0 Kiểm chứng Petri Net — 20/20 mô hình</h2>
+  <div class="grid2">
+    <div class="card"><h3>3 thuộc tính van der Aalst</h3>
+      <table><thead><tr><th>Thuộc tính</th><th>Ý nghĩa</th><th>Kết quả</th></tr></thead><tbody>
+        <tr><td><strong>Option to Complete</strong></td><td>Luôn có nhánh đi tới cuối — không “bế tắc” giữa chừng</td><td class="green">20/20</td></tr>
+        <tr><td><strong>Proper Completion</strong></td><td>Kết thúc sạch — không token thừa, không kẹt</td><td class="green">20/20</td></tr>
+        <tr><td><strong>No Dead Transitions</strong></td><td>Mọi activity đều có thể kích hoạt được</td><td class="green">20/20</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><h3>Kiểm tra bổ sung</h3>
+      <ul>
+        <li><strong>Boundedness (cap = 4):</strong> không nơi nào chứa quá 4 token — mô hình không “phát nổ” state-space</li>
+        <li>Mỗi activity <strong>1-in-1-out</strong> — cấu trúc chuẩn cho simulation</li>
+        <li>Loop qua gateway join — không vòng lặp vô hạn</li>
+        <li>Parity cấu trúc AS-IS ↔ TO-BE — đối chiếu 20/20 file</li>
+      </ul>
+      <p><span class="tag">Công cụ: soundness-check.py • docs/petri-net • 20 BPMN XML</span></p>
+    </div>
+  </div>
+  <table><thead><tr><th>Quy trình</th><th>01</th><th>02</th><th>03</th><th>04</th><th>05</th><th>06</th><th>07</th><th>08</th><th>09</th><th>10</th></tr></thead><tbody>
+    <tr><td>AS-IS Sound</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td></tr>
+    <tr><td>TO-BE Sound</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td><td class="green">✓</td></tr>
+  </tbody></table>
+  <blockquote class="ok"><strong>Kết luận:</strong> cả 10 mô hình AS-IS lẫn TO-BE đều SOUND theo 3 thuộc tính van der Aalst — nền tảng vững để đưa vào simulation &amp; execution trên BPMS engine.</blockquote>
+</div></section>
+
 <!-- ================= 18. LỘ TRÌNH TRIỂN KHAI ================= -->
 <section class="slide" id="s18"><div class="wrap">
   <p class="overline">Phần 6 — Kiểm chứng &amp; đề xuất</p>
@@ -670,6 +721,27 @@
   </div>
 </div></section>
 
+<!-- ================= 20b. RACI ================= -->
+<section class="slide" id="s20b"><div class="wrap">
+  <p class="overline">Phần 6 — Kiểm chứng &amp; đề xuất</p>
+  <h2>6.2b Ma trận RACI — 13 hoạt động chính</h2>
+  <table><thead><tr><th>Hoạt động</th><th>Buyer</th><th>Seller</th><th>Lazada System</th><th>LEX/3PL</th><th>CSKH</th><th>Finance</th></tr></thead><tbody>
+    <tr><td>Onboarding Seller (01)</td><td>I</td><td><b>R</b></td><td><b>A / C</b></td><td>I</td><td>C</td><td>I</td></tr>
+    <tr><td>Đặt hàng &amp; Thanh toán (03)</td><td><b>R</b></td><td>I</td><td><b>A / C</b></td><td>I</td><td>I</td><td>C</td></tr>
+    <tr><td>Xác nhận &amp; Đóng gói (03)</td><td>I</td><td><b>R / A</b></td><td>C</td><td>I</td><td>I</td><td>I</td></tr>
+    <tr><td>Gom hàng &amp; Vận chuyển (09)</td><td>I</td><td>I</td><td>C</td><td><b>R / A</b></td><td>I</td><td>I</td></tr>
+    <tr><td>Giao chặng cuối &amp; COD (09)</td><td>C</td><td>I</td><td>I</td><td><b>R / A</b></td><td>I</td><td>C</td></tr>
+    <tr><td>Trả hàng &amp; Hoàn tiền (04)</td><td><b>R</b></td><td>C</td><td><b>A</b></td><td>C</td><td><b>R</b></td><td>C</td></tr>
+    <tr><td>Giải ngân Ví Seller (08)</td><td>I</td><td>I</td><td><b>A</b></td><td>I</td><td>I</td><td><b>R</b></td></tr>
+    <tr><td>Xử lý tranh chấp (02)</td><td><b>R</b></td><td><b>R</b></td><td><b>A</b></td><td>C</td><td><b>R</b></td><td>C</td></tr>
+    <tr><td>CSKH (05)</td><td><b>R</b></td><td>C</td><td><b>A</b></td><td>I</td><td><b>R</b></td><td>I</td></tr>
+    <tr><td>Marketing &amp; KM (06)</td><td>C</td><td>C</td><td><b>A / R</b></td><td>I</td><td>C</td><td>C</td></tr>
+    <tr><td>LMS &amp; Đào tạo (07)</td><td>I</td><td><b>R</b></td><td><b>A / R</b></td><td>I</td><td>I</td><td>C</td></tr>
+    <tr><td>Vận hành CNTT (10)</td><td>I</td><td>I</td><td><b>A / R</b></td><td>C</td><td>C</td><td>C</td></tr>
+  </tbody></table>
+  <blockquote><b>R</b> = Thực hiện • <b>A</b> = Chịu trách nhiệm chính • <b>C</b> = Tham vấn • <b>I</b> = Được thông báo — Lazada System đóng vai trò <b>A / R</b> ở phần lớn hoạt động &amp; cho thấy mức độ tập trung hạ tầng của nền tảng.</blockquote>
+</div></section>
+
 <!-- ================= 21. PHỤ LỤC BPMN ================= -->
 <section class="slide" id="s21"><div class="wrap">
   <p class="overline">Phụ lục</p>
@@ -687,6 +759,25 @@
     <button type="button" data-full="../docs/screenshots/10-it-platform-asis.png" data-cap="10 — IT AS-IS"><img src="../docs/screenshots/10-it-platform-asis.png" alt="10 AS-IS" loading="lazy"><span>10 IT Ops</span></button>
   </div>
   <p class="foot">Bấm bất kỳ sơ đồ nào để phóng to, cuộn chuột để zoom, kéo để di chuyển. File gốc: <b>processes/*.bpmn</b> • Ảnh: <b>docs/screenshots/</b></p>
+</div></section>
+
+<!-- ================= 21b. PHỤ LỤC TO-BE ================= -->
+<section class="slide" id="s21b"><div class="wrap">
+  <p class="overline">Phụ lục</p>
+  <h2>Phụ lục B — Toàn bộ BPMN TO-BE (10 sơ đồ)</h2>
+  <div class="thumb-grid" id="tobeGridB">
+    <button type="button" data-full="../docs/screenshots/03-order-processing-tobe.png" data-cap="03 — Order TO-BE"><img src="../docs/screenshots/03-order-processing-tobe.png" alt="03 Order TO-BE" loading="lazy"><span>03 Order ★</span></button>
+    <button type="button" data-full="../docs/screenshots/04-return-refund-tobe.png" data-cap="04 — Return TO-BE"><img src="../docs/screenshots/04-return-refund-tobe.png" alt="04 Return TO-BE" loading="lazy"><span>04 Return ★</span></button>
+    <button type="button" data-full="../docs/screenshots/01-seller-management-tobe.png" data-cap="01 — Seller TO-BE"><img src="../docs/screenshots/01-seller-management-tobe.png" alt="01 Seller TO-BE" loading="lazy"><span>01 Seller</span></button>
+    <button type="button" data-full="../docs/screenshots/02-dispute-management-tobe.png" data-cap="02 — Dispute TO-BE"><img src="../docs/screenshots/02-dispute-management-tobe.png" alt="02 Dispute TO-BE" loading="lazy"><span>02 Dispute</span></button>
+    <button type="button" data-full="../docs/screenshots/05-customer-service-tobe.png" data-cap="05 — CSKH TO-BE"><img src="../docs/screenshots/05-customer-service-tobe.png" alt="05 CSKH TO-BE" loading="lazy"><span>05 CSKH</span></button>
+    <button type="button" data-full="../docs/screenshots/06-marketing-tobe.png" data-cap="06 — Marketing TO-BE"><img src="../docs/screenshots/06-marketing-tobe.png" alt="06 Marketing TO-BE" loading="lazy"><span>06 Marketing</span></button>
+    <button type="button" data-full="../docs/screenshots/07-hr-training-tobe.png" data-cap="07 — HR &amp; Training TO-BE"><img src="../docs/screenshots/07-hr-training-tobe.png" alt="07 HR TO-BE" loading="lazy"><span>07 HR &amp; ĐT</span></button>
+    <button type="button" data-full="../docs/screenshots/08-payment-settlement-tobe.png" data-cap="08 — Payment TO-BE"><img src="../docs/screenshots/08-payment-settlement-tobe.png" alt="08 Payment TO-BE" loading="lazy"><span>08 Payment</span></button>
+    <button type="button" data-full="../docs/screenshots/09-logistics-delivery-tobe.png" data-cap="09 — Logistics TO-BE"><img src="../docs/screenshots/09-logistics-delivery-tobe.png" alt="09 Logistics TO-BE" loading="lazy"><span>09 Logistics</span></button>
+    <button type="button" data-full="../docs/screenshots/10-it-platform-tobe.png" data-cap="10 — IT TO-BE"><img src="../docs/screenshots/10-it-platform-tobe.png" alt="10 IT TO-BE" loading="lazy"><span>10 IT Ops</span></button>
+  </div>
+  <p class="foot">Bấm bất kỳ sơ đồ nào để phóng to, cuộn chuột để zoom, kéo để di chuyển. File gốc: <b>processes-to-be/*.bpmn</b> • Đối chiếu cải tiến: slide 5.1 &amp; 5.2</p>
 </div></section>
 
 <!-- ================= 22. CẢM ƠN ================= -->
@@ -863,7 +954,7 @@
       b.addEventListener('click', function(ev){ ev.stopPropagation(); lb.show(b.getAttribute('data-full'), b.getAttribute('data-cap')||''); });
     });
   }
-  bindGrid('#tobeGrid'); bindGrid('#asisGrid'); bindGrid('#paretoGrid');
+  bindGrid('#tobeGrid'); bindGrid('#asisGrid'); bindGrid('#paretoGrid'); bindGrid('#tobeGridB');
   Array.prototype.forEach.call(document.querySelectorAll('.pareto-grid img[data-zoom]'), function(im){
     im.addEventListener('click', function(ev){ ev.stopPropagation(); lb.show(im.currentSrc||im.src, im.alt); });
   });
