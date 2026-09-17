@@ -119,8 +119,10 @@ lazada-ba-project/
 │   └── build_docx_std.py              ← Script build .docx (python-docx) — DOAN-LAZADA-UIT.docx tại thư mục gốc
 │
 ├── presentation/
-│   ├── slides.md                      ← Presentation Marp (20 slides)
-│   └── slides.html                    ← HTML deck (20 slides, tự trình chiếu được)
+│   ├── slides.md                      ← Presentation Marp (27 slides)
+│   ├── slides.html                    ← HTML deck (27 slides, tự trình chiếu được)
+│   ├── SCRIPT.md                      ← Kịch bản thuyết trình (Markdown gốc)
+│   └── SCRIPT.html                    ← Kịch bản thuyết trình (HTML đẹp, điều hướng 27 slides)
 │
 ├── appendix/
 │   ├── interview-questions.md         ← Bộ câu hỏi phỏng vấn chuẩn
