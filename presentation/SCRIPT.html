@@ -58,6 +58,26 @@ body{
 a{color:var(--accent-deep)}
 a:hover{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+/* ============ GLOSS ============ */
+.gloss{
+  display:inline-block; margin:0 .12em; padding:.04em .5em; border-radius:6px;
+  background:var(--surface2); border:1px solid var(--line);
+  color:var(--accent); font-size:.82em; font-weight:700;
+  cursor:help; -webkit-user-select:none; user-select:none;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+.gloss:hover,.gloss:focus-visible{background:var(--accent); border-color:var(--accent); color:#fff; outline:none}
+.gloss-tip{
+  display:none; margin:.55em 0 .65em; padding:.55em .95em;
+  background:var(--surface); border:1px dashed var(--accent); border-radius:10px;
+  font-size:.85em; line-height:1.65; color:var(--ink);
+  box-shadow:var(--shadow);
+}
+.gloss-tip.show{display:block}
+.gloss-tip b{color:var(--accent-deep)}
+.chip-gloss-demo{background:var(--surface2); border:1px solid var(--line); color:var(--accent); font-weight:700; padding:.02em .45em; border-radius:6px} /* mini copy of .gloss for the lede */
+@media (max-width:600px){ .gloss{padding:.02em .4em; font-size:.8em} }
 ::selection{background:var(--yellow); color:var(--ink)}
 /* ============ PROGRESS BAR ============ */
 #progress{position:fixed; inset:0 0 auto 0; height:4px; background:transparent; z-index:60}
@@ -241,6 +261,15 @@ footer{
 }
 footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
 /* ============ PAGER ============ */
+.glossary{margin-top:18px; border:1px solid var(--line); border-radius:12px; background:var(--surface); overflow:hidden}
+.glossary summary{cursor:pointer; padding:10px 14px; font-weight:700; color:var(--accent-deep); list-style:none; user-select:none}
+.glossary summary::-webkit-details-marker{display:none}
+.glossary summary::after{content:" ▾"; color:var(--soft)}
+.glossary[open] summary{border-bottom:1px solid var(--line)}
+.glossary dl{margin:0; padding:10px 14px 12px; display:grid; grid-template-columns:max-content minmax(0,1fr); gap:6px 16px}
+.glossary dt{font-weight:800; color:var(--accent-deep); white-space:nowrap}
+.glossary dd{margin:0; color:var(--soft)}
+@media (max-width:600px){ .glossary dl{grid-template-columns:1fr; gap:2px 0} .glossary dd{margin-bottom:8px} }
 .pagerNav{position:fixed; right:20px; bottom:20px; z-index:50; display:flex; align-items:center; gap:8px}
 .pagerNav button{
   width:48px; height:48px; border-radius:14px; border:1px solid var(--line);
@@ -288,6 +317,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
   </div>
   <div class="tools">
     <a class="btn ghost" href="slides.html" target="_blank" rel="noopener">📊 Mở bộ slide</a>
+    <button type="button" id="glossToggle" class="theme-btn" aria-label="Bật / tắt chú thích thuật ngữ" title="Bật / tắt chú thích thuật ngữ">💡</button>
     <div class="tools zoom-group" style="gap:4px">
       <button type="button" id="zoomOut" aria-label="Giảm cỡ chữ">A−</button>
       <button type="button" id="zoomIn" aria-label="Tăng cỡ chữ">A+</button>
@@ -343,7 +373,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
     <section class="masthead">
       <span class="eyebrow">🎤 Kịch bản đọc theo từng slide</span>
       <h1>Kịch bản <em>thuyết trình</em> — 27 slides</h1>
-      <p class="lede">Bản script đầy đủ để đọc theo từng slide của đồ án <b>IE203 — Phân tích Hệ thống Quy trình Nghiệp vụ Lazada Việt Nam</b>: BPMN 2.0 (10 AS-IS + 10 TO-BE), kiểm chứng Petri Net 20/20, VA/BVA/NVA, Pareto 80/20 và ROI toàn bộ 10 quy trình. Mỗi slide có thời gian gợi ý, người nói và các hành động chỉ dẫn (👉) để thao tác đúng lúc.</p>
+      <p class="lede">Bản script đầy đủ để đọc theo từng slide của đồ án <b>IE203 — Phân tích Hệ thống Quy trình Nghiệp vụ Lazada Việt Nam</b>: BPMN 2.0 (10 AS-IS + 10 TO-BE), kiểm chứng Petri Net 20/20, VA/BVA/NVA, Pareto 80/20 và ROI<span class="gloss" tabindex="0" aria-label="Giải thích ROI" data-g="ROI">?</span><span class="gloss-tip"><b>ROI</b> — Return on Investment: lợi ích đạt được so với chi phí bỏ ra; ROI cao = đầu tư đáng giá.</span> toàn bộ 10 quy trình. Mỗi slide có thời gian gợi ý, người nói và các hành động chỉ dẫn (👉) để thao tác đúng lúc.</p>
       <div class="meta">
         <span class="chip">⏱ 20–25 phút trình bày + 10 phút Q&amp;A</span>
         <span class="chip">👥 Trần Quốc Khánh — 24730254</span>
@@ -354,7 +384,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
         <a href="slides.html" target="_blank" rel="noopener">📊 Mở bộ slide trình bày</a>
         <a class="alt" href="SCRIPT.md" target="_blank" rel="noopener">📄 Bản gốc Markdown</a>
       </div>
-      <p class="lede">💡 <b>Cách dùng:</b> đọc phần chữ to màu cam — đó là lời nói; phần “👉 Chỉ vào…” là hành động. Dùng thanh trái để nhảy nhanh đến slide bất kỳ, phím <b>← / →</b> để qua slide trước/sau, nút <b>A− / A+</b> để chỉnh cỡ chữ.</p>
+      <p class="lede">💡 <b>Cách dùng:</b> đọc phần chữ to màu cam — đó là lời nói; phần “👉 Chỉ vào…” là hành động. Các thuật ngữ kỹ thuật có <span class="chip-gloss-demo">nút cam</span> ngay bên cạnh — rê chuột (hoặc chạm) vào để xem giải thích gọn; bấm nút <b>💡</b> trên thanh công cụ để hiện toàn bộ chú thích một lượt. Dùng thanh trái để nhảy nhanh đến slide bất kỳ, phím <b>← / →</b> để qua slide trước/sau, nút <b>A− / A+</b> để chỉnh cỡ chữ.</p>
     </section>
 
     <!-- ============ STRUCTURE ============ -->
@@ -397,7 +427,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
       </div>
       <div class="speech">
         <p>“Xin chào thầy và các bạn! Hôm nay nhóm em trình bày đồ án cuối kỳ môn IE203 — <strong>Phân tích Hệ thống Quy trình Nghiệp vụ của Công ty Thương mại điện tử Lazada Việt Nam</strong>.</p>
-        <p>Nhóm em gồm 2 thành viên: <strong>Trần Quốc Khánh — MSSV 24730254</strong>, và <strong>Nguyễn Lưu Nhật Minh — MSSV 23730190</strong>. Trong báo cáo này, chúng em sử dụng chuẩn <strong>BPMN 2.0</strong> để mô hình hóa 10 quy trình AS-IS và 10 TO-BE, kết hợp kiểm chứng <strong>Petri Net</strong>, phân tích <strong>VA/BVA/NVA</strong>, và biểu đồ <strong>Pareto 80/20</strong>.”</p>
+        <p>Nhóm em gồm 2 thành viên: <strong>Trần Quốc Khánh — MSSV 24730254</strong>, và <strong>Nguyễn Lưu Nhật Minh — MSSV 23730190</strong>. Trong báo cáo này, chúng em sử dụng chuẩn <strong>BPMN 2.0</strong><span class="gloss" tabindex="0" aria-label="Giải thích BPMN 2.0" data-g="BPMN">?</span><span class="gloss-tip"><b>BPMN 2.0</b> — chuẩn vẽ sơ đồ quy trình nghiệp vụ (Business Process Model and Notation): mỗi bước là một <i>task</i> (hình chữ nhật), mỗi quyết định là một <i>gateway</i> (hình thoi).</span> để mô hình hóa 10 quy trình AS-IS và 10 TO-BE<span class="gloss" tabindex="0" aria-label="Giải thích AS-IS TO-BE" data-g="ASIS">?</span><span class="gloss-tip"><b>AS-IS / TO-BE</b> — <i>AS-IS</i>: quy trình hiện tại (như đang vận hành). <i>TO-BE</i>: quy trình tương lai sau cải tiến.</span>, kết hợp kiểm chứng <strong>Petri Net</strong><span class="gloss" tabindex="0" aria-label="Giải thích Petri Net" data-g="Petri">?</span><span class="gloss-tip"><b>Petri Net</b> — mô hình toán học dùng "token" di chuyển giữa các vị trí để mô phỏng dòng chảy của quy trình; dùng để kiểm tra quy trình có kẹt (deadlock) hay có bước không bao giờ chạy tới được không.</span>, phân tích <strong>VA/BVA/NVA</strong><span class="gloss" tabindex="0" aria-label="Giải thích VA BVA NVA" data-g="VABVA">?</span><span class="gloss-tip"><b>VA / BVA / NVA</b> — phân loại từng bước: <i>VA</i> (Value-Added): tạo giá trị khách sẵn lòng trả; <i>BVA</i> (Business Value-Added): cần cho vận hành nhưng không tạo giá trị trực tiếp; <i>NVA</i> (Non-Value-Added): thuần lãng phí, nên loại bỏ.</span>, và biểu đồ <strong>Pareto 80/20</strong><span class="gloss" tabindex="0" aria-label="Giải thích Pareto" data-g="Pareto">?</span><span class="gloss-tip"><b>Pareto 80/20</b> — nguyên tắc "80% kết quả đến từ 20% nguyên nhân": tập trung xử lý vài nguyên nhân lớn nhất sẽ thu được phần lớn hiệu quả.</span>.”</p>
       </div>
     </article>
 
@@ -420,7 +450,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
           <li>Kết luận và hướng phát triển</li>
         </ol>
         <p>Trong 10 quy trình đã mô hình hóa, nhóm em tập trung phân tích sâu <strong>4 quy trình trọng điểm</strong> — có ký hiệu <strong>★</strong> trên slides.”</p>
-        <p class="cue">Chỉ vào KPI: 20 file BPMN, 181 tasks / 152 gateways AS-IS, 10/10 SOUND, và ~590 tỷ VND chi phí lãng phí mỗi tháng.</p>
+        <p class="cue">Chỉ vào KPI<span class="gloss" tabindex="0" aria-label="Giải thích KPI" data-g="KPI">?</span><span class="gloss-tip"><b>KPI</b> — Key Performance Indicator: chỉ số đo lường hiệu quả (ví dụ: thời gian giao hàng, tỷ lệ giao thành công).</span>: 20 file BPMN, 181 tasks / 152 gateways AS-IS, 10/10 SOUND, và ~590 tỷ VND chi phí lãng phí mỗi tháng.</p>
       </div>
     </article>
 
@@ -435,7 +465,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
       </div>
       <div class="speech">
         <p>“Lazada được thành lập năm <strong>2012</strong> tại Singapore bởi Rocket Internet. Năm <strong>2016</strong>, Alibaba mua lại với tổng vốn rót khoảng <strong>4,2 tỷ USD</strong> cho đến 2022.</p>
-        <p>Mô hình kinh doanh chủ yếu là <strong>Marketplace</strong> — cho phép seller bên thứ ba bán hàng. <strong>LazMall</strong> là gian hàng chính hãng 100%, giống Amazon Prime — đóng vai trò “Thương mại niềm tin”.</p>
+        <p>Mô hình kinh doanh chủ yếu là <strong>Marketplace</strong><span class="gloss" tabindex="0" aria-label="Giải thích marketplace" data-g="Market">?</span><span class="gloss-tip"><b>Marketplace</b> — sàn thương mại điện tử: Lazada không tự bán, mà cho hàng nghìn seller bên thứ ba mở gian hàng bán trên nền tảng của mình.</span> — cho phép seller bên thứ ba bán hàng. <strong>LazMall</strong> là gian hàng chính hãng 100%, giống Amazon Prime — đóng vai trò “Thương mại niềm tin”.</p>
         <p>Đơn vị tại Việt Nam là <strong>Công ty TNHH Recess</strong>, thuộc Top 3 sàn TMĐT, thị phần ước tính 10–12%.”</p>
         <p class="cue">Chỉ vào KPI đặc điểm kinh doanh:</p>
         <ul>
@@ -478,7 +508,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
           <li>Marketing &amp; Khuyến mãi (06)</li>
           <li>Vận hành Nền tảng CNTT (10)</li>
         </ul>
-        <p>Tổng cộng <strong>181 tasks</strong>, <strong>152 gateways</strong>. Mọi mô hình đều được xác thực soundness — <strong>10/10 đạt SOUND</strong> (kết quả xanh).”</p>
+        <p>Tổng cộng <strong>181 tasks</strong><span class="gloss" tabindex="0" aria-label="Giải thích task" data-g="Task">?</span><span class="gloss-tip"><b>Task</b> — một bước công việc đơn lẻ trong quy trình (vd: "Xác nhận đơn hàng").</span>, <strong>152 gateways</strong><span class="gloss" tabindex="0" aria-label="Giải thích gateway" data-g="Gateway">?</span><span class="gloss-tip"><b>Gateway</b> — điểm rẽ nhánh trong quy trình, nơi luồng phải chọn một trong nhiều đường đi (vd: "Đơn ≥ 500K?").</span>. Mọi mô hình đều được xác thực soundness — <strong>10/10 đạt SOUND</strong><span class="gloss" tabindex="0" aria-label="Giải thích SOUND" data-g="Sound">?</span><span class="gloss-tip"><b>SOUND</b> (tính âm thanh) — quy trình "lành mạnh": luôn có đường chạy tới bước kết thúc, không kẹt, và bước nào cũng có ích. Đây là tiêu chuẩn kiểm chứng của van der Aalst.</span> (kết quả xanh).”</p>
       </div>
     </article>
 
@@ -510,7 +540,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
           <li><strong>Desk Research:</strong> phân tích tài liệu từ Seller Center, Help Center, Lazada University, và báo cáo thị trường</li>
           <li><strong>Process Mapping:</strong> vẽ 20 sơ đồ BPMN 2.0 — 10 AS-IS + 10 TO-BE</li>
           <li><strong>VA / BVA / NVA:</strong> phân loại 181 tasks theo giá trị gia tăng</li>
-          <li><strong>Root Cause Analysis:</strong> Fishbone Diagram + 5-Why cho các pain point chính</li>
+          <li><strong>Root Cause Analysis:</strong> Fishbone Diagram<span class="gloss" tabindex="0" aria-label="Giải thích Fishbone" data-g="Fish">?</span><span class="gloss-tip"><b>Fishbone (xương cá)</b> — sơ đồ Ishikawa nhóm các nguyên nhân tiềm ẩn của một vấn đề theo nhiều nhánh (con người, quy trình, hệ thống…).</span> + 5-Why<span class="gloss" tabindex="0" aria-label="Giải thích 5-Why" data-g="5Why">?</span><span class="gloss-tip"><b>5-Why</b> — hỏi liên tục "Tại sao?" khoảng 5 lần để khoan từ triệu chứng xuống tận nguyên nhân gốc.</span> cho các pain point chính</li>
           <li><strong>Interview:</strong> phỏng vấn 10 nhân sự nội bộ qua forum seller, review buyer, và analyst report</li>
           <li><strong>Benchmarking:</strong> so sánh với Shopee, TikTok Shop, Tiki và chuẩn quốc tế</li>
         </ul>
@@ -538,7 +568,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
           <li>Q5: Cycle time đơn hàng? → AS-IS 103h → TO-BE 18h</li>
           <li>Q6: Tỷ lệ VA/BVA/NVA? → VA 46%, BVA 39%, NVA 15%</li>
           <li>Q7: Chi phí lãng phí hàng tháng? → ~590 tỷ/tháng theo Pareto</li>
-          <li>Q8: Soundness Petri Net? → 100% bounded, Option to Complete</li>
+          <li>Q8: Soundness Petri Net? → 100% bounded<span class="gloss" tabindex="0" aria-label="Giải thích bounded" data-g="Bounded">?</span><span class="gloss-tip"><b>Bounded</b> — số "token" trong mô hình không tăng vô hạn, nghĩa là quy trình không "phát nổ" về số trạng thái; đây là điều kiện để mô hình ổn định.</span>, Option to Complete<span class="gloss" tabindex="0" aria-label="Giải thích Option to Complete" data-g="OptComp">?</span><span class="gloss-tip"><b>Option to Complete</b> — luôn có cách đi tiếp tới bước kết thúc: quy trình không bao giờ bị kẹt ("bế tắc") giữa chừng.</span></li>
         </ul>
         <p>Mỗi câu hỏi sẽ được trả lời trong Phần 4 và Phần 5.”</p>
       </div>
@@ -566,7 +596,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
       </div>
       <div class="speech">
         <p>“Quy trình Đơn hàng Online là quy trình lớn nhất — <strong>26 Tasks, 17 Gateways, 5 Lanes</strong>.</p>
-        <p><strong>Root Cause COD Failure 20–25%:</strong> Buyer vắng nhà khi shipper đến → không báo trước giờ giao → shipper không gọi trước → 3PL không bắt buộc pre-contact. <strong>Root Cause thực sự:</strong> KPI lệch — KPI chỉ đo speed delivery, không đo first-attempt success rate.”</p>
+        <p><strong>Root Cause COD Failure 20–25%:</strong> Buyer vắng nhà khi shipper đến → không báo trước giờ giao → shipper không gọi trước → 3PL<span class="gloss" tabindex="0" aria-label="Giải thích 3PL" data-g="3PL">?</span><span class="gloss-tip"><b>3PL</b> — Third-Party Logistics: bên thứ ba lo việc vận chuyển/ kho vận thay cho sàn (vd: J&amp;T, GHTK, hoặc LEX — đội giao hàng riêng của Lazada).</span> không bắt buộc pre-contact.<span class="gloss" tabindex="0" aria-label="Giải thích pre-contact" data-g="PreContact">?</span><span class="gloss-tip"><b>Pre-contact</b> — gọi điện báo trước cho khách trước khi giao hàng.</span> <strong>Root Cause thực sự:</strong> KPI lệch — KPI chỉ đo speed delivery, không đo first-attempt success rate<span class="gloss" tabindex="0" aria-label="Giải thích first-attempt" data-g="FirstAttempt">?</span><span class="gloss-tip"><b>First-attempt success rate</b> — tỷ lệ giao thành công ngay lần giao đầu tiên; thước đo này quan trọng hơn tốc độ giao.</span>.”</p>
         <p class="cue">Chỉ vào bảng Bottleneck &amp; Cycle Time:</p>
         <ul>
           <li>Seller confirm mất 24–48h — quá chậm</li>
@@ -574,8 +604,8 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
           <li>COD fail cộng thêm 1–2 ngày</li>
           <li>Settlement L+2 = 2 ngày chờ thêm</li>
         </ul>
-        <p>Cycle time tổng cộng <strong>103,41h (~4,3 ngày)</strong> — trong đó PTE (Processing Time Effective) chỉ chiếm <strong>1,77%</strong>, còn lại 98,23% là thời gian chờ — lãng phí lớn.”</p>
-        <p class="cue">Chỉ vào sơ đồ BPMN: Tab TO-BE để xem cải tiến.</p>
+        <p>Cycle time<span class="gloss" tabindex="0" aria-label="Giải thích cycle time" data-g="Cycle">?</span><span class="gloss-tip"><b>Cycle Time</b> — tổng thời gian từ lúc quy trình bắt đầu đến khi kết thúc (gồm cả thời gian chờ).</span> tổng cộng <strong>103,41h (~4,3 ngày)</strong> — trong đó PTE (Processing Time Effective)<span class="gloss" tabindex="0" aria-label="Giải thích PTE" data-g="PTE">?</span><span class="gloss-tip"><b>PTE — Processing Time Effective</b>: thời gian thực sự làm việc; phần còn lại của cycle time là thời gian chờ (không tạo giá trị).</span> chỉ chiếm <strong>1,77%</strong>, còn lại 98,23% là thời gian chờ — lãng phí lớn.”</p>
+        <p class="cue">Chỉ vào sơ đồ BPMN<span class="gloss" tabindex="0" aria-label="Giải thích BPMN" data-g="BPMN">?</span><span class="gloss-tip"><b>BPMN</b> — sơ đồ quy trình nghiệp vụ chuẩn quốc tế: nét liền là luồng đi của đơn hàng, các ô là bước thực hiện, hình thoi là điểm rẽ.</span>: Tab TO-BE để xem cải tiến.</p>
       </div>
     </article>
 
@@ -588,13 +618,13 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
       <div class="speech">
         <p>“TO-BE cải tiến 5 điểm chính:</p>
         <ol>
-          <li><strong>Auto-accept sau 2h + SLA penalty</strong> — seller không confirm thì hệ thống tự chấp nhận</li>
+          <li><strong>Auto-accept sau 2h + SLA penalty</strong><span class="gloss" tabindex="0" aria-label="Giải thích SLA" data-g="SLA">?</span><span class="gloss-tip"><b>SLA</b> — Service Level Agreement: cam kết thời gian xử lý tối đa; vi phạm sẽ chịu phạt (vd: seller phải xác nhận đơn trong 2h).</span> — seller không confirm thì hệ thống tự chấp nhận</li>
           <li><strong>API auto-sync tracking</strong> — bỏ nhập tay, giảm 90% thao tác thủ công</li>
           <li><strong>Shipping label QR</strong> thay giấy — tiết kiệm chi phí in ấn</li>
           <li><strong>Pre-delivery contact + time slot bắt buộc</strong> — gọi trước 30 phút, giảm COD failure</li>
-          <li><strong>Smart notification</strong> — Push trước, SMS chỉ cho COD</li>
+          <li><strong>Smart notification</strong><span class="gloss" tabindex="0" aria-label="Giải thích smart notification" data-g="SmartNotif">?</span><span class="gloss-tip"><b>Smart notification</b> — thông báo thông minh theo loại đơn: gửi push cho đơn đã thanh toán online, gửi SMS cho đơn COD phải giao tiền mặt.</span> — Push trước, SMS chỉ cho COD</li>
         </ol>
-        <p>Kết quả: Cycle time giảm <strong>26%</strong> (103h → ~3,2 ngày); Failed delivery giảm <strong>64%</strong> (20–25% → 8%); COD refusal giảm <strong>12pp</strong> (15–20% → 8%); First-attempt tăng <strong>12pp</strong> (75–80% → 92%).”</p>
+        <p>Kết quả: Cycle time giảm <strong>26%</strong> (103h → ~3,2 ngày); Failed delivery giảm <strong>64%</strong> (20–25% → 8%); COD refusal giảm <strong>12pp</strong> (15–20% → 8%); First-attempt<span class="gloss" tabindex="0" aria-label="Giải thích first-attempt" data-g="FirstAttempt2">?</span><span class="gloss-tip"><b>First-attempt delivery</b> — giao thành công ngay lần đầu, không phải giao lại.</span> tăng <strong>12pp</strong> (75–80% → 92%).”</p>
       </div>
     </article>
 
@@ -607,9 +637,9 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
       <div class="speech">
         <p>“Quy trình Hoàn trả — <strong>13 Tasks, 18 Gateways, 5 Lanes</strong>.</p>
         <p class="cue">Chỉ vào flow:</p>
-        <p>Buyer mở yêu cầu (7–15 ngày window) → Upload bằng chứng → Auto-approve hoặc Manual review → Seller phản hồi 48h → Đồng ý thì Pickup → Inspection 3–7 ngày → Pass: Refund; Fail: Reject.”</p>
+        <p>Buyer mở yêu cầu (7–15 ngày window) → Upload bằng chứng → Auto-approve hoặc Manual review → Seller phản hồi 48h → Đồng ý thì Pickup → Inspection 3–7 ngày → Pass: Refund<span class="gloss" tabindex="0" aria-label="Giải thích refund" data-g="Refund">?</span><span class="gloss-tip"><b>Refund</b> — hoàn tiền lại cho người mua sau khi hàng trả về được xác nhận.</span>; Fail: Reject.”</p>
         <p class="cue">Chỉ vào bảng VA/BVA/NVA:</p>
-        <p>VA 46% — gửi yêu cầu, upload, đặt lịch pickup, LEX pickup. BVA 39% — CS thẩm định, kiểm tra hợp lệ, AI phân loại. <strong>NVA 15%</strong> — kiểm định kho tay và kích hoạt hoàn tiền tay — đây là 2 bước TO-BE sẽ tự động hóa, đưa NVA về gần 0%.”</p>
+        <p>VA 46% — gửi yêu cầu, upload, đặt lịch pickup, LEX pickup<span class="gloss" tabindex="0" aria-label="Giải thích LEX" data-g="LEX">?</span><span class="gloss-tip"><b>LEX</b> — Lazada Express: mạng giao nhận riêng của Lazada (đội shipper + kho của sàn).</span>. BVA 39% — CS thẩm định, kiểm tra hợp lệ, AI phân loại. <strong>NVA 15%</strong> — kiểm định kho tay và kích hoạt hoàn tiền tay — đây là 2 bước TO-BE sẽ tự động hóa, đưa NVA về gần 0%.”</p>
       </div>
     </article>
 
@@ -629,7 +659,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
         </ul>
         <p class="cue">Chỉ vào unit economics:</p>
         <p>CS Staff handling: <strong>52.000 VNĐ/ca</strong>. Reverse logistics + kho: <strong>57.000 VNĐ</strong>. Tổng: <strong>109.000 VNĐ/return</strong>. Volume ~1,1 triệu return/tháng = <strong>~120 tỷ/tháng</strong>.”</p>
-        <p>Bottleneck chính: Inspection 3–7 ngày, COD refund chỉ về Wallet không tiền mặt, return abuse.”</p>
+        <p>Bottleneck<span class="gloss" tabindex="0" aria-label="Giải thích bottleneck" data-g="Bottleneck">?</span><span class="gloss-tip"><b>Bottleneck</b> — nút thắt cổ chai: bước chậm nhất làm cả quy trình chậm theo, như kiểm định hàng mất 3–7 ngày.</span> chính: Inspection 3–7 ngày, COD refund chỉ về Wallet không tiền mặt, return abuse<span class="gloss" tabindex="0" aria-label="Giải thích abuse" data-g="Abuse">?</span><span class="gloss-tip"><b>Return abuse</b> — lạm dụng chính sách hoàn trả: khách trả hàng nhiều lần dù biết hàng vẫn ổn, hoặc cố tình trục lợi hoàn tiền.</span>.”</p>
       </div>
     </article>
 
@@ -642,12 +672,12 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
       <div class="speech">
         <p>“TO-BE cải tiến 4 điểm:</p>
         <ol>
-          <li><strong>Instant Refund:</strong> đơn &lt;200K + shop uy tín → refund ngay không chờ kiểm định</li>
+          <li><strong>Instant Refund:</strong><span class="gloss" tabindex="0" aria-label="Giải thích instant refund" data-g="InstRef">?</span><span class="gloss-tip"><b>Instant Refund</b> — hoàn tiền ngay lập tức khi đơn đủ điều kiện (giá trị nhỏ + shop uy tín), không cần chờ kiểm định kho.</span> đơn &lt;200K + shop uy tín → refund ngay không chờ kiểm định</li>
           <li><strong>AI evidence triage:</strong> giảm 70% manual review</li>
           <li><strong>SLA mới:</strong> inspection 12h → 2h; refund ≤24h</li>
           <li><strong>Self-service label</strong> + scheduled pickup với retry</li>
         </ol>
-        <p>Kết quả: Hoàn tiền giảm <strong>78,8%</strong> (8,5 → 1,8 ngày); Kiểm định kho giảm <strong>75%</strong> (8h → 2h); Chi phí CS giảm <strong>65,4%</strong> (52.000đ → 18.000đ); CSAT cải thiện <strong>40,6%</strong> (3,2 → 4,5/5); BPMN: 13T/18GW → 16T/9GW, 2 NVA được tự động hóa.”</p>
+        <p>Kết quả: Hoàn tiền giảm <strong>78,8%</strong> (8,5 → 1,8 ngày); Kiểm định kho giảm <strong>75%</strong> (8h → 2h); Chi phí CS giảm <strong>65,4%</strong> (52.000đ → 18.000đ); CSAT<span class="gloss" tabindex="0" aria-label="Giải thích CSAT" data-g="CSAT">?</span><span class="gloss-tip"><b>CSAT</b> — Customer Satisfaction Score: điểm hài lòng khách hàng (thang 1–5).</span> cải thiện <strong>40,6%</strong> (3,2 → 4,5/5); BPMN: 13T/18GW → 16T/9GW, 2 NVA được tự động hóa.”</p>
       </div>
     </article>
 
@@ -692,8 +722,8 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
         </ul>
         <p class="cue">Chỉ vào bảng ROI từng quy trình:</p>
         <ul>
-          <li><strong>Đơn hàng ★:</strong> đầu tư 5,1 tỷ → payback chỉ 0,4 tháng — quy trình có ROI cao nhất vì mọi đơn hàng đều đi qua</li>
-          <li><strong>Thanh toán ★:</strong> đầu tư 8,5 tỷ → payback ~21 ngày — COD discrepancy 2–3% → 0,5% cắt giảm ~153 tỷ/năm</li>
+          <li><strong>Đơn hàng ★:</strong> đầu tư 5,1 tỷ → payback<span class="gloss" tabindex="0" aria-label="Giải thích payback" data-g="Payback">?</span><span class="gloss-tip"><b>Payback</b> — thời gian hoàn vốn: số tháng để lợi ích thu được bù đắp đủ chi phí đầu tư ban đầu.</span> chỉ 0,4 tháng — quy trình có ROI cao nhất vì mọi đơn hàng đều đi qua</li>
+          <li><strong>Thanh toán ★:</strong> đầu tư 8,5 tỷ → payback ~21 ngày — COD discrepancy<span class="gloss" tabindex="0" aria-label="Giải thích discrepancy" data-g="Disc">?</span><span class="gloss-tip"><b>COD discrepancy</b> — sai lệch giữa tiền thu hộ thực tế và số tiền đối soát ghi nhận: shipper thu thiếu, thu sai → phải đối soát tay, mất công và tiền.</span> 2–3% → 0,5% cắt giảm ~153 tỷ/năm</li>
           <li><strong>Hoàn trả:</strong> 4,8 tỷ → 10 tháng cơ sở, ~24 tháng thận trọng</li>
           <li><strong>Tranh chấp:</strong> 4,7 tỷ → 4,5 năm — ROI chậm nhất do volume thấp, cần scale region-wide</li>
         </ul>
@@ -720,7 +750,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
           <li>P5 CSKH: AHT 79 phút → ~14 phút (-82%)</li>
           <li>P8 Thanh toán: COD discrepancy 2–3% → 0,5% (-75–83%)</li>
         </ul>
-        <p><strong>10/10 quy trình đều cải thiện định lượng rõ rệt.</strong> Toàn bộ số liệu được xác minh bởi verify-metrics (81/81 checks PASS).”</p>
+        <p><strong>10/10 quy trình đều cải thiện định lượng rõ rệt.</strong> Toàn bộ số liệu được xác minh bởi verify-metrics<span class="gloss" tabindex="0" aria-label="Giải thích verify-metrics" data-g="VM">?</span><span class="gloss-tip"><b>verify-metrics</b> — script kiểm tra tự động rà soát toàn bộ số liệu trong báo cáo (81 phép kiểm tra): đảm bảo các con số trên slide khớp nhau, không mâu thuẫn.</span> (81/81 checks PASS).”</p>
       </div>
     </article>
 
@@ -782,11 +812,11 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
         <p class="cue">Chỉ vào bảng 3 thuộc tính van der Aalst:</p>
         <ol>
           <li><strong>Option to Complete:</strong> luôn có nhánh đi tới cuối, không bị “bế tắc” giữa chừng — 20/20 PASS</li>
-          <li><strong>Proper Completion:</strong> kết thúc sạch, không token thừa — 20/20 PASS</li>
-          <li><strong>No Dead Transitions:</strong> mọi activity đều có thể được kích hoạt — 20/20 PASS</li>
+          <li><strong>Proper Completion:</strong><span class="gloss" tabindex="0" aria-label="Giải thích proper completion" data-g="PropComp">?</span><span class="gloss-tip"><b>Proper Completion</b> — khi quy trình kết thúc thì chỉ còn token ở bước cuối, không có token thừa nằm vương lại giữa quy trình (không "lạc" tiến trình).</span> kết thúc sạch, không token thừa — 20/20 PASS</li>
+          <li><strong>No Dead Transitions:</strong><span class="gloss" tabindex="0" aria-label="Giải thích dead transitions" data-g="DeadTrans">?</span><span class="gloss-tip"><b>Dead Transitions</b> — bước "chết": nằm trong mô hình nhưng không bao giờ được kích hoạt; một quy trình sound không được có bước chết.</span> mọi activity đều có thể được kích hoạt — 20/20 PASS</li>
         </ol>
         <p><strong>Kiểm tra bổ sung — Boundedness (cap = 4):</strong> không nơi nào chứa quá 4 token, đảm bảo model không “phát nổ” state-space — 20/20 PASS.</p>
-        <p>Kết luận: cả 10 AS-IS lẫn 10 TO-BE đều <strong>SOUND</strong> theo van der Aalst — đây là điều kiện cần để đưa vào simulation trên BPMS engine (Camunda).”</p>
+        <p>Kết luận: cả 10 AS-IS lẫn 10 TO-BE đều <strong>SOUND</strong> theo van der Aalst — đây là điều kiện cần để đưa vào simulation trên BPMS engine (Camunda<span class="gloss" tabindex="0" aria-label="Giải thích Camunda" data-g="Camunda">?</span><span class="gloss-tip"><b>Camunda</b> — phần mềm quản lý quy trình nghiệp vụ (BPMS) cho phép tải file .bpmn lên để "chạy thử" quy trình với dữ liệu thật.</span>).”</p>
       </div>
     </article>
 
@@ -871,7 +901,7 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
         <ol>
           <li>BPMS Engine: chạy 20 file .bpmn trên Camunda, simulation tải thực</li>
           <li>Phỏng vấn thực tế: seller, buyer, CS, logistics</li>
-          <li>Monte Carlo simulation cho Cycle Time &amp; chi phí</li>
+          <li>Monte Carlo simulation<span class="gloss" tabindex="0" aria-label="Giải thích Monte Carlo" data-g="Monte">?</span><span class="gloss-tip"><b>Monte Carlo</b> — kỹ thuật chạy mô phỏng hàng nghìn lần với biến ngẫu nhiên để ước lượng phạm vi kết quả (vd: cycle time có thể từ 16h đến 21h, trung bình ~18h).</span> cho Cycle Time &amp; chi phí</li>
           <li>AI realtime: risk-score giảm COD refusal; mở rộng Cross-border &amp; FBL</li>
         </ol>
       </div>
@@ -974,6 +1004,18 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
     <footer>
       <p>📅 Kịch bản tạo ngày 2026-09-17 — đối chiếu ground truth: <b>181/152</b> AS-IS tasks/gateways, <b>10/10</b> SOUND, ROI verify <b>43/43</b> PASS.</p>
       <p class="ground">Đồ án IE203 — Phân tích Hệ thống Quy trình Nghiệp vụ · Lazada Việt Nam · Trần Quốc Khánh &amp; Nguyễn Lưu Nhật Minh</p>
+      <details class="glossary">
+        <summary>📖 Bảng thuật ngữ nhanh — ôn lại trước khi thuyết trình</summary>
+        <dl>
+          <dt>ROI (Return on Investment)</dt><dd>lợi ích chia cho chi phí đầu tư; đo mức đáng giá của một đề xuất.</dd>
+          <dt>AOV (Average Order Value)</dt><dd>giá trị trung bình của mỗi đơn hàng (~200–350K VNĐ tại Lazada VN).</dd>
+          <dt>SLA (Service Level Agreement)</dt><dd>cam kết thời gian xử lý tối đa, vi phạm bị phạt (vd: seller xác nhận đơn trong 2h).</dd>
+          <dt>SKU (Stock Keeping Unit)</dt><dd>mã + đơn vị tồn kho của một sản phẩm cụ thể.</dd>
+          <dt>GMV (Gross Merchandise Value)</dt><dd>tổng giá trị hàng hóa giao dịch trên sàn trước phí và hoàn trả.</dd>
+          <dt>NPS (Net Promoter Score)</dt><dd>điểm đo mức sẵn lòng giới thiệu sàn cho người khác (−100 → +100).</dd>
+          <dt>VA / BVA / NVA</dt><dd>VA: bước tạo giá trị khách trả tiền; BVA: bước cần cho vận hành nhưng không tạo giá trị trực tiếp; NVA: thuần lãng phí.</dd>
+        </dl>
+      </details>
     </footer>
   </main>
 </div>
@@ -1061,6 +1103,37 @@ footer .ground{margin-top:10px; font-weight:600; color:var(--accent-deep)}
     var cur = document.documentElement.getAttribute('data-theme');
     applyTheme(cur === 'dark' ? 'light' : 'dark');
   });
+
+  /* ---- gloss ---- */
+  var glossBtn = document.getElementById('glossToggle');
+  if (glossBtn){
+    function glossOn(e){
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      document.body.classList.add('gloss-show');
+      glossBtn.textContent = '💡';
+      try { localStorage.setItem('gloss-pref', 'true'); } catch(e2){}
+    }
+    function glossOff(e){
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      document.body.classList.remove('gloss-show');
+      glossBtn.textContent = '💡';
+      try { localStorage.setItem('gloss-pref', 'false'); } catch(e2){}
+    }
+    function glossToggle(){ document.body.classList.contains('gloss-show') ? glossOff({type:'click'}) : glossOn({type:'click'}); }
+    glossBtn.addEventListener('click', glossToggle);
+    // hover preview: show tip while pointer rests on a gloss chip
+    document.querySelectorAll('.gloss').forEach(function(g){
+      var tip = g.nextElementSibling;
+      if (!tip || !tip.classList.contains('gloss-tip')) return;
+      g.addEventListener('mouseenter', function(){ tip.classList.add('show'); });
+      g.addEventListener('mouseleave', function(){ tip.classList.remove('show'); });
+      g.addEventListener('focus', function(){ tip.classList.add('show'); });
+      g.addEventListener('blur', function(){ tip.classList.remove('show'); });
+    });
+    try { if (localStorage.getItem('gloss-pref') === 'true') document.body.classList.add('gloss-show'); } catch(e3){}
+  }
 
   /* ---- restore prefs ---- */
   var savedTheme = null, savedFs = null;
