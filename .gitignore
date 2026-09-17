@@ -1,0 +1,9 @@
+node_modules/
+*.docx
+*.doc
+*.bak
+.playwright-mcp/
+.claude/
+*.pyc
+__pycache__/
+.DS_Store

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đồ án IE203 — Lazada BPM</title>
+<style>
+:root{--primary:#a44ad7;--secondary:#1e3a8a;--accent:#059669;--danger:#dc2626;--bg:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--code-bg:#f8fafc}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;line-height:1.7;color:var(--text);background:var(--bg);max-width:1000px;margin:0 auto;padding:2rem 3rem;font-size:15px}
+@media print{body{font-size:11pt;padding:0;max-width:none}.no-print{display:none!important}h1,h2,h3{page-break-after:avoid}table,pre{page-break-inside:avoid}}
+@media(max-width:768px){body{padding:1rem;font-size:14px}}
+h1{color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:.5rem;margin-top:2rem}
+h2{color:var(--secondary);margin-top:2rem}
+h3{color:var(--text);margin-top:1.5rem}
+table{border-collapse:collapse;width:100%;margin:1.5rem 0;font-size:.92em;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+th{background:var(--secondary);color:#fff;padding:.7rem .9rem;text-align:left}
+td{padding:.6rem .9rem;border-bottom:1px solid var(--border)}
+tr:nth-child(even) td{background:var(--code-bg)}
+pre{background:var(--code-bg);border-left:4px solid var(--primary);padding:1rem;overflow-x:auto;font-size:.88em;border-radius:4px}
+code{background:var(--code-bg);padding:.1rem .4rem;border-radius:3px;font-size:.9em;font-family:Consolas,monospace}
+pre code{background:none;padding:0}
+blockquote{border-left:4px solid var(--primary);background:#fff7ed;padding:1rem 1.5rem;margin:1.5rem 0;border-radius:0 4px 4px 0}
+ul,ol{padding-left:1.8rem}li{margin:.3rem 0}
+hr{border:none;border-top:2px dashed var(--border);margin:2rem 0}
+.cover{text-align:center;margin:4rem 0 3rem;padding:2rem 1rem 3rem;border-bottom:4px double var(--primary)}
+.cover h1{font-size:1.9rem;border:none;margin-top:0;line-height:1.45}
+.cover h2{font-size:1.25rem;border:none;color:var(--muted);line-height:1.5}
+.cover p{text-align:center;font-size:1.05em}
+.cover p strong{color:var(--accent)}
+.toc a{color:var(--secondary);text-decoration:none;font-weight:600}
+.toc a:hover{color:var(--primary)}
+.nav{display:flex;justify-content:space-between;margin:2rem 0;padding:1rem;background:var(--code-bg);border-radius:8px}
+.nav a{color:var(--secondary);text-decoration:none;font-weight:bold}
+.nav a:hover{color:var(--primary)}
+img{max-width:100%;height:auto}
+.markdown-body img{max-width:100%}
+</style>
+</head>
+<body>
+<h1 id="trường-đại-học-công-nghệ-thông-tin">TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN</h1>
+<h2 id="khoa-hệ-thống-thông-tin">KHOA HỆ THỐNG THÔNG TIN</h2>
+<hr>
+<h1 id="đồ-án-môn-quy-trình-nghiệp-vụ-ie203">ĐỒ ÁN MÔN QUY TRÌNH NGHIỆP VỤ (IE203)</h1>
+<h2 id="hệ-thống-quản-trị-quy-trình-nghiệp-vụ-của-công-ty-thương-mại-điện-tử-lazada-việt-nam">HỆ THỐNG QUẢN TRỊ QUY TRÌNH NGHIỆP VỤ CỦA CÔNG TY THƯƠNG MẠI ĐIỆN TỬ LAZADA VIỆT NAM</h2>
+<p><strong>Giảng viên hướng dẫn:</strong> ThS. Hà Lê Hoài Trung<br>
+<strong>Mã lớp học:</strong> IE203.P11<br>
+<strong>Nhóm thực hiện:</strong> Nhóm Lazada BA (02 thành viên)<br>
+<strong>Năm học:</strong> 2025 - 2026  </p>
+<hr>
+<h1 id="danh-mục-từ-viết-tắt">DANH MỤC TỪ VIẾT TẮT</h1>
+<table>
+<thead>
+<tr>
+<th>Từ viết tắt</th>
+<th>Tên tiếng Anh đầy đủ</th>
+<th>Ý nghĩa tiếng Việt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3PL</strong></td>
+<td>Third-Party Logistics</td>
+<td>Đơn vị cung cấp dịch vụ logistics bên thứ ba (GHN, J&amp;T Express, GrabExpress...)</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>Artificial Intelligence</td>
+<td>Trí tuệ nhân tạo</td>
+</tr>
+<tr>
+<td><strong>API</strong></td>
+<td>Application Programming Interface</td>
+<td>Giao diện lập trình ứng dụng</td>
+</tr>
+<tr>
+<td><strong>AS-IS</strong></td>
+<td>Current State Process</td>
+<td>Quy trình hiện tại (chưa cải tiến)</td>
+</tr>
+<tr>
+<td><strong>BA</strong></td>
+<td>Business Analyst / Business Analysis</td>
+<td>Phân tích nghiệp vụ</td>
+</tr>
+<tr>
+<td><strong>BPM</strong></td>
+<td>Business Process Management</td>
+<td>Quản trị quy trình nghiệp vụ</td>
+</tr>
+<tr>
+<td><strong>BPMN</strong></td>
+<td>Business Process Model and Notation</td>
+<td>Ký hiệu và Mô hình Quy trình Nghiệp vụ (chuẩn 2.0)</td>
+</tr>
+<tr>
+<td><strong>BVA</strong></td>
+<td>Business Value-Added</td>
+<td>Hoạt động tăng giá trị kinh doanh (cần thiết cho vận hành/pháp lý)</td>
+</tr>
+<tr>
+<td><strong>C2C</strong></td>
+<td>Consumer-to-Consumer</td>
+<td>Mô hình kinh doanh giữa cá nhân với cá nhân</td>
+</tr>
+<tr>
+<td><strong>B2C</strong></td>
+<td>Business-to-Consumer</td>
+<td>Mô hình kinh doanh giữa doanh nghiệp với cá nhân</td>
+</tr>
+<tr>
+<td><strong>COD</strong></td>
+<td>Cash on Delivery</td>
+<td>Thanh toán bằng tiền mặt khi nhận hàng</td>
+</tr>
+<tr>
+<td><strong>CS</strong> / <strong>CSKH</strong></td>
+<td>Customer Service / Customer Care</td>
+<td>Chăm sóc và hỗ trợ khách hàng</td>
+</tr>
+<tr>
+<td><strong>CT</strong></td>
+<td>Cycle Time</td>
+<td>Thời gian chu kỳ (tổng thời gian từ đầu đến cuối quy trình)</td>
+</tr>
+<tr>
+<td><strong>FBL</strong></td>
+<td>Fulfilled by Lazada</td>
+<td>Dịch vụ lưu kho, đóng gói và vận chuyển bởi Lazada</td>
+</tr>
+<tr>
+<td><strong>FTE</strong></td>
+<td>Full-Time Equivalent</td>
+<td>Định biên nhân sự toàn thời gian</td>
+</tr>
+<tr>
+<td><strong>GMV</strong></td>
+<td>Gross Merchandise Value</td>
+<td>Tổng giá trị hàng hóa giao dịch</td>
+</tr>
+<tr>
+<td><strong>KPI</strong></td>
+<td>Key Performance Indicator</td>
+<td>Chỉ số đánh giá hiệu quả công việc</td>
+</tr>
+<tr>
+<td><strong>LEX</strong></td>
+<td>Lazada Express</td>
+<td>Đơn vị vận chuyển nội bộ thuộc hệ sinh thái Lazada</td>
+</tr>
+<tr>
+<td><strong>LazMall</strong></td>
+<td>Lazada Mall</td>
+<td>Kênh gian hàng chính hãng trên Lazada (32.000+ thương hiệu)</td>
+</tr>
+<tr>
+<td><strong>Lazada University</strong></td>
+<td>Lazada Seller University</td>
+<td>Nền tảng đào tạo người bán trên Lazada</td>
+</tr>
+<tr>
+<td><strong>ML</strong></td>
+<td>Machine Learning</td>
+<td>Học máy</td>
+</tr>
+<tr>
+<td><strong>NVA</strong></td>
+<td>Non-Value-Added</td>
+<td>Hoạt động không tạo ra giá trị (lãng phí cần cắt giảm)</td>
+</tr>
+<tr>
+<td><strong>PT</strong></td>
+<td>Processing Time</td>
+<td>Thời gian xử lý thực tế (thời gian chạm trực tiếp)</td>
+</tr>
+<tr>
+<td><strong>RACI</strong></td>
+<td>Responsible, Accountable, Consulted, Informed</td>
+<td>Ma trận phân công trách nhiệm (Thực hiện, Chịu trách nhiệm, Tham vấn, Thông báo)</td>
+</tr>
+<tr>
+<td><strong>ROI</strong></td>
+<td>Return on Investment</td>
+<td>Tỷ suất lợi nhuận trên vốn đầu tư</td>
+</tr>
+<tr>
+<td><strong>SiPOC</strong></td>
+<td>Suppliers, Inputs, Process, Outputs, Customers</td>
+<td>Biểu đồ tổng quan Nguồn cung - Đầu vào - Quy trình - Đầu ra - Khách hàng</td>
+</tr>
+<tr>
+<td><strong>SLA</strong></td>
+<td>Service Level Agreement</td>
+<td>Cam kết chất lượng dịch vụ</td>
+</tr>
+<tr>
+<td><strong>TO-BE</strong></td>
+<td>Future State Process</td>
+<td>Quy trình tương lai (sau khi cải tiến)</td>
+</tr>
+<tr>
+<td><strong>UIT</strong></td>
+<td>University of Information Technology</td>
+<td>Trường Đại học Công nghệ Thông tin - ĐHQG TP.HCM</td>
+</tr>
+<tr>
+<td><strong>VA</strong></td>
+<td>Value-Added</td>
+<td>Hoạt động gia tăng giá trị trực tiếp cho khách hàng</td>
+</tr>
+<tr>
+<td><strong>VSM</strong></td>
+<td>Value Stream Mapping</td>
+<td>Sơ đồ chuỗi giá trị</td>
+</tr>
+<tr>
+<td><strong>WT</strong></td>
+<td>Waiting Time</td>
+<td>Thời gian chờ đợi (thời gian chết trong quy trình)</td>
+</tr>
+<tr>
+<td><strong>XOR</strong></td>
+<td>Exclusive Gateway</td>
+<td>Cổng điều kiện rẽ nhánh loại trừ trong BPMN</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="mục-lục">MỤC LỤC</h1>
+<ul>
+<li><a href="#tóm-tắt-đồ-án">TÓM TẮT ĐỒ ÁN</a></li>
+<li><a href="#mở-đầu">MỞ ĐẦU</a></li>
+<li><a href="#chương-1-giới-thiệu-công-ty-thương-mại-điện-tử-lazada-việt-nam">Chương 1. GIỚI THIỆU CÔNG TY THƯƠNG MẠI ĐIỆN TỬ LAZADA VIỆT NAM</a></li>
+<li><a href="#11-tổng-quan-về-lazada">1.1. Tổng quan về Lazada</a></li>
+<li><a href="#12-cơ-cấu-tổ-chức-và-hoạt-động-kinh-doanh">1.2. Cơ cấu tổ chức và hoạt động kinh doanh</a></li>
+<li><a href="#chương-2-hệ-thống-quy-trình-nghiệp-vụ-lazada-10-quy-trình">Chương 2. HỆ THỐNG QUY TRÌNH NGHIỆP VỤ LAZADA (10 QUY TRÌNH)</a></li>
+<li><a href="#21-kiến-trúc-quy-trình-nghiệp-vụ-của-lazada">2.1. Kiến trúc quy trình nghiệp vụ của Lazada</a></li>
+<li><a href="#22-sơ-đồ-kiến-trúc-nghiệp-vụ">2.2. Sơ đồ kiến trúc nghiệp vụ</a></li>
+<li><a href="#23-mối-quan-hệ-giữa-các-quy-trình">2.3. Mối quan hệ giữa các quy trình</a></li>
+<li><a href="#chương-3-mô-hình-hóa-chi-tiết-các-quy-trình-bằng-bpmn-và-phân-tích-quy-trình">Chương 3. MÔ HÌNH HÓA CHI TIẾT CÁC QUY TRÌNH BẰNG BPMN VÀ PHÂN TÍCH QUY TRÌNH</a></li>
+<li><a href="#31-tổng-quan-quy-trình-xử-lý-đơn-hàng-online-lazada">3.1. Tổng quan quy trình xử lý đơn hàng online Lazada</a></li>
+<li><a href="#32-mô-tả-chi-tiết-quy-trình-xử-lý-đơn-hàng-online">3.2. Mô tả chi tiết quy trình xử lý đơn hàng online</a></li>
+<li><a href="#33-mô-hình-bpmn-quy-trình-xử-lý-đơn-hàng-online-as-is">3.3. Mô hình BPMN quy trình xử lý đơn hàng online (AS-IS)</a></li>
+<li><a href="#34-phân-tích-định-tính--nguyên-nhân-gốc-rễ">3.4. Phân tích Định tính &amp; Nguyên nhân Gốc rễ</a></li>
+<li><a href="#35-phân-tích-định-lượng-quy-trình-xử-lý-đơn-hàng-online">3.5. Phân tích Định lượng Quy trình Xử lý Đơn hàng Online</a></li>
+<li><a href="#36-quy-trình-quản-lý-nhà-bán-hàng-management-1">3.6. Quy trình Quản lý Nhà bán hàng (Management #1)</a></li>
+<li><a href="#37-quy-trình-quản-lý-tranh-chấp-và-rủi-ro-management-2">3.7. Quy trình Quản lý Tranh chấp và Rủi ro (Management #2)</a></li>
+<li><a href="#38-quy-trình-hoàn-trả-và-hoàn-tiền-core-4">3.8. Quy trình Hoàn trả và Hoàn tiền (Core #4)</a></li>
+<li><a href="#39-quy-trình-chăm-sóc-khách-hàng-support-1">3.9. Quy trình Chăm sóc Khách hàng (Support #1)</a></li>
+<li><a href="#310-quy-trình-marketing-và-khuyến-mãi-support-2">3.10. Quy trình Marketing và Khuyến mãi (Support #2)</a></li>
+<li><a href="#311-quy-trình-quản-lý-nhân-sự--đào-tạo-management-3">3.11. Quy trình Quản lý Nhân sự &amp; Đào tạo (Management #3)</a></li>
+<li><a href="#312-quy-trình-thanh-toán--đối-soát-core-2">3.12. Quy trình Thanh toán &amp; Đối soát (Core #2)</a></li>
+<li><a href="#313-quy-trình-logistics--giao-nhận-core-3">3.13. Quy trình Logistics &amp; Giao nhận (Core #3)</a></li>
+<li><a href="#314-quy-trình-vận-hành-nền-tảng-công-nghệ-support-3">3.14. Quy trình Vận hành Nền tảng Công nghệ (Support #3)</a></li>
+<li><a href="#315-phân-tích-as-is--to-be-tổng-hợp-và-sơ-đồ-bpmn-cải-tiến">3.15. Phân tích AS-IS / TO-BE Tổng hợp và Sơ đồ BPMN Cải tiến</a></li>
+<li><a href="#chương-4-kết-luận-và-đề-xuất">Chương 4. KẾT LUẬN VÀ ĐỀ XUẤT</a></li>
+<li><a href="#41-kết-luận">4.1. Kết luận</a></li>
+<li><a href="#42-hạn-chế-của-đồ-án">4.2. Hạn chế của đồ án</a></li>
+<li><a href="#43-hướng-phát-triển-tiếp-theo">4.3. Hướng phát triển tiếp theo</a></li>
+<li><a href="#tài-liệu-tham-khảo">TÀI LIỆU THAM KHẢO</a></li>
+<li><a href="#phụ-lục-a-bộ-câu-hỏi-phỏng-vấn-chuẩn">PHỤ LỤC A: BỘ CÂU HỎI PHỎNG VẤN CHUẨN</a></li>
+<li><a href="#phụ-lục-b-biểu-mẫu-workshop-và-kịch-bản-phỏng-vấn-mẫu">PHỤ LỤC B: BIỂU MẪU WORKSHOP VÀ KỊCH BẢN PHỎNG VẤN MẪU</a></li>
+<li><a href="#phụ-lục-c-kế-hoạch-thực-hiện-đồ-án-gantt-chart">PHỤ LỤC C: KẾ HOẠCH THỰC HIỆN ĐỒ ÁN (GANTT CHART)</a></li>
+<li><a href="#phụ-lục-d-danh-mục-thuật-ngữ-và-sổ-tay-glossary">PHỤ LỤC D: DANH MỤC THUẬT NGỮ VÀ SỔ TAY (GLOSSARY)</a></li>
+<li><a href="#danh-mục-hình-vẽ">DANH MỤC HÌNH VẼ</a></li>
+<li><a href="#danh-mục-bảng">DANH MỤC BẢNG</a></li>
+</ul>
+<hr>
+<h1 id="tóm-tắt-đồ-án">TÓM TẮT ĐỒ ÁN</h1>
+<p>Đồ án <strong>"Hệ thống Quản trị Quy trình Nghiệp vụ của Công ty Thương mại Điện tử Lazada Việt Nam"</strong> tập trung nghiên cứu, mô hình hóa và phân tích toàn diện <strong>10 quy trình nghiệp vụ cốt lõi và hỗ trợ</strong> của Lazada Việt Nam -- nền tảng thương mại điện tử thuộc tập đoàn Alibaba, với pháp nhân tại Việt Nam là <strong>Công ty TNHH Recess</strong>.</p>
+<p>Báo cáo ứng dụng chuẩn ký hiệu quốc tế <strong>BPMN 2.0 (Business Process Model and Notation)</strong> kết hợp với các phương pháp phân tích quy trình hiện đại: phân tích giá trị gia tăng (<strong>VA/BVA/NVA</strong>), phân tích lãng phí (<strong>Waste Analysis: Move/Hold/Overdo</strong>), phân tích nguyên nhân gốc rễ (<strong>Fishbone Diagram &amp; 5-Why</strong>), biểu đồ <strong>Pareto (80/20)</strong>, ma trận phân công trách nhiệm (<strong>RACI</strong>), và phân tích định lượng thời gian chu kỳ (<strong>Cycle Time</strong>), chi phí (<strong>Unit Economics</strong>), chất lượng lỗi (<strong>Defect Metrics</strong>).</p>
+<p>Kết quả nghiên cứu chỉ ra những điểm nghẽn chính trong quy trình AS-IS hiện tại: thời gian chờ Seller xác nhận đơn kéo dài (Hold chiếm ~44% chi phí lãng phí), tỷ lệ giao hàng thất bại lần đầu cao (20-25% -- cao hơn trung bình ngành), quy trình hoàn trả/hoàn tiền kéo dài (trung bình 8,5 ngày, kiểm định hàng hoàn tại kho Return Center là bottleneck lớn nhất ~50% chu kỳ refund), và thời gian đối soát thanh toán tiềm ẩn rủi ro dòng tiền cho Seller. Dựa trên các phát hiện đó, đồ án đề xuất mô hình cải tiến <strong>TO-BE</strong> ứng dụng định danh eKYC tự động, phân tầng rủi ro đơn hàng (Risk-tiered Order Processing), Instant Refund cho đơn giá trị thấp, và Chatbot AI nâng cao, giúp cắt giảm mạnh thời gian chu kỳ: duyệt Seller -95%, hoàn tiền -78,8%, kiểm định kho -75%, thời gian chờ kết nối Agent -50% và giảm chi phí xử lý đơn vị tới -65,4%/đơn hoàn trả.</p>
+<hr>
+<h2 id="mở-đầu">MỞ ĐẦU</h2>
+<h3 id="1-tính-cấp-thiết-của-đề-tài">1. Tính cấp thiết của đề tài</h3>
+<p>Trong bối cảnh nền kinh tế số phát triển bùng nổ, Thương mại Điện tử (TMĐT) đã trở thành trụ cột quan trọng của ngành bán lẻ Việt Nam. Lazada Việt Nam, thuộc tập đoàn Alibaba International Digital Commerce (AIDC), xử lý hàng triệu lượt truy cập mỗi ngày với hơn 32.000 thương hiệu trên LazMall. Tuy nhiên, thị phần của Lazada tại Việt Nam đã giảm từ ~22% (2022) xuống ~10-12% (2024), trong khi Shopee duy trì vị thế dẫn đầu (~65-70%) và TikTok Shop tăng trưởng mạnh (~20%). Việc phân tích hệ thống quy trình của Lazada giúp nhận diện chính xác các điểm nghẽn và đưa ra giải pháp tái thiết kế quy trình hiệu quả, từ đó nâng cao trải nghiệm người dùng và khả năng cạnh tranh thị trường.</p>
+<h3 id="2-mục-tiêu-nghiên-cứu">2. Mục tiêu nghiên cứu</h3>
+<ul>
+<li>Systematize và lập bản đồ Kiến trúc Quy trình Nghiệp vụ tổng thể của Lazada gồm <strong>10 quy trình tiêu biểu</strong> (3 Quản lý, 4 Cốt lõi, 3 Hỗ trợ).</li>
+<li>Mô hình hóa chi tiết <strong>10 quy trình trọng điểm</strong> bằng chuẩn BPMN 2.0 trên phần mềm Camunda Modeler và bpmn-js viewer.</li>
+<li>Áp dụng các phương pháp định tính (VA/BVA/NVA, Waste Analysis, Fishbone, 5-Why, Pareto) và định lượng (Cycle Time, Cost Breakdown, Quality Error Rates) cho ít nhất 2 quy trình chính.</li>
+<li>Thiết kế mô hình quy trình TO-BE cải tiến, tính toán ROI và lập lộ trình triển khai chuyển đổi số.</li>
+</ul>
+<h3 id="3-đối-tượng-và-phạm-vi-nghiên-cứu">3. Đối tượng và Phạm vi nghiên cứu</h3>
+<ul>
+<li><strong>Đối tượng nghiên cứu:</strong> Hệ thống quản trị quy trình nghiệp vụ (Business Process Management) của công ty thương mại điện tử Lazada Việt Nam, tập trung vào chuỗi vận hành đặt hàng – thanh toán – giao nhận – hoàn trả và các hoạt động hỗ trợ vận hành.</li>
+<li><strong>Phạm vi nghiên cứu:</strong></li>
+<li><strong>Về quy trình:</strong> 10 quy trình nghiệp vụ trọng điểm được phân loại theo 3 nhóm Quản lý (Quản lý Nhà bán hàng, Quản lý Tranh chấp &amp; Rủi ro, Quản lý Nhân sự &amp; Tài chính), Cốt lõi (Xử lý Đơn hàng Online, Thanh toán &amp; Đối soát, Giao nhận &amp; Vận chuyển, Hoàn trả &amp; Hoàn tiền) và Hỗ trợ (CSKH, Marketing &amp; Khuyến mãi, Vận hành Nền tảng CNTT) — được lập bản đồ chi tiết tại Chương 2 (Bảng 2.1).</li>
+<li><strong>Về phương pháp và mô hình hóa:</strong> Mô hình hóa bằng chuẩn BPMN 2.0 (mô hình AS-IS và TO-BE), kết hợp phân tích định tính (VA/BVA/NVA, Waste Analysis, Fishbone, 5-Why, Pareto, RACI) và định lượng (Cycle Time, Unit Economics, Defect Metrics).</li>
+<li><strong>Giới hạn:</strong> Không phân tích chi tiết các quy trình nội bộ khác ngoài 10 quy trình trọng điểm; số liệu định lượng mang tính ước tính từ phỏng vấn mẫu và báo cáo thị trường công khai (xem Mục 4.2).</li>
+</ul>
+<h3 id="4-phương-pháp-nghiên-cứu">4. Phương pháp nghiên cứu</h3>
+<ul>
+<li><strong>Phương pháp thu thập bằng chứng:</strong> Phân tích tài liệu secondary data từ báo cáo tài chính Alibaba Group, chính sách Lazada Seller Center, Lazada Help Center, Lazada University, và các báo cáo thị trường từ YouNet ECI, Metric.vn, Google-Temasek-Bain e-Conomy SEA.</li>
+<li><strong>Phương pháp phỏng vấn khảo sát:</strong> Xây dựng bộ câu hỏi chuẩn 20 câu (10 định tính + 10 định lượng, Phụ lục A) và tổ chức phỏng vấn sâu 10 nhân sự nội bộ phụ trách 10 quy trình nghiệp vụ trọng điểm (02 đại diện nhóm BA, 08 nhân sự vận hành nội bộ phụ trách các quy trình 01–10, ghi chú trong Phụ lục B).</li>
+<li><strong>Phương pháp mô hình hóa &amp; phân tích:</strong> Sử dụng Camunda Modeler vẽ sơ đồ BPMN 2.0, kiểm tra tính đúng đắn cấu trúc bằng thuật toán Petri Net soundness check (<code>soundness-check.py</code>).</li>
+</ul>
+<hr>
+</body>
+</html>

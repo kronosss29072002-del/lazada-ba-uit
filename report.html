@@ -1,0 +1,2663 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đồ án IE203 — Phân tích BPM Lazada Việt Nam</title>
+<style>
+:root{--primary:#a44ad7;--secondary:#1e3a8a;--accent:#059669;--danger:#dc2626;--bg:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;--code-bg:#f8fafc}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;line-height:1.7;color:var(--text);background:var(--bg);max-width:1000px;margin:0 auto;padding:2rem 3rem;font-size:15px}
+@media print{body{font-size:11pt;padding:0;max-width:none}.no-print{display:none!important}h1,h2,h3{page-break-after:avoid}table,pre{page-break-inside:avoid}}
+@media(max-width:768px){body{padding:1rem;font-size:14px}}
+h1{color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:.5rem;margin-top:2rem}
+h2{color:var(--secondary);margin-top:2rem}
+h3{color:var(--text);margin-top:1.5rem}
+table{border-collapse:collapse;width:100%;margin:1.5rem 0;font-size:.92em;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+th{background:var(--secondary);color:#fff;padding:.7rem .9rem;text-align:left}
+td{padding:.6rem .9rem;border-bottom:1px solid var(--border)}
+tr:nth-child(even) td{background:var(--code-bg)}
+pre{background:var(--code-bg);border-left:4px solid var(--primary);padding:1rem;overflow-x:auto;font-size:.88em;border-radius:4px}
+code{background:var(--code-bg);padding:.1rem .4rem;border-radius:3px;font-size:.9em;font-family:Consolas,monospace}
+pre code{background:none;padding:0}
+blockquote{border-left:4px solid var(--primary);background:#fff7ed;padding:1rem 1.5rem;margin:1.5rem 0;border-radius:0 4px 4px 0}
+ul,ol{padding-left:1.8rem}li{margin:.3rem 0}
+hr{border:none;border-top:2px dashed var(--border);margin:2rem 0}
+.cover{text-align:center;margin:4rem 0 3rem;padding:2rem 1rem 3rem;border-bottom:4px double var(--primary)}
+.cover h1{font-size:1.9rem;border:none;margin-top:0;line-height:1.45}
+.cover h2{font-size:1.25rem;border:none;color:var(--muted);line-height:1.5}
+.cover p{text-align:center;font-size:1.05em}
+.cover p strong{color:var(--accent)}
+.toc a{color:var(--secondary);text-decoration:none;font-weight:600}
+.toc a:hover{color:var(--primary)}
+.nav{display:flex;justify-content:space-between;margin:2rem 0;padding:1rem;background:var(--code-bg);border-radius:8px}
+.nav a{color:var(--secondary);text-decoration:none;font-weight:bold}
+.nav a:hover{color:var(--primary)}
+img{max-width:100%;height:auto}
+.markdown-body img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="cover"><h1 id="trường-đại-học-công-nghệ-thông-tin">TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN</h1>
+<h2 id="khoa-hệ-thống-thông-tin">KHOA HỆ THỐNG THÔNG TIN</h2>
+<hr>
+<h1 id="đồ-án-môn-quy-trình-nghiệp-vụ-ie203">ĐỒ ÁN MÔN QUY TRÌNH NGHIỆP VỤ (IE203)</h1>
+<h2 id="hệ-thống-quản-trị-quy-trình-nghiệp-vụ-của-công-ty-thương-mại-điện-tử-lazada-việt-nam">HỆ THỐNG QUẢN TRỊ QUY TRÌNH NGHIỆP VỤ CỦA CÔNG TY THƯƠNG MẠI ĐIỆN TỬ LAZADA VIỆT NAM</h2>
+<p><strong>Giảng viên hướng dẫn:</strong> ThS. Hà Lê Hoài Trung<br>
+<strong>Mã lớp học:</strong> IE203.P11<br>
+<strong>Nhóm thực hiện:</strong> Nhóm Lazada BA (02 thành viên)<br>
+<strong>Năm học:</strong> 2025 - 2026  </p>
+<hr>
+</div><h1 id="danh-mục-từ-viết-tắt">DANH MỤC TỪ VIẾT TẮT</h1>
+<table>
+<thead>
+<tr>
+<th>Từ viết tắt</th>
+<th>Tên tiếng Anh đầy đủ</th>
+<th>Ý nghĩa tiếng Việt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3PL</strong></td>
+<td>Third-Party Logistics</td>
+<td>Đơn vị cung cấp dịch vụ logistics bên thứ ba (GHN, J&amp;T Express, GrabExpress...)</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>Artificial Intelligence</td>
+<td>Trí tuệ nhân tạo</td>
+</tr>
+<tr>
+<td><strong>API</strong></td>
+<td>Application Programming Interface</td>
+<td>Giao diện lập trình ứng dụng</td>
+</tr>
+<tr>
+<td><strong>AS-IS</strong></td>
+<td>Current State Process</td>
+<td>Quy trình hiện tại (chưa cải tiến)</td>
+</tr>
+<tr>
+<td><strong>BA</strong></td>
+<td>Business Analyst / Business Analysis</td>
+<td>Phân tích nghiệp vụ</td>
+</tr>
+<tr>
+<td><strong>BPM</strong></td>
+<td>Business Process Management</td>
+<td>Quản trị quy trình nghiệp vụ</td>
+</tr>
+<tr>
+<td><strong>BPMN</strong></td>
+<td>Business Process Model and Notation</td>
+<td>Ký hiệu và Mô hình Quy trình Nghiệp vụ (chuẩn 2.0)</td>
+</tr>
+<tr>
+<td><strong>BVA</strong></td>
+<td>Business Value-Added</td>
+<td>Hoạt động tăng giá trị kinh doanh (cần thiết cho vận hành/pháp lý)</td>
+</tr>
+<tr>
+<td><strong>C2C</strong></td>
+<td>Consumer-to-Consumer</td>
+<td>Mô hình kinh doanh giữa cá nhân với cá nhân</td>
+</tr>
+<tr>
+<td><strong>B2C</strong></td>
+<td>Business-to-Consumer</td>
+<td>Mô hình kinh doanh giữa doanh nghiệp với cá nhân</td>
+</tr>
+<tr>
+<td><strong>COD</strong></td>
+<td>Cash on Delivery</td>
+<td>Thanh toán bằng tiền mặt khi nhận hàng</td>
+</tr>
+<tr>
+<td><strong>CS</strong> / <strong>CSKH</strong></td>
+<td>Customer Service / Customer Care</td>
+<td>Chăm sóc và hỗ trợ khách hàng</td>
+</tr>
+<tr>
+<td><strong>CT</strong></td>
+<td>Cycle Time</td>
+<td>Thời gian chu kỳ (tổng thời gian từ đầu đến cuối quy trình)</td>
+</tr>
+<tr>
+<td><strong>FBL</strong></td>
+<td>Fulfilled by Lazada</td>
+<td>Dịch vụ lưu kho, đóng gói và vận chuyển bởi Lazada</td>
+</tr>
+<tr>
+<td><strong>FTE</strong></td>
+<td>Full-Time Equivalent</td>
+<td>Định biên nhân sự toàn thời gian</td>
+</tr>
+<tr>
+<td><strong>GMV</strong></td>
+<td>Gross Merchandise Value</td>
+<td>Tổng giá trị hàng hóa giao dịch</td>
+</tr>
+<tr>
+<td><strong>KPI</strong></td>
+<td>Key Performance Indicator</td>
+<td>Chỉ số đánh giá hiệu quả công việc</td>
+</tr>
+<tr>
+<td><strong>LEX</strong></td>
+<td>Lazada Express</td>
+<td>Đơn vị vận chuyển nội bộ thuộc hệ sinh thái Lazada</td>
+</tr>
+<tr>
+<td><strong>LazMall</strong></td>
+<td>Lazada Mall</td>
+<td>Kênh gian hàng chính hãng trên Lazada (32.000+ thương hiệu)</td>
+</tr>
+<tr>
+<td><strong>Lazada University</strong></td>
+<td>Lazada Seller University</td>
+<td>Nền tảng đào tạo người bán trên Lazada</td>
+</tr>
+<tr>
+<td><strong>ML</strong></td>
+<td>Machine Learning</td>
+<td>Học máy</td>
+</tr>
+<tr>
+<td><strong>NVA</strong></td>
+<td>Non-Value-Added</td>
+<td>Hoạt động không tạo ra giá trị (lãng phí cần cắt giảm)</td>
+</tr>
+<tr>
+<td><strong>PT</strong></td>
+<td>Processing Time</td>
+<td>Thời gian xử lý thực tế (thời gian chạm trực tiếp)</td>
+</tr>
+<tr>
+<td><strong>RACI</strong></td>
+<td>Responsible, Accountable, Consulted, Informed</td>
+<td>Ma trận phân công trách nhiệm (Thực hiện, Chịu trách nhiệm, Tham vấn, Thông báo)</td>
+</tr>
+<tr>
+<td><strong>ROI</strong></td>
+<td>Return on Investment</td>
+<td>Tỷ suất lợi nhuận trên vốn đầu tư</td>
+</tr>
+<tr>
+<td><strong>SiPOC</strong></td>
+<td>Suppliers, Inputs, Process, Outputs, Customers</td>
+<td>Biểu đồ tổng quan Nguồn cung - Đầu vào - Quy trình - Đầu ra - Khách hàng</td>
+</tr>
+<tr>
+<td><strong>SLA</strong></td>
+<td>Service Level Agreement</td>
+<td>Cam kết chất lượng dịch vụ</td>
+</tr>
+<tr>
+<td><strong>TO-BE</strong></td>
+<td>Future State Process</td>
+<td>Quy trình tương lai (sau khi cải tiến)</td>
+</tr>
+<tr>
+<td><strong>UIT</strong></td>
+<td>University of Information Technology</td>
+<td>Trường Đại học Công nghệ Thông tin - ĐHQG TP.HCM</td>
+</tr>
+<tr>
+<td><strong>VA</strong></td>
+<td>Value-Added</td>
+<td>Hoạt động gia tăng giá trị trực tiếp cho khách hàng</td>
+</tr>
+<tr>
+<td><strong>VSM</strong></td>
+<td>Value Stream Mapping</td>
+<td>Sơ đồ chuỗi giá trị</td>
+</tr>
+<tr>
+<td><strong>WT</strong></td>
+<td>Waiting Time</td>
+<td>Thời gian chờ đợi (thời gian chết trong quy trình)</td>
+</tr>
+<tr>
+<td><strong>XOR</strong></td>
+<td>Exclusive Gateway</td>
+<td>Cổng điều kiện rẽ nhánh loại trừ trong BPMN</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="mục-lục">MỤC LỤC</h1>
+<ul>
+<li><a href="#tóm-tắt-đồ-án">TÓM TẮT ĐỒ ÁN</a></li>
+<li><a href="#mở-đầu">MỞ ĐẦU</a></li>
+<li><a href="#chương-1-giới-thiệu-công-ty-thương-mại-điện-tử-lazada-việt-nam">Chương 1. GIỚI THIỆU CÔNG TY THƯƠNG MẠI ĐIỆN TỬ LAZADA VIỆT NAM</a></li>
+<li><a href="#11-tổng-quan-về-lazada">1.1. Tổng quan về Lazada</a></li>
+<li><a href="#12-cơ-cấu-tổ-chức-và-hoạt-động-kinh-doanh">1.2. Cơ cấu tổ chức và hoạt động kinh doanh</a></li>
+<li><a href="#chương-2-hệ-thống-quy-trình-nghiệp-vụ-lazada-10-quy-trình">Chương 2. HỆ THỐNG QUY TRÌNH NGHIỆP VỤ LAZADA (10 QUY TRÌNH)</a></li>
+<li><a href="#21-kiến-trúc-quy-trình-nghiệp-vụ-của-lazada">2.1. Kiến trúc quy trình nghiệp vụ của Lazada</a></li>
+<li><a href="#22-sơ-đồ-kiến-trúc-nghiệp-vụ">2.2. Sơ đồ kiến trúc nghiệp vụ</a></li>
+<li><a href="#23-mối-quan-hệ-giữa-các-quy-trình">2.3. Mối quan hệ giữa các quy trình</a></li>
+<li><a href="#chương-3-mô-hình-hóa-chi-tiết-các-quy-trình-bằng-bpmn-và-phân-tích-quy-trình">Chương 3. MÔ HÌNH HÓA CHI TIẾT CÁC QUY TRÌNH BẰNG BPMN VÀ PHÂN TÍCH QUY TRÌNH</a></li>
+<li><a href="#31-tổng-quan-quy-trình-xử-lý-đơn-hàng-online-lazada">3.1. Tổng quan quy trình xử lý đơn hàng online Lazada</a></li>
+<li><a href="#32-mô-tả-chi-tiết-quy-trình-xử-lý-đơn-hàng-online">3.2. Mô tả chi tiết quy trình xử lý đơn hàng online</a></li>
+<li><a href="#33-mô-hình-bpmn-quy-trình-xử-lý-đơn-hàng-online-as-is">3.3. Mô hình BPMN quy trình xử lý đơn hàng online (AS-IS)</a></li>
+<li><a href="#34-phân-tích-định-tính--nguyên-nhân-gốc-rễ">3.4. Phân tích Định tính &amp; Nguyên nhân Gốc rễ</a></li>
+<li><a href="#35-phân-tích-định-lượng-quy-trình-xử-lý-đơn-hàng-online">3.5. Phân tích Định lượng Quy trình Xử lý Đơn hàng Online</a></li>
+<li><a href="#36-quy-trình-quản-lý-nhà-bán-hàng-management-1">3.6. Quy trình Quản lý Nhà bán hàng (Management #1)</a></li>
+<li><a href="#37-quy-trình-quản-lý-tranh-chấp-và-rủi-ro-management-2">3.7. Quy trình Quản lý Tranh chấp và Rủi ro (Management #2)</a></li>
+<li><a href="#38-quy-trình-hoàn-trả-và-hoàn-tiền-core-4">3.8. Quy trình Hoàn trả và Hoàn tiền (Core #4)</a></li>
+<li><a href="#39-quy-trình-chăm-sóc-khách-hàng-support-1">3.9. Quy trình Chăm sóc Khách hàng (Support #1)</a></li>
+<li><a href="#310-quy-trình-marketing-và-khuyến-mãi-support-2">3.10. Quy trình Marketing và Khuyến mãi (Support #2)</a></li>
+<li><a href="#311-quy-trình-quản-lý-nhân-sự--đào-tạo-management-3">3.11. Quy trình Quản lý Nhân sự &amp; Đào tạo (Management #3)</a></li>
+<li><a href="#312-quy-trình-thanh-toán--đối-soát-core-2">3.12. Quy trình Thanh toán &amp; Đối soát (Core #2)</a></li>
+<li><a href="#313-quy-trình-logistics--giao-nhận-core-3">3.13. Quy trình Logistics &amp; Giao nhận (Core #3)</a></li>
+<li><a href="#314-quy-trình-vận-hành-nền-tảng-công-nghệ-support-3">3.14. Quy trình Vận hành Nền tảng Công nghệ (Support #3)</a></li>
+<li><a href="#315-phân-tích-as-is--to-be-tổng-hợp-và-sơ-đồ-bpmn-cải-tiến">3.15. Phân tích AS-IS / TO-BE Tổng hợp và Sơ đồ BPMN Cải tiến</a></li>
+<li><a href="#chương-4-kết-luận-và-đề-xuất">Chương 4. KẾT LUẬN VÀ ĐỀ XUẤT</a></li>
+<li><a href="#41-kết-luận">4.1. Kết luận</a></li>
+<li><a href="#42-hạn-chế-của-đồ-án">4.2. Hạn chế của đồ án</a></li>
+<li><a href="#43-hướng-phát-triển-tiếp-theo">4.3. Hướng phát triển tiếp theo</a></li>
+<li><a href="#tài-liệu-tham-khảo">TÀI LIỆU THAM KHẢO</a></li>
+<li><a href="#phụ-lục-a-bộ-câu-hỏi-phỏng-vấn-chuẩn">PHỤ LỤC A: BỘ CÂU HỎI PHỎNG VẤN CHUẨN</a></li>
+<li><a href="#phụ-lục-b-biểu-mẫu-workshop-và-kịch-bản-phỏng-vấn-mẫu">PHỤ LỤC B: BIỂU MẪU WORKSHOP VÀ KỊCH BẢN PHỎNG VẤN MẪU</a></li>
+<li><a href="#phụ-lục-c-kế-hoạch-thực-hiện-đồ-án-gantt-chart">PHỤ LỤC C: KẾ HOẠCH THỰC HIỆN ĐỒ ÁN (GANTT CHART)</a></li>
+<li><a href="#phụ-lục-d-danh-mục-thuật-ngữ-và-sổ-tay-glossary">PHỤ LỤC D: DANH MỤC THUẬT NGỮ VÀ SỔ TAY (GLOSSARY)</a></li>
+<li><a href="#danh-mục-hình-vẽ">DANH MỤC HÌNH VẼ</a></li>
+<li><a href="#danh-mục-bảng">DANH MỤC BẢNG</a></li>
+</ul>
+<hr>
+<h1 id="tóm-tắt-đồ-án">TÓM TẮT ĐỒ ÁN</h1>
+<p>Đồ án <strong>"Hệ thống Quản trị Quy trình Nghiệp vụ của Công ty Thương mại Điện tử Lazada Việt Nam"</strong> tập trung nghiên cứu, mô hình hóa và phân tích toàn diện <strong>10 quy trình nghiệp vụ cốt lõi và hỗ trợ</strong> của Lazada Việt Nam -- nền tảng thương mại điện tử thuộc tập đoàn Alibaba, với pháp nhân tại Việt Nam là <strong>Công ty TNHH Recess</strong>.</p>
+<p>Báo cáo ứng dụng chuẩn ký hiệu quốc tế <strong>BPMN 2.0 (Business Process Model and Notation)</strong> kết hợp với các phương pháp phân tích quy trình hiện đại: phân tích giá trị gia tăng (<strong>VA/BVA/NVA</strong>), phân tích lãng phí (<strong>Waste Analysis: Move/Hold/Overdo</strong>), phân tích nguyên nhân gốc rễ (<strong>Fishbone Diagram &amp; 5-Why</strong>), biểu đồ <strong>Pareto (80/20)</strong>, ma trận phân công trách nhiệm (<strong>RACI</strong>), và phân tích định lượng thời gian chu kỳ (<strong>Cycle Time</strong>), chi phí (<strong>Unit Economics</strong>), chất lượng lỗi (<strong>Defect Metrics</strong>).</p>
+<p>Kết quả nghiên cứu chỉ ra những điểm nghẽn chính trong quy trình AS-IS hiện tại: thời gian chờ Seller xác nhận đơn kéo dài (Hold chiếm ~44% chi phí lãng phí), tỷ lệ giao hàng thất bại lần đầu cao (20-25% -- cao hơn trung bình ngành), quy trình hoàn trả/hoàn tiền kéo dài (trung bình 8,5 ngày, kiểm định hàng hoàn tại kho Return Center là bottleneck lớn nhất ~50% chu kỳ refund), và thời gian đối soát thanh toán tiềm ẩn rủi ro dòng tiền cho Seller. Dựa trên các phát hiện đó, đồ án đề xuất mô hình cải tiến <strong>TO-BE</strong> ứng dụng định danh eKYC tự động, phân tầng rủi ro đơn hàng (Risk-tiered Order Processing), Instant Refund cho đơn giá trị thấp, và Chatbot AI nâng cao, giúp cắt giảm mạnh thời gian chu kỳ: duyệt Seller -95%, hoàn tiền -78,8%, kiểm định kho -75%, thời gian chờ kết nối Agent -50% và giảm chi phí xử lý đơn vị tới -65,4%/đơn hoàn trả.</p>
+<hr>
+<h2 id="mở-đầu">MỞ ĐẦU</h2>
+<h3 id="1-tính-cấp-thiết-của-đề-tài">1. Tính cấp thiết của đề tài</h3>
+<p>Trong bối cảnh nền kinh tế số phát triển bùng nổ, Thương mại Điện tử (TMĐT) đã trở thành trụ cột quan trọng của ngành bán lẻ Việt Nam. Lazada Việt Nam, thuộc tập đoàn Alibaba International Digital Commerce (AIDC), xử lý hàng triệu lượt truy cập mỗi ngày với hơn 32.000 thương hiệu trên LazMall. Tuy nhiên, thị phần của Lazada tại Việt Nam đã giảm từ ~22% (2022) xuống ~10-12% (2024), trong khi Shopee duy trì vị thế dẫn đầu (~65-70%) và TikTok Shop tăng trưởng mạnh (~20%). Việc phân tích hệ thống quy trình của Lazada giúp nhận diện chính xác các điểm nghẽn và đưa ra giải pháp tái thiết kế quy trình hiệu quả, từ đó nâng cao trải nghiệm người dùng và khả năng cạnh tranh thị trường.</p>
+<h3 id="2-mục-tiêu-nghiên-cứu">2. Mục tiêu nghiên cứu</h3>
+<ul>
+<li>Systematize và lập bản đồ Kiến trúc Quy trình Nghiệp vụ tổng thể của Lazada gồm <strong>10 quy trình tiêu biểu</strong> (3 Quản lý, 4 Cốt lõi, 3 Hỗ trợ).</li>
+<li>Mô hình hóa chi tiết <strong>10 quy trình trọng điểm</strong> bằng chuẩn BPMN 2.0 trên phần mềm Camunda Modeler và bpmn-js viewer.</li>
+<li>Áp dụng các phương pháp định tính (VA/BVA/NVA, Waste Analysis, Fishbone, 5-Why, Pareto) và định lượng (Cycle Time, Cost Breakdown, Quality Error Rates) cho ít nhất 2 quy trình chính.</li>
+<li>Thiết kế mô hình quy trình TO-BE cải tiến, tính toán ROI và lập lộ trình triển khai chuyển đổi số.</li>
+</ul>
+<h3 id="3-đối-tượng-và-phạm-vi-nghiên-cứu">3. Đối tượng và Phạm vi nghiên cứu</h3>
+<ul>
+<li><strong>Đối tượng nghiên cứu:</strong> Hệ thống quản trị quy trình nghiệp vụ (Business Process Management) của công ty thương mại điện tử Lazada Việt Nam, tập trung vào chuỗi vận hành đặt hàng – thanh toán – giao nhận – hoàn trả và các hoạt động hỗ trợ vận hành.</li>
+<li><strong>Phạm vi nghiên cứu:</strong></li>
+<li><strong>Về quy trình:</strong> 10 quy trình nghiệp vụ trọng điểm được phân loại theo 3 nhóm Quản lý (Quản lý Nhà bán hàng, Quản lý Tranh chấp &amp; Rủi ro, Quản lý Nhân sự &amp; Tài chính), Cốt lõi (Xử lý Đơn hàng Online, Thanh toán &amp; Đối soát, Giao nhận &amp; Vận chuyển, Hoàn trả &amp; Hoàn tiền) và Hỗ trợ (CSKH, Marketing &amp; Khuyến mãi, Vận hành Nền tảng CNTT) — được lập bản đồ chi tiết tại Chương 2 (Bảng 2.1).</li>
+<li><strong>Về phương pháp và mô hình hóa:</strong> Mô hình hóa bằng chuẩn BPMN 2.0 (mô hình AS-IS và TO-BE), kết hợp phân tích định tính (VA/BVA/NVA, Waste Analysis, Fishbone, 5-Why, Pareto, RACI) và định lượng (Cycle Time, Unit Economics, Defect Metrics).</li>
+<li><strong>Giới hạn:</strong> Không phân tích chi tiết các quy trình nội bộ khác ngoài 10 quy trình trọng điểm; số liệu định lượng mang tính ước tính từ phỏng vấn mẫu và báo cáo thị trường công khai (xem Mục 4.2).</li>
+</ul>
+<h3 id="4-phương-pháp-nghiên-cứu">4. Phương pháp nghiên cứu</h3>
+<ul>
+<li><strong>Phương pháp thu thập bằng chứng:</strong> Phân tích tài liệu secondary data từ báo cáo tài chính Alibaba Group, chính sách Lazada Seller Center, Lazada Help Center, Lazada University, và các báo cáo thị trường từ YouNet ECI, Metric.vn, Google-Temasek-Bain e-Conomy SEA.</li>
+<li><strong>Phương pháp phỏng vấn khảo sát:</strong> Xây dựng bộ câu hỏi chuẩn 20 câu (10 định tính + 10 định lượng, Phụ lục A) và tổ chức phỏng vấn sâu 10 nhân sự nội bộ phụ trách 10 quy trình nghiệp vụ trọng điểm (02 đại diện nhóm BA, 08 nhân sự vận hành nội bộ phụ trách các quy trình 01–10, ghi chú trong Phụ lục B).</li>
+<li><strong>Phương pháp mô hình hóa &amp; phân tích:</strong> Sử dụng Camunda Modeler vẽ sơ đồ BPMN 2.0, kiểm tra tính đúng đắn cấu trúc bằng thuật toán Petri Net soundness check (<code>soundness-check.py</code>).</li>
+</ul>
+<hr>
+<h1 id="chương-1-giới-thiệu-công-ty-thương-mại-điện-tử-lazada-việt-nam">Chương 1. GIỚI THIỆU CÔNG TY THƯƠNG MẠI ĐIỆN TỬ LAZADA VIỆT NAM</h1>
+<h2 id="11-tổng-quan-về-lazada">1.1. Tổng quan về Lazada</h2>
+<h3 id="111-lịch-sử-hình-thành">1.1.1. Lịch sử hình thành</h3>
+<p>Lazada được thành lập vào ngày 27/03/2012 tại Singapore bởi Maximilian Bittner với sự hỗ trợ từ Rocket Internet (nhà đầu tư start-up công nghệ Đức). Ban đầu, Lazada hoạt động theo mô hình Amazon -- bán hàng từ kho của riêng mình (B2C). Năm 2013, Lazada chuyển sang mô hình Marketplace cho phép seller bên thứ ba tham gia bán hàng. Năm 2015, Lazada đối mặt với thách thức lớn khi chỉ dưới 1% người dân Việt Nam mua sắm online (so với 10% trung bình quốc tế), buộc phải triển khai mạnh mẽ mô hình thanh toán khi nhận hàng (COD).</p>
+<h3 id="112-alibaba-thâu-tóm-giai-đoạn-đầu-tư-lớn-2016-2022">1.1.2. Alibaba thâu tóm -- Giai đoạn đầu tư lớn (2016-2022)</h3>
+<p>Tháng 4/2016, Tập đoàn Alibaba chi 1 tỷ USD để mua 51% cổ phần Lazada, đánh dấu bước ngoặt chiến lược. Tổng đầu tư của Alibaba vào Lazada giai đoạn 2016-2022 lên tới khoảng <strong>4,2 tỷ USD</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Thời điểm</th>
+<th>Sự kiện</th>
+<th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>04/2016</strong></td>
+<td>Alibaba mua 51% cổ phần</td>
+<td><strong>$1 tỷ</strong></td>
+</tr>
+<tr>
+<td><strong>06/2017</strong></td>
+<td>Alibaba tăng cổ phần lên 83%</td>
+<td><strong>$1 tỷ</strong></td>
+</tr>
+<tr>
+<td><strong>05/2022</strong></td>
+<td>Alibaba rót thêm vốn</td>
+<td><strong>$378,25 triệu</strong></td>
+</tr>
+<tr>
+<td><strong>09/2022</strong></td>
+<td>Alibaba rót thêm vốn</td>
+<td><strong>$912,5 triệu</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Năm 2023, Alibaba tái cơ cấu thành 6 đơn vị kinh doanh. Lazada thuộc <strong>Alibaba International Digital Commerce (AIDC)</strong> và nhận thêm khoản đầu tư lên tới $1,8 tỷ từ AIDC.</p>
+<h3 id="113-đại-cơ-cấu-và-chuẩn-bị-cho-tương-lai-2023-2026">1.1.3. Đại cơ cấu và Chuẩn bị cho tương lai (2023-2026)</h3>
+<table>
+<thead>
+<tr>
+<th>Thời điểm</th>
+<th>Sự kiện</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>06/2022</strong></td>
+<td>James Dong trở thành CEO Lazada Group (thay Chun Li)</td>
+</tr>
+<tr>
+<td><strong>2023</strong></td>
+<td>Alibaba tái cơ cấu; Lazada thuộc AIDC</td>
+</tr>
+<tr>
+<td><strong>01/2024</strong></td>
+<td>Đợt sa thải lớn -- giảm 25-50% nhân sự Đông Nam Á</td>
+</tr>
+<tr>
+<td><strong>Cuối 2025</strong></td>
+<td>Tích hợp TMall (kênh chính hãng Taobao) và Gmarket (sàn TMĐT Hàn Quốc)</td>
+</tr>
+<tr>
+<td><strong>08/2026</strong></td>
+<td>Bị phạt <strong>350 triệu VND</strong> tại Việt Nam (Ủy ban Cạnh tranh Quốc gia)</td>
+</tr>
+<tr>
+<td><strong>2026</strong></td>
+<td>Mục tiêu bổ sung 40 triệu sản phẩm quốc tế từ 20.000 nhà bán</td>
+</tr>
+</tbody>
+</table>
+<h3 id="114-đơn-vị-pháp-nhân-tại-việt-nam">1.1.4. Đơn vị pháp nhân tại Việt Nam</h3>
+<ul>
+<li><strong>Tên công ty:</strong> <strong>Công ty TNHH Recess</strong> (đơn vị vận hành Lazada tại Việt Nam)</li>
+<li>Bị Ủy ban Cạnh tranh Quốc gia (Bộ Công Thương) xử phạt 350 triệu VND (08/2026) vì cung cấp thông tin không chính xác về dịch vụ, gây nhầm lẫn cho người tiêu dùng.</li>
+</ul>
+<h3 id="115-quy-mô-và-thị-phần">1.1.5. Quy mô và Thị phần</h3>
+<p><strong>Bảng 1.1: Thông tin quy mô Lazada Việt Nam</strong></p>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Giá trị ước tính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Thị phần GMV tại Việt Nam (2024)</strong></td>
+<td>~10-12%</td>
+</tr>
+<tr>
+<td><strong>Thị phần GMV Shopee (so sánh)</strong></td>
+<td>~65-70%</td>
+</tr>
+<tr>
+<td><strong>Thị phần GMV TikTok Shop (so sánh)</strong></td>
+<td>~20-22%</td>
+</tr>
+<tr>
+<td><strong>GMV toàn cục Lazada (2023)</strong></td>
+<td>~$18-20 tỷ</td>
+</tr>
+<tr>
+<td><strong>GMV Lazada VN (ước tính 2024)</strong></td>
+<td>~$2-2,5 tỷ</td>
+</tr>
+<tr>
+<td><strong>Lượt truy cập hàng tháng (VN)</strong></td>
+<td>40-60 triệu lượt</td>
+</tr>
+<tr>
+<td><strong>Số lượng Seller hoạt động (VN)</strong></td>
+<td>~100.000-300.000+</td>
+</tr>
+<tr>
+<td><strong>LazMall</strong></td>
+<td>32.000+ thương hiệu chính hãng</td>
+</tr>
+<tr>
+<td><strong>Đơn vị vận chuyển liên kết</strong></td>
+<td>LEX (Lazada Express), GHN, J&amp;T Express, Ninja Van, BEST Express, Viettel Post, GrabExpress</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Bảng 1.2: Thị phần TMĐT Việt Nam (2024)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Sàn TMĐT</th>
+<th>Thị phần GMV ước tính</th>
+<th>Xu hướng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Shopee</strong></td>
+<td>~65-70%</td>
+<td>Duy trì vị thế dẫn đầu</td>
+</tr>
+<tr>
+<td><strong>TikTok Shop</strong></td>
+<td>~20-22%</td>
+<td>Tăng trưởng nhanh nhất</td>
+</tr>
+<tr>
+<td><strong>Lazada</strong></td>
+<td>~10-12%</td>
+<td>Đang mất thị phần</td>
+</tr>
+<tr>
+<td><strong>Tiki</strong></td>
+<td>~2-3%</td>
+<td>Cương cố ở niche chính hãng</td>
+</tr>
+</tbody>
+</table>
+<h3 id="116-lịch-sử-ceo-lazada-group">1.1.6. Lịch sử CEO Lazada Group</h3>
+<table>
+<thead>
+<tr>
+<th>Giai đoạn</th>
+<th>CEO</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>03/2012 - 03/2018</td>
+<td>Maximilian Bittner</td>
+<td>Người sáng lập</td>
+</tr>
+<tr>
+<td>03/2018 - 12/2018</td>
+<td>Lucy Peng</td>
+<td>Giám đốc Alibaba</td>
+</tr>
+<tr>
+<td>12/2018 - 06/2020</td>
+<td>Pierre Poignant</td>
+<td></td>
+</tr>
+<tr>
+<td>06/2020 - 06/2022</td>
+<td>Chun Li</td>
+<td></td>
+</tr>
+<tr>
+<td>06/2022 - hiện tại</td>
+<td><strong>James Dong</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="12-cơ-cấu-tổ-chức-và-hoạt-động-kinh-doanh">1.2. Cơ cấu tổ chức và hoạt động kinh doanh</h2>
+<h3 id="121-cơ-cấu-tổ-chức">1.2.1. Cơ cấu tổ chức</h3>
+<p>Lazada Việt Nam được vận hành theo mô hình ma trận kết hợp giữa chức năng và khối nghiệp vụ sản phẩm:</p>
+<pre><code>                        ┌────────────────────────────────┐
+                        │   CEO LAZADA GROUP              │
+                        │   (James Dong)                  │
+                        │   AIDC — Alibaba International  │
+                        └──────────────┬─────────────────┘
+                                       │
+       ┌──────────────┬────────────────┼────────────────┬──────────────┐
+       ▼              ▼                ▼                ▼              ▼
+┌─────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ ┌────────────┐
+│ KINH DOANH  │ │  VẬN HÀNH    │ │  CÔNG NGHỆ   │ │  HỖ TRỢ    │ │ TÀI CHÍNH  │
+│ (Business)  │ │ (Operations) │ │ (Technology) │ │ (Support)  │ │ (Finance)  │
+└──────┬──────┘ └──────┬───────┘ └──────┬───────┘ └─────┬──────┘ └─────┬──────┘
+       │               │                │               │              │
+  • Seller         • Xử lý đơn     • Platform      • Nhân sự      • Kế toán
+  • Buyer          • Kho/Fulfill   • Data &amp; AI     • Pháp lý      • Đối soát
+  • LazMall        • LEX Express   • Bảo mật       • Compliance   • Ngân sách
+  • Marketing      • CSKH          • DevOps        • Lazada Univ  • Risk
+</code></pre>
+<p><strong>Hình 1.1: Sơ đồ cơ cấu tổ chức Lazada Việt Nam</strong></p>
+<h3 id="122-hoạt-động-kinh-doanh">1.2.2. Hoạt động kinh doanh</h3>
+<p>Hoạt động kinh doanh của Lazada tạo ra doanh thu từ các nguồn chính:<br>
+1. <strong>Phí sàn (Platform Fees):</strong> Hoa hồng giao dịch (1-10% tùy danh mục), phí thanh toán (~2%/giao dịch), phí vận chuyển, phí lưu kho (FBL).<br>
+2. <strong>Quảng cáo TMĐT (Lazada Sponsored Solutions):</strong> Quảng cáo tìm kiếm, quảng cáo khám phá, hiển thị ưu tiên.<br>
+3. <strong>Dịch vụ kho vận (Fulfillment by Lazada - FBL):</strong> Phí lưu kho, đóng gói và vận chuyển qua LEX Express.<br>
+4. <strong>Cross-border Commerce:</strong> TMall, Gmarket -- tích hợp hàng hóa quốc tế.</p>
+<p><strong>Bảng 1.3: Mô hình phí hoa hồng theo ngành hàng</strong></p>
+<table>
+<thead>
+<tr>
+<th>Nhóm hàng</th>
+<th>Tỷ lệ hoa hồng ước tính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Điện tử / Gia dụng</td>
+<td>1-2%</td>
+</tr>
+<tr>
+<td>Thời trang</td>
+<td>3-5%</td>
+</tr>
+<tr>
+<td>Mỹ phẩm / Sức khỏe</td>
+<td>3-5%</td>
+</tr>
+<tr>
+<td>Tiêu dùng / FMCG</td>
+<td>1-4%</td>
+</tr>
+<tr>
+<td>Nhà cửa đời sống</td>
+<td>3-5%</td>
+</tr>
+<tr>
+<td>Mẹ và Bé</td>
+<td>3-5%</td>
+</tr>
+<tr>
+<td>Thể thao / Du lịch</td>
+<td>3-5%</td>
+</tr>
+<tr>
+<td>Hàng xách tay</td>
+<td>5-10%</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="chương-2-hệ-thống-quy-trình-nghiệp-vụ-lazada-10-quy-trình">Chương 2. HỆ THỐNG QUY TRÌNH NGHIỆP VỤ LAZADA (10 QUY TRÌNH)</h1>
+<h2 id="21-kiến-trúc-quy-trình-nghiệp-vụ-của-lazada">2.1. Kiến trúc quy trình nghiệp vụ của Lazada</h2>
+<p>Để đảm bảo vận hành thông suốt hàng triệu giao dịch mỗi ngày, Lazada xây dựng kiến trúc quy trình gồm 3 nhóm chính: <strong>Quản lý (Management)</strong>, <strong>Cốt lõi (Core)</strong> và <strong>Hỗ trợ (Support)</strong>. Dưới đây là mô tả chi tiết từng quy trình theo mô hình Ngôi nhà (House Diagram) phân tầng:</p>
+<h3 id="211-nhóm-quy-trình-quản-lý-management-process-3-quy-trình">2.1.1. Nhóm quy trình Quản lý (Management Process - 3 quy trình)</h3>
+<h4 id="1-quy-trình-quản-lý-nhà-bán-hàng-seller-management">1. Quy trình Quản lý Nhà bán hàng (Seller Management)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Seller, Lazada System (Automated), Compliance Team, Legal / Giám sát Vận hành.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Seller truy cập sellercenter.lazada.vn, nhập thông tin cá nhân/doanh nghiệp, số định danh CCCD/MST và tài khoản ngân hàng liên kết.</li>
+<li><em>Bước 2:</em> Hệ thống tự động kiểm tra OCR, đối chiếu MST, check danh sách cấm và xác thực trùng lặp thông tin; gửi OTP xác thực SĐT.</li>
+<li><em>Bước 3:</em> Seller tải lên CMND/CCCD + GPKD + Giấy chứng nhận (LazMall); hệ thống Validate định danh tự động và quét OCR kiểm tra giấy tờ giả.</li>
+<li><em>Bước 4:</em> Chuyên viên Compliance thẩm định thủ công hồ sơ (24-48h) đối với ca rủi ro cao; hệ thống chấm điểm rủi ro (Risk scoring) và phân tầng.</li>
+<li><em>Bước 5:</em> Hệ thống phê duyệt cấp quyền bán hàng hoặc gửi thông báo từ chối nêu rõ lý do; Seller thiết lập shop và bắt đầu listing sản phẩm.</li>
+<li><em>Bước 6:</em> Định kỳ giám sát điểm chất lượng (Seller Score) tự động; nếu vi phạm chính sách: cảnh cáo → tạm khóa 7 ngày → khóa vĩnh viễn.</li>
+<li><strong>Đối tượng khách hàng:</strong> Người bán hàng (Seller) muốn thiết lập và phát triển gian hàng trên Lazada.</li>
+<li><strong>Những khả năng kết quả:</strong> Phê duyệt thành công (Bắt đầu bán hàng); Từ chối hồ sơ (Yêu cầu bổ sung giấy tờ); Cảnh cáo / Suspended / Deactivated (Nếu phát hiện vi phạm).</li>
+</ul>
+<h4 id="2-quy-trình-quản-lý-tranh-chấp-rủi-ro-dispute-risk-management">2. Quy trình Quản lý Tranh chấp &amp; Rủi ro (Dispute &amp; Risk Management)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Buyer, Lazada System (Automated), Seller, CS Agent, Escalation Team.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Khi có phát sinh khiếu nại không thể tự thỏa thuận giữa Buyer và Seller, Buyer khởi tạo Yêu cầu Tranh chấp trên ứng dụng (Tạo tranh chấp + lý do).</li>
+<li><em>Bước 2:</em> Hệ thống tự động thu thập dữ liệu đơn hàng và AI phân loại tranh chấp (Đơn giản/Phức tạp); vụ việc đơn giản được AI tự giải quyết, vụ việc phức tạp chuyển sang đối soát.</li>
+<li><em>Bước 3:</em> Hệ thống kiểm tra lịch sử SLA của Seller và gửi thông báo đối soát đến hai bên; Seller phản hồi trong hạn định 48 giờ (loop bổ sung bằng chứng nếu chưa đầy đủ).</li>
+<li><em>Bước 4:</em> CS Agent thẩm định toàn bộ hồ sơ, phân định lỗi thuộc về bên nào và ban hành quyết định xử lý.</li>
+<li><em>Bước 5:</em> Ra quyết định: Hoàn tiền cho Buyer (Buyer thắng), Bác bỏ khiếu nại (Giải ngân cho Seller), hoặc Chuyển hồ sơ cho Lazada Escalation Team.</li>
+<li><em>Bước 6:</em> Trường hợp chuyển lên, Hội đồng thẩm định &amp; ra quyết định cuối — kết quả final &amp; binding.</li>
+<li><strong>Đối tượng khách hàng:</strong> Cả Người mua và Người bán có tranh chấp phát sinh trong giao dịch.</li>
+<li><strong>Những khả năng kết quả:</strong> Hoàn tiền toàn bộ/một phần cho Buyer; Bác bỏ khiếu nại (Giải ngân cho Seller); Khóa tài khoản gian lận.</li>
+</ul>
+<h4 id="3-quy-trình-quản-lý-nhân-sự-tài-chính-nội-bộ-hr-finance-management">3. Quy trình Quản lý Nhân sự &amp; Tài chính nội bộ (HR &amp; Finance Management)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> HR Team, Lazada University, Seller / Nhân viên, Compliance.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Lập kế hoạch đào tạo theo quý; Giám đốc HR và Phòng Tài chính duyệt ngân sách đào tạo.</li>
+<li><em>Bước 2:</em> Xây dựng nội dung khóa học (onboarding, nâng cao, compliance) và Publish lên Lazada University; Seller/Nhân viên đăng ký tham gia, học tập và thi đánh giá kiến thức (≥70%).</li>
+<li><em>Bước 3:</em> Cấp chứng chỉ hoàn thành; Kiểm tra tuân thủ chính sách đào tạo định kỳ; nếu phát hiện vi phạm — cảnh cáo hoặc đình chỉ quyền truy cập.</li>
+<li><em>Bước 4:</em> Đánh giá hiệu quả đào tạo sau khóa học.</li>
+<li><strong>Đối tượng khách hàng:</strong> Toàn bộ nhân viên nội bộ Lazada.</li>
+<li><strong>Những khả năng kết quả:</strong> Ngân sách được duyệt; Báo cáo tài chính định kỳ; Điều chỉnh nhân sự.</li>
+</ul>
+<h3 id="212-nhóm-quy-trình-cốt-lõi-core-process-4-quy-trình">2.1.2. Nhóm quy trình Cốt lõi (Core Process - 4 quy trình)</h3>
+<h4 id="4-quy-trình-xử-lý-đơn-hàng-online-order-processing-quy-trình-trọng-tâm">4. Quy trình Xử lý Đơn hàng Online (Order Processing -- Quy trình Trọng tâm)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Buyer, Lazada System, Seller, Đơn vị Vận chuyển (LEX/3PL), Payment Gateway, Warehouse/FBL.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Buyer chọn sản phẩm, áp mã giảm giá/freeship và bấm "Đặt hàng".</li>
+<li><em>Bước 2:</em> Hệ thống kiểm tra tồn kho + validate thông tin đơn + kiểm tra gian lận (AI) và xử lý thanh toán (COD hoặc Online Payment).</li>
+<li><em>Bước 3:</em> Seller xác nhận đơn hàng (trong SLA 48h), đóng gói sản phẩm và bàn giao hàng cho 3PL/LEX (Pickup) hoặc Seller mang hàng ra bưu cục (Drop-off).</li>
+<li><em>Bước 4:</em> ĐVVC vận chuyển qua các trạm trung chuyển (Sort Center) và Shipper chặng cuối giao hàng đến tay Buyer (tối đa 3 lần thử).</li>
+<li><em>Bước 5:</em> Buyer nhận hàng, kiểm tra và bấm "Đã nhận được hàng" (hoặc hệ thống tự động hoàn tất sau 7 ngày); sau đó hệ thống giải ngân cho Seller.</li>
+<li><strong>Đối tượng khách hàng:</strong> Người mua (Buyer) và Người bán (Seller).</li>
+<li><strong>Những khả năng kết quả:</strong> Đơn giao thành công (Hoàn tất giao dịch); Đơn hàng bị hủy (Do Seller không xác nhận/Hết hàng); Đơn giao thất bại (Hoàn về Seller).</li>
+</ul>
+<h4 id="5-quy-trình-thanh-toán-và-đối-soát-payment-settlement">5. Quy trình Thanh toán và Đối soát (Payment &amp; Settlement)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Buyer, Payment Gateway (VNPay, OnePay, MoMo, ZaloPay), Hệ thống Kế toán Lazada, Finance Team, Seller.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Buyer thực hiện thanh toán khi đặt hàng (qua ví/thẻ) hoặc trả tiền mặt COD cho Shipper khi nhận hàng.</li>
+<li><em>Bước 2:</em> Tiền hàng được ghi nhận và giữ an toàn trong Tài khoản Bảo hộ Lazada Escrow.</li>
+<li><em>Bước 3:</em> Đơn vị vận chuyển đối soát số tiền COD đã thu với Hệ thống Tài chính hàng ngày.</li>
+<li><em>Bước 4:</em> Khi đơn hàng chuyển trạng thái "Hoàn tất", hệ thống tự động tính toán trừ phí sàn, phí vận chuyển và cộng tiền ròng vào Số dư Tài khoản Lazada của Seller.</li>
+<li><em>Bước 5:</em> Seller thực hiện rút tiền từ Số dư về ngân hàng liên kết (L+2 model).</li>
+<li><strong>Đối tượng khách hàng:</strong> Người bán (Seller) nhận dòng tiền thanh toán và Lazada.</li>
+<li><strong>Những khả năng kết quả:</strong> Thanh toán &amp; giải ngân thành công; Giao dịch thất bại / Lỗi thanh toán (Hoàn tiền cho Buyer); Lệch dòng tiền đối soát (Chuyển Finance xử lý).</li>
+</ul>
+<h4 id="6-quy-trình-giao-nhận-vận-chuyển-logistics-delivery">6. Quy trình Giao nhận &amp; Vận chuyển (Logistics &amp; Delivery)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Seller, LEX Express / 3PL (GHN, J&amp;T, Ninja Van, BEST Express, GrabExpress), Warehouse QC, Shipper chặng cuối, Buyer.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> ĐVVC tiếp nhận bưu kiện từ Seller tại điểm Drop-off hoặc qua dịch vụ Pickup.</li>
+<li><em>Bước 2:</em> Bưu kiện được đưa về Kho gom (First-mile Hub) và quét mã vạch tracking.</li>
+<li><em>Bước 3:</em> Vận chuyển chặng trung gian (Line-haul) đến Kho phân loại trung tâm (Sortation Center).</li>
+<li><em>Bước 4:</em> Máy chia chọn tự động phân loại bưu kiện về các Last-mile Hub tương ứng.</li>
+<li><em>Bước 5:</em> Shipper nhận hàng, liên hệ Buyer và tiến hành giao hàng chặng cuối.</li>
+<li><strong>Đối tượng khách hàng:</strong> Người mua nhận hàng đúng hạn và an toàn.</li>
+<li><strong>Những khả năng kết quả:</strong> Giao hàng thành công ngay lần 1; Giao thất bại lần 1 (Hẹn giao lại lần 2/3); Giao thất bại toàn bộ (Chuyển hoàn bưu kiện về Seller).</li>
+</ul>
+<h4 id="7-quy-trình-hoàn-trả-và-hoàn-tiền-return-refund">7. Quy trình Hoàn trả và Hoàn tiền (Return &amp; Refund)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Buyer, Lazada System (Automated), CS Agent, 3PL/Warehouse, Payment Gateway.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Buyer ấn "Trả hàng/Hoàn tiền", chọn lý do (Full Return / Partial Refund / Only Refund) và tải lên hình ảnh/video bằng chứng.</li>
+<li><em>Bước 2:</em> Hệ thống tự động kiểm tra điều kiện hợp lệ (cửa sổ hoàn trả, đơn đủ điều kiện) và AI phân loại mức độ nghiêm trọng của bằng chứng khiếu nại.</li>
+<li><em>Bước 3:</em> CS Agent thẩm định hồ sơ bằng chứng; nếu yêu cầu hợp lệ, hệ thống phê duyệt phương án hoàn tiền hoặc trả hàng.</li>
+<li><em>Bước 4:</em> Trường hợp trả hàng, LEX/3PL đặt lịch hẹn Shipper đến lấy hàng hoàn (retry nếu thất bại) và kiểm định hàng hóa tại kho Return Center (≤12h).</li>
+<li><em>Bước 5:</em> Hệ thống phát lệnh hoàn tiền về phương thức thanh toán ban đầu của Buyer và gửi thông báo tiến độ tự động.</li>
+<li><strong>Đối tượng khách hàng:</strong> Người mua (Buyer) muốn đổi trả sản phẩm lỗi / không vừa ý.</li>
+<li><strong>Những khả năng kết quả:</strong> Hoàn tiền thành công; Bác bỏ yêu cầu trả hàng; Hoàn tiền không cần trả hàng (Đơn giá trị thấp).</li>
+</ul>
+<h3 id="213-nhóm-quy-trình-hỗ-trợ-support-process-3-quy-trình">2.1.3. Nhóm quy trình Hỗ trợ (Support Process - 3 quy trình)</h3>
+<h4 id="8-quy-trình-chăm-sóc-khách-hàng-customer-service-cskh">8. Quy trình Chăm sóc Khách hàng (Customer Service - CSKH)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Customer (Buyer/Seller), Chatbot/AI (Lazzie), CS Tier 1, CS Tier 2, System.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Khách hàng gửi yêu cầu hỗ trợ qua Live Chat, Hotline 1900 1010, Email, hoặc Help Center; AI NLP phân loại ý định &amp; mức độ khẩn cấp.</li>
+<li><em>Bước 2:</em> Chatbot (Lazada Assistant) tự động giải đáp câu hỏi thường gặp (FAQ) nếu có kịch bản trả lời.</li>
+<li><em>Bước 3:</em> Nếu yêu cầu phức tạp, hệ thống kiểm tra SLA xử lý ticket và chuyển hội thoại đến Tư vấn viên Tier 1 (kèm xác minh danh tính khách hàng).</li>
+<li><em>Bước 4:</em> Tier 1 kiểm tra thông tin đơn hàng trên hệ thống CRM (lịch sử tương tác), tư vấn và đưa giải pháp xử lý trực tiếp.</li>
+<li><em>Bước 5:</em> Trường hợp vượt thẩm quyền, Chuyên viên Tier 2 thẩm định chuyên sâu và xử lý dứt điểm; gửi nhắc nhở phản hồi cho khách hàng nếu quá thời gian chờ.</li>
+<li><em>Bước 6:</em> Khách hàng xác nhận hoàn tất hỗ trợ và chấm điểm khảo sát CSAT; QA Follow-up đánh giá chất lượng sau đóng ticket.</li>
+<li><strong>Đối tượng khách hàng:</strong> Người mua và Người bán cần trợ giúp thông tin.</li>
+<li><strong>Những khả năng kết quả:</strong> Giải đáp thành công tức thì (Chatbot/Agent T1); Tạo Ticket theo dõi sự cố; Đóng yêu cầu và thu thập CSAT.</li>
+</ul>
+<h4 id="9-quy-trình-marketing-và-khuyến-mãi-marketing-campaign">9. Quy trình Marketing và Khuyến mãi (Marketing &amp; Campaign)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Marketing Team, Approval, Lazada System, Sellers, Buyers.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Đội ngũ Marketing lập kế hoạch chiến dịch (Mega Sale 9.9, 11.11, 12.12, Flash Sale hàng ngày) và dự toán ngân sách.</li>
+<li><em>Bước 2:</em> Phê duyệt ngân sách theo hạng mức (Trưởng bộ phận / CFO / Hội đồng).</li>
+<li><em>Bước 3:</em> Creative Team thiết kế banner, landing page; Legal duyệt nội dung.</li>
+<li><em>Bước 4:</em> Mở cổng đăng ký chiến dịch trên Kênh Người Bán; Seller lựa chọn sản phẩm và cam kết mức giảm giá.</li>
+<li><em>Bước 5:</em> Hệ thống tự động thẩm định điều kiện seller (điểm chất lượng, lịch sử vi phạm) và duyệt sản phẩm hiển thị.</li>
+<li><em>Bước 6:</em> Kích hoạt Campaign, theo dõi GMV realtime và xử lý sự cố trong chiến dịch.</li>
+<li><em>Bước 7:</em> Post-campaign analysis (ROI, GMV vs mục tiêu).</li>
+<li><strong>Đối tượng khách hàng:</strong> Người mua săn voucher/đồ rẻ và Người bán muốn bùng nổ doanh số.</li>
+<li><strong>Những khả năng kết quả:</strong> Chiến dịch kích cầu thành công vượt KPI GMV; Điều chỉnh ngân sách giữa chừng; Hủy bỏ chương trình nếu gặp sự cố hệ thống.</li>
+</ul>
+<h4 id="10-quy-trình-công-nghệ-thông-tin-it-platform-operations">10. Quy trình Công nghệ Thông tin (IT &amp; Platform Operations)</h4>
+<ul>
+<li><strong>Tác nhân tham gia:</strong> Product Owner, Dev Team, QA / Tester, DevOps / CI-CD, Security.</li>
+<li><strong>Mô tả quy trình bằng ngôn ngữ - lời:</strong></li>
+<li><em>Bước 1:</em> Product Owner tạo User Story &amp; acceptance criteria; ưu tiên backlog &amp; sprint planning.</li>
+<li><em>Bước 2:</em> Đội ngũ Kỹ thuật thiết kế kiến trúc &amp; API, viết code theo User Story, chạy unit test &amp; code review.</li>
+<li><em>Bước 3:</em> QA thực hiện System Test &amp; Integration Test, Performance test &amp; load test; Security quét lỗ hổng bảo mật (SAST/DAST).</li>
+<li><em>Bước 4:</em> DevOps triển khai lên Pre-Staging → Staging (UAT) → Production (Blue-Green Deploy); giám sát metrics sau deploy 30 phút (rollback nếu không ổn định).</li>
+<li><em>Bước 5:</em> Xử lý sự cố infrastructure &amp; incident; áp dụng bản vá bảo mật khẩn cấp nếu phát hiện lỗ hổng nghiêm trọng.</li>
+<li><strong>Đối tượng khách hàng:</strong> Toàn bộ nhân viên nội bộ và người dùng app/web Lazada.</li>
+<li><strong>Những khả năng kết quả:</strong> Triển khai tính năng mới mượt mà (Deploy OK); Khắc phục sự cố hệ thống; Rollback phiên bản cũ nếu phát sinh lỗi.</li>
+</ul>
+<hr>
+<h2 id="22-sơ-đồ-kiến-trúc-nghiệp-vụ">2.2. Sơ đồ kiến trúc nghiệp vụ</h2>
+<p>Sơ đồ Kiến trúc Quy trình Nghiệp vụ tổng thể của Lazada được thể hiện qua mô hình phân tầng chuẩn mực:</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────┐
+│                  KIẾN TRÚC QUY TRÌNH NGHIỆP VỤ LAZADA                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌────────────────── NHÓM QUẢN LÝ (3) ─────────────────┐               │
+│  │  • Quản lý nhà bán hàng (Seller Management)          │               │
+│  │  • Quản lý tranh chấp &amp; rủi ro (Dispute &amp; Risk Mgmt) │               │
+│  │  • Quản lý nhân sự &amp; tài chính (HR &amp; Finance)        │               │
+│  └──────────────────────────────────────────────────────┘               │
+│                                                                         │
+│  ┌────────────────── NHÓM CỐT LÕI (4) ─────────────────┐               │
+│  │  • Xử lý đơn hàng online         ◄── QUY TRÌNH CHÍNH │               │
+│  │  • Thanh toán và đối soát                            │               │
+│  │  • Giao nhận và vận chuyển (Logistics)               │               │
+│  │  • Hoàn trả và hoàn tiền                             │               │
+│  └──────────────────────────────────────────────────────┘               │
+│                                                                         │
+│  ┌────────────────── NHÓM HỖ TRỢ (3) ──────────────────┐               │
+│  │  • Chăm sóc khách hàng (Customer Service)            │               │
+│  │  • Marketing và khuyến mãi (Campaign Management)     │               │
+│  │  • Công nghệ thông tin (IT Operations)               │               │
+│  └──────────────────────────────────────────────────────┘               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>Hình 2.1: Sơ đồ kiến trúc quy trình nghiệp vụ Lazada</strong></p>
+<hr>
+<h3 id="221-bảng-tổng-hợp-10-quy-trình-nghiệp-vụ">2.2.1. Bảng tổng hợp 10 quy trình nghiệp vụ</h3>
+<p><strong>Bảng 2.1: Bảng tổng hợp 10 quy trình nghiệp vụ Lazada</strong></p>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Tên quy trình</th>
+<th>Nhóm</th>
+<th>Tác nhân chính (Actors) Internal / External</th>
+<th>Khách hàng của quy trình (Process Customer)</th>
+<th>Kết quả có thể (Output + tiêu cực)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Quản lý Nhà bán hàng</td>
+<td>Quản lý</td>
+<td>Internal: Lazada System, Compliance Team, Legal / Giám sát Vận hành / External: Seller</td>
+<td>Seller</td>
+<td>Approved (Bắt đầu bán) / Rejected (Từ chối) / Suspended (Khóa TK) / Re-registered</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Quản lý Tranh chấp &amp; Rủi ro</td>
+<td>Quản lý</td>
+<td>Internal: Lazada System, CS Agent, Escalation Team / External: Buyer, Seller</td>
+<td>Buyer, Seller</td>
+<td>Resolved-buyer wins / Resolved-seller wins / Escalated / Withdrawn</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Quản lý Nhân sự &amp; Tài chính</td>
+<td>Quản lý</td>
+<td>Internal: HR Team, Lazada University, Compliance / External: Seller / Nhân viên</td>
+<td>Internal Staff</td>
+<td>Ngân sách duyệt / Báo cáo tài chính / Điều chỉnh NS</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Xử lý Đơn hàng Online</td>
+<td>Cốt lõi</td>
+<td>Internal: Lazada System / External: Buyer, Seller, 3PL/Shipper, Payment Gateway</td>
+<td>Buyer, Seller</td>
+<td>Completed / Auto-cancelled / Seller-rejected / Return-initiated / COD-settled / Failed-delivery</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Thanh toán &amp; Đối soát</td>
+<td>Cốt lõi</td>
+<td>Internal: Lazada System (Escrow), Finance / External: Buyer, Payment Gateway (VNPay/MoMo/ZaloPay), Seller</td>
+<td>Seller, Buyer</td>
+<td>Thanh toán OK / Lệch dòng tiền / Error-refund</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Giao nhận &amp; Vận chuyển</td>
+<td>Cốt lõi</td>
+<td>Internal: Lazada System / External: Seller, LEX / 3PL (GHN, J&amp;T, Grab, NINJAVAN), Shipper (Giao hàng), Buyer</td>
+<td>Buyer</td>
+<td>Giao thành công 1st / Retry / Chuyển hoàn Seller</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Hoàn trả &amp; Hoàn tiền</td>
+<td>Cốt lõi</td>
+<td>Internal: Lazada System, CS Agent, 3PL/Warehouse / External: Buyer, Payment Gateway</td>
+<td>Buyer</td>
+<td>Refunded / Rejected-return / Seller-compensated / Buyer-keeps-item</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Chăm sóc Khách hàng</td>
+<td>Hỗ trợ</td>
+<td>Internal: Chatbot/AI, CS Tier 1, CS Tier 2, System / External: Customer (Buyer/Seller)</td>
+<td>Customer</td>
+<td>Resolved / Escalated / Closed-unresolved / CSAT-collected</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Marketing &amp; Khuyến mãi</td>
+<td>Hỗ trợ</td>
+<td>Internal: Marketing Team, Approval, Lazada System / External: Sellers, Buyers</td>
+<td>Buyer, Seller</td>
+<td>Launched / Rejected / Completed / Auto-renewed</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Công nghệ Thông tin</td>
+<td>Hỗ trợ</td>
+<td>Internal: Product Owner, Dev Team, QA / Tester, DevOps / CI-CD, Security</td>
+<td>Internal Staff</td>
+<td>Deploy OK / Bug fix / Rollback</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="23-mối-quan-hệ-giữa-các-quy-trình">2.3. Mối quan hệ giữa các quy trình</h2>
+<p>Các quy trình trong hệ thống quy trình nghiệp vụ của Lazada không hoạt động độc lập mà liên kết chặt chẽ qua luồng dữ liệu và sự kiện kích hoạt:<br>
+1. <strong>Quản lý Nhà bán hàng (1)</strong> thẩm định đầu vào, cấp quyền cho Seller tham gia vào <strong>Xử lý Đơn hàng (4)</strong> và <strong>Marketing (9)</strong>.<br>
+2. <strong>Xử lý Đơn hàng (4)</strong> kích hoạt <strong>Thanh toán &amp; Đối soát (5)</strong> (khởi tạo giao dịch Escrow) và <strong>Giao nhận &amp; Vận chuyển (6)</strong> (tạo vận đơn tracking).<br>
+3. Trường hợp bưu kiện giao hỏng/giao trễ trong <strong>Giao nhận (6)</strong> sẽ kích hoạt <strong>Hoàn trả &amp; Hoàn tiền (7)</strong> hoặc <strong>CSKH (8)</strong>.<br>
+4. Nếu phát sinh xung đột không thể thỏa thuận ở <strong>Hoàn trả (7)</strong>, hệ thống tự động chuyển sang <strong>Quản lý Tranh chấp &amp; Rủi ro (2)</strong> để hòa giải pháp lý.<br>
+5. <strong>Marketing (9)</strong> tương tác trực tiếp với <strong>Quản lý Nhà bán hàng (1)</strong> qua cơ chế thẩm định điều kiện seller tham gia campaign.</p>
+<hr>
+<h1 id="chương-3-mô-hình-hóa-chi-tiết-các-quy-trình-bằng-bpmn-và-phân-tích-quy-trình">Chương 3. MÔ HÌNH HÓA CHI TIẾT CÁC QUY TRÌNH BẰNG BPMN VÀ PHÂN TÍCH QUY TRÌNH</h1>
+<h2 id="31-tổng-quan-quy-trình-xử-lý-đơn-hàng-online-lazada">3.1. Tổng quan quy trình xử lý đơn hàng online Lazada</h2>
+<h3 id="311-phạm-vi-và-mục-tiêu">3.1.1. Phạm vi và mục tiêu</h3>
+<ul>
+<li><strong>Phạm vi quy trình:</strong> Bắt đầu khi Người mua (Buyer) nhấn nút "Đặt hàng" trên ứng dụng Lazada --&gt; Kết thúc khi Người mua nhận hàng thành công và số tiền được giải ngân cho Người bán (Seller).</li>
+<li><strong>Mục tiêu:</strong> Tối ưu thời gian xử lý đơn hàng, giảm thiểu thời gian chờ (Hold time), tăng tỷ lệ giao thành công ngay lần đầu tiên và giảm thiểu chi phí xử lý biên.</li>
+</ul>
+<h3 id="312-sơ-đồ-sipoc-suppliers-inputs-process-outputs-customers">3.1.2. Sơ đồ SiPOC (Suppliers -- Inputs -- Process -- Outputs -- Customers)</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         SƠ ĐỒ SiPOC XỬ LÝ ĐƠN HÀNG                           │
+├──────────────┬──────────────┬────────────────────────┬──────────────┬───────────┤
+│ SUPPLIERS    │ INPUTS       │ PROCESS                │ OUTPUTS      │ CUSTOMERS │
+├──────────────┼──────────────┼────────────────────────┼──────────────┼───────────┤
+│ • Buyers     │ • Thông tin  │ 1. Đặt hàng &amp; Tiếp nhận│ • Đơn hàng   │ • Buyers  │
+│ • Sellers    │   đơn hàng   │ 2. Người bán đóng gói  │   đã giao    │ • Sellers │
+│ • Payment GW │ • Tiền thanh │ 3. Vận chuyển &amp; Giao   │ • Tiền giải  │ • 3PL/LEX │
+│ • LEX/3PL    │   toán/COD   │ 4. Hoàn tất &amp; Đối soát │   ngân       │ • Finance │
+│ • Lazada Sys │• Mã bưu kiện│                        │ • Đánh giá   │           │
+└──────────────┴──────────────┴────────────────────────┴──────────────┴───────────┘
+</code></pre>
+<p><strong>Hình 3.1: Sơ đồ SiPOC quy trình xử lý đơn hàng online</strong></p>
+<hr>
+<h2 id="32-mô-tả-chi-tiết-quy-trình-xử-lý-đơn-hàng-online">3.2. Mô tả chi tiết quy trình xử lý đơn hàng online</h2>
+<p>Quy trình diễn ra qua 4 giai đoạn chính:<br>
+1. <strong>Giai đoạn 1: Đặt hàng và Tiếp nhận đơn:</strong> Buyer chọn hàng, chọn phương thức thanh toán (COD ~40-45%, Online Payment ~55-60%), chọn ĐVVC và xác nhận đặt hàng. Lazada kiểm tra tồn kho và xử lý thanh toán (nếu trả trước).<br>
+2. <strong>Giai đoạn 2: Người bán xử lý đơn:</strong> Seller nhận thông báo đơn mới, kiểm tra tồn kho, xác nhận đơn (trong SLA 24-48h), chuẩn bị hàng, in phiếu giao, đóng gói và xác nhận "Chờ lấy hàng".<br>
+3. <strong>Giai đoạn 3: Vận chuyển và Giao hàng:</strong> Shipper 3PL/LEX nhận bưu kiện, chuyển về kho trung chuyển Sort Center, phân loại và giao chặng cuối cho Buyer. Tỷ lệ giao thất bại lần đầu: 20-25% (tương ứng tỷ lệ thành công 75-80%, thấp hơn trung bình ngành 82-88%).<br>
+4. <strong>Giai đoạn 4: Hoàn tất và Đối soát:</strong> Buyer nhận hàng thành công, hệ thống Escrow giải ngân cho Seller sau khi trừ phí sàn (L+2 model: funds available trong tài khoản Seller sau 1-2 ngày).</p>
+<hr>
+<h2 id="33-mô-hình-bpmn-quy-trình-xử-lý-đơn-hàng-online-as-is">3.3. Mô hình BPMN quy trình xử lý đơn hàng online (AS-IS)</h2>
+<p>Sơ đồ BPMN 2.0 quy trình AS-IS đầy đủ gồm <strong>5 Lanes (Buyer, Lazada System, Seller, 3PL/Shipper, Payment Gateway)</strong>, <strong>26 Tasks</strong>, và <strong>17 Cổng điều kiện (Gateways)</strong> (đáp ứng tiêu chí &gt;7 cổng phức tạp theo Rubric):</p>
+<p><img alt="Sơ đồ BPMN Quy trình Xử lý Đơn hàng Online AS-IS" src="docs/screenshots/03-order-processing-asis.png"><br>
+<strong>Hình 3.2: Sơ đồ BPMN quy trình xử lý đơn hàng online (AS-IS)</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    Start([Start: Buyer chọn sản phẩm]) --&gt; T1[Buyer bấm Đặt hàng &amp; chọn PTTT]
+    T1 --&gt; G1{Phương thức thanh toán?}
+
+    G1 --&gt;|COD| T2[Hệ thống tạo đơn &amp; chờ xử lý COD]
+    G1 --&gt;|Online Payment| T3[Payment Gateway xử lý giao dịch]
+    G1 --&gt;|Lazada Wallet| T3
+
+    T3 --&gt; G2{Thanh toán thành công?}
+    G2 --&gt;|Không| End1([Hủy đơn do lỗi thanh toán])
+    G2 --&gt;|Có| T4[Hệ thống tạo đơn &amp; thông báo Seller]
+    T2 --&gt; T4
+
+    T4 --&gt; T5[Seller kiểm tra đơn &amp; kho hàng]
+    T5 --&gt; G3{Seller accept hay reject?}
+    G3 --&gt;|Reject| T6[Seller bấm Hủy đơn] --&gt; End2([Hủy đơn do hết hàng])
+    G3 --&gt;|Hết SLA 24-48h| T7[Hệ thống Auto-cancel] --&gt; End2
+
+    G3 --&gt;|Accept| T8[Seller đóng gói &amp; in waybill]
+    T8 --&gt; G4{Phương thức Fulfillment?}
+
+    G4 --&gt;|FBL - Kho Lazada| T9[Warehouse nhận &amp; QC inspection]
+    G4 --&gt;|FBS - Seller tự giao| T10[LEX/3PL Pickup tại kho Seller]
+
+    T9 --&gt; G5{QC Pass/Fail?}
+    G5 --&gt;|Fail| T11[Trả hàng về Seller / Hủy kiện] --&gt; End3([End: kiện bị từ chối])
+    G5 --&gt;|Pass| T12[Warehouse Pack + Label]
+    T12 --&gt; T13[Handoff cho LEX/3PL]
+
+    T10 --&gt; T14[3PL Scan nhận tại Hub]
+    T13 --&gt; T14
+
+    T14 --&gt; T15[In-transit: Trung chuyển qua Sort Center]
+    T15 --&gt; T16[Line-haul đến Last-mile Hub]
+    T16 --&gt; T17[Shipper giao hàng chặng cuối]
+
+    T17 --&gt; G6{Delivery attempt thành công?}
+    G6 --&gt;|Thất bại| G7{Đã giao 3 lần?}
+    G7 --&gt;|Chưa| T17
+    G7 --&gt;|Rồi| T18[Chuyển hoàn bưu kiện về Seller] --&gt; End4([End: Giao thất bại])
+
+    G6 --&gt;|Thành công| G8{COD hay Online?}
+    G8 --&gt;|COD| T19[Shipper thu tiền COD] --&gt; T20[Cập nhật Delivered]
+    G8 --&gt;|Online| T20
+
+    T20 --&gt; T21[Buyer confirm nhận / Auto-confirm 7 ngày]
+    T21 --&gt; G9{Buyer khiếu nại?}
+    G9 --&gt;|Có| T22[Chuyển Quy trình Hoàn trả/Refund]
+    G9 --&gt;|Không| T23[Escrow Release &amp; Settlement]
+    T23 --&gt; T24[Trừ commission + phí → Giải ngân Ví Seller]
+    T24 --&gt; End5([End: Giao dịch hoàn tất])
+</code></pre>
+<blockquote>
+<p><strong>Ghi chú:</strong> Sơ đồ luồng tổng quan trên mô tả toàn chuỗi fulfillment (bao gồm các bước kho bãi/hub chi tiết thuộc Quy trình 9 — Logistics &amp; Giao nhận). File BPMN chính thức ở Hình 3.2 giới hạn trong phạm vi Quy trình 3 — Xử lý Đơn hàng (Buyer → Seller → 3PL pickup → giao → settlement), với 26 Tasks và 17 Gateways khớp số liệu ở Bảng 3.1.</p>
+<p><strong>Ghi chú chung về sơ đồ mermaid:</strong> Các sơ đồ luồng mermaid tại Mục 3.6–3.14 là <strong>sơ đồ tổng quan ở mức nghiệp vụ (executive overview)</strong> — gom các cổng gom luồng (join), cổng phụ và chi tiết lane/timer để minh họa luồng xử lý chính. <strong>Số liệu chính thức</strong> (số Tasks, Gateways, End Events, Lanes) lấy từ file BPMN 2.0 gốc và được nêu đầy đủ ở dòng thống kê ngay trên mỗi hình (khớp file BPMN trong <code>processes/</code> và <code>processes-to-be/</code>); các mermaid minh họa không thay thế file BPMN làm nguồn tham chiếu định lượng.</p>
+</blockquote>
+<p><strong>Bảng 3.1: Thống kê các thành phần sơ đồ BPMN Xử lý Đơn hàng</strong></p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Số lượng</th>
+<th>Chi tiết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Lanes (Làn)</strong></td>
+<td>5</td>
+<td>Buyer, Lazada System, Seller, 3PL/Shipper, Payment Gateway (các hoạt động kho bãi/hub thuộc Quy trình 9 — Logistics)</td>
+</tr>
+<tr>
+<td><strong>Activities (Tác vụ)</strong></td>
+<td>26</td>
+<td>Tác vụ thủ công và tác vụ hệ thống tự động</td>
+</tr>
+<tr>
+<td><strong>Gateways (Cổng rẽ nhánh)</strong></td>
+<td>17</td>
+<td>17 Cổng XOR Split &amp; Join (Vượt tiêu chí &gt;7 cổng của Rubric)</td>
+</tr>
+<tr>
+<td><strong>Events (Sự kiện)</strong></td>
+<td>4</td>
+<td>1 Start Event + 3 End Events (các nhánh kết thúc của quy trình)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="34-phân-tích-định-tính--nguyên-nhân-gốc-rễ">3.4. Phân tích Định tính &amp; Nguyên nhân Gốc rễ</h2>
+<h3 id="341-phân-tích-giá-trị-gia-tăng-va-bva-nva-analysis">3.4.1. Phân tích Giá trị Gia tăng (VA / BVA / NVA Analysis)</h3>
+<p><strong>Bảng 3.2: Bảng phân tích Giá trị gia tăng quy trình Xử lý Đơn hàng</strong></p>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Hoạt động (Task)</th>
+<th>Người thực hiện</th>
+<th>Loại giá trị</th>
+<th>Giải thích lý do</th>
+<th>Đề xuất khắc phục</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Đặt hàng &amp; chọn PTTT</td>
+<td>Buyer</td>
+<td><strong>VA</strong></td>
+<td>Trực tiếp thể hiện nhu cầu mua sắm của khách</td>
+<td>Tối ưu UI/UX 1-click checkout</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Kiểm tra thanh toán online</td>
+<td>System/GW</td>
+<td><strong>BVA</strong></td>
+<td>Đảm bảo an toàn tài chính cho giao dịch</td>
+<td>Tự động hóa 100% qua API</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Warehouse QC inspection</td>
+<td>Warehouse</td>
+<td><strong>BVA</strong></td>
+<td>Đảm bảo đúng SKU &amp; số lượng trước khi giao</td>
+<td>Tự động scan barcode giảm thủ công</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Chờ Seller xác nhận (max 48h)</td>
+<td>Seller</td>
+<td><strong>NVA</strong></td>
+<td>Thời gian chờ chết không tạo giá trị cho khách</td>
+<td>Auto-confirm cho Shop uy tín (Diamond/Gold)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>In phiếu &amp; Đóng gói hàng</td>
+<td>Seller</td>
+<td><strong>VA</strong></td>
+<td>Đảm bảo sản phẩm an toàn đến tay khách</td>
+<td>Chuẩn hóa quy cách bao bì</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Gửi hàng tại bưu cục/Pickup</td>
+<td>Seller/Shipper</td>
+<td><strong>BVA</strong></td>
+<td>Cần thiết để bàn giao bưu kiện</td>
+<td>Tối ưu tuyến đường gom hàng</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Quét mã &amp; Vận chuyển qua Hub</td>
+<td>LEX/3PL</td>
+<td><strong>BVA</strong></td>
+<td>Luân chuyển bưu kiện qua các hub</td>
+<td>Tự động hóa băng chuyền phân loại</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Chờ giao hàng chặng cuối</td>
+<td>Shipper</td>
+<td><strong>NVA</strong></td>
+<td>Khách vắng mặt / Không nghe máy gây chờ</td>
+<td>Nhắn tin trước / Chọn khung giờ</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Giao hàng &amp; Thu tiền COD</td>
+<td>Shipper</td>
+<td><strong>VA</strong></td>
+<td>Hoàn tất giao nhận &amp; trao giá trị sản phẩm</td>
+<td>Khuyến khích thanh toán không tiền mặt</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Chờ auto-confirm (7 ngày)</td>
+<td>System</td>
+<td><strong>NVA</strong></td>
+<td>Dọng vốn Seller không cần thiết</td>
+<td>Rút ngắn còn 24-72h đối với Shop uy tín</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Đối soát &amp; Giải ngân (L+2)</td>
+<td>Finance/System</td>
+<td><strong>BVA</strong></td>
+<td>Quyết toán dòng tiền cho Seller</td>
+<td>Auto-payout ngay khi giao xong cho Shop Diamond</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="342-phân-tích-lãng-phí-waste-analysis-move-hold-overdo">3.4.2. Phân tích Lãng phí (Waste Analysis: Move / Hold / Overdo)</h3>
+<p><strong>Bảng 3.3: Bảng phân tích Lãng phí quy trình Xử lý Đơn hàng</strong></p>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Loại lãng phí</th>
+<th>Hoạt động phát sinh</th>
+<th>Biểu hiện thực tế</th>
+<th>Giải pháp khắc phục</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Hold (Chờ đợi)</strong></td>
+<td>Chờ Seller xác nhận đơn</td>
+<td>Seller không vào app xác nhận trong 24-48h, auto-cancel rate cao</td>
+<td>Tự động xác nhận cho Shop tier cao; Push notification kết hợp SMS</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Hold (Chờ đợi)</strong></td>
+<td>Chờ giao hàng chặng cuối</td>
+<td>Shipper đến nhưng khách vắng mặt (15-20%) -- tỷ lệ COD refusal cao</td>
+<td>Khảo sát chọn khung giờ giao; Xác nhận đơn trước khi ship</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Hold (Chờ đợi)</strong></td>
+<td>Chờ Escrow Release &amp; Settlement</td>
+<td>Giữ tiền Escrow 7 ngày + L+2 settlement cycle</td>
+<td>Rút ngắn time-to-payout cho Shop uy tín</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Move (Di chuyển)</strong></td>
+<td>Qua nhiều node kho</td>
+<td>Bưu kiện chuyển qua 4-5 trạm trung chuyển</td>
+<td>Xây dựng Kho Vùng phân loại tập trung</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Overdo (Quá mức)</strong></td>
+<td>Kiểm tra gian lận thủ công</td>
+<td>Duyệt tay các đơn nghi ngờ boom hàng COD</td>
+<td>Áp dụng Machine Learning chấm điểm rủi ro đơn hàng</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="343-biểu-đồ-pareto-8020-rule-analysis">3.4.3. Biểu đồ Pareto (80/20 Rule Analysis)</h3>
+<p>Áp dụng quy tắc Pareto 80/20 để phân tích các nhóm lãng phí chính trong quy trình xử lý đơn hàng:</p>
+<pre><code>+-----------------------------------------------------------------------------------+
+|      BIỂU ĐỒ PARETO PHÂN BỐ CHI PHÍ LÃNG PHÍ QUY TRÌNH XỬ LÝ ĐƠN HÀNG            |
++-----------------------------------------------------------------------------------+
+| Tỷ lệ %                                                                           |
+| 100% |                                                            *(100%)         |
+|  90% |--------------------------------------------------*(87%)--+                 |
+|  80% |                                          *(70.6%)        | [Pareto 80%]  |
+|  44% |  [████████████]                                            |               |
+|  27% |  [████████████]            [████████████]                  |               |
+|  16% |  [████████████]            [████████████]    [████████████]|               |
+|   9% |  [████████████]            [████████████]    [████████████]| [████████████]|
+|   0% +----------------------------------------------------------------------------+
+|        Seller xác nhận       Auto-confirm       Giao lại          Buyer hủy      |
+|        chậm + hủy đơn         7 ngày            nhiều lần           đổi ý        |
+|             44,1%                 26,5%            16,2%             8,8%        |
++-----------------------------------------------------------------------------------+
+</code></pre>
+<p><strong>Hình 3.3: Biểu đồ Pareto phân bố chi phí lãng phí quy trình xử lý đơn hàng</strong></p>
+<ul>
+<li><strong>Nhận xét Pareto:</strong> <strong>~87% tổng chi phí lãng phí</strong> (~590 tỷ VND/tháng) tập trung ở 3 nhóm nguyên nhân chính: <strong>Seller xác nhận chậm + hủy đơn (44,1%)</strong>, <strong>Auto-confirm 7 ngày kéo dài thời gian giải ngân (26,5%)</strong> và <strong>Giao lại nhiều lần (16,2%)</strong> (Bảng Vấn đề–Giả thuyết–Chi phí, docs/analysis/03 §3.3.5). Theo quy tắc Pareto 80/20, ưu tiên xử lý 3 nhóm này để giành phần lớn hiệu quả giảm lãng phí.</li>
+<li><strong>Ghi chú phân loại:</strong> Phân bố trên tính theo <strong>chi phí ảnh hưởng/tháng</strong> (lost GMV + rework + cash flow lock). Xét riêng phân loại thời gian (Waste Analysis Move/Hold/Overdo), Hold chiếm 83% thời gian chờ do Seller xác nhận 48h + auto-confirm 7 ngày.</li>
+</ul>
+<hr>
+<h3 id="344-phân-tích-nguyên-nhân-gốc-rễ-fishbone-5-why-analysis">3.4.4. Phân tích Nguyên nhân Gốc rễ (Fishbone &amp; 5-Why Analysis)</h3>
+<h4 id="sơ-đồ-fishbone-1-tỷ-lệ-giao-hàng-thất-bại-lần-đầu-cao-20-25">Sơ đồ Fishbone #1: Tỷ lệ giao hàng thất bại lần đầu cao (20-25%)</h4>
+<ul>
+<li><strong>Con người (Man):</strong> Shipper không gọi trước khi giao; Buyer COD đổi ý không muốn nhận hàng (tỷ lệ COD refusal chiếm phần lớn).</li>
+<li><strong>Quy trình (Process):</strong> Không cho chọn khung giờ giao cụ thể; Quy trình giao lại (re-delivery) không hẹn giờ trước; Thiếu cơ chế xác nhận đơn trước khi ship.</li>
+<li><strong>Công nghệ (Technology):</strong> Địa chỉ Buyer nhập không chính xác (thiếu số nhà/ngõ); App chưa có tính năng định vị thời gian thực của Shipper; Chatbot CSKH xử lý sai vấn đề shipping.</li>
+<li><strong>Môi trường (Environment):</strong> Thời tiết mưa bão; Tắc đường giờ cao điểm tại các đô thị lớn.</li>
+</ul>
+<h4 id="phân-tích-5-why-1-tại-sao-seller-chậm-xác-nhận-đơn-hàng-24-giờ">Phân tích 5-Why #1: Tại sao Seller chậm xác nhận đơn hàng &gt;24 giờ?</h4>
+<ol>
+<li><em>Why 1:</em> Tại sao Seller không xác nhận đơn hàng ngay? --&gt; <em>Vì Seller không biết có đơn hàng mới.</em></li>
+<li><em>Why 2:</em> Tại sao Seller không biết? --&gt; <em>Vì không nhận được thông báo hoặc không mở Seller Center.</em></li>
+<li><em>Why 3:</em> Tại sao không mở Seller Center? --&gt; <em>Vì Seller nhỏ lẻ bán bán thời gian, không có nhân sự trực 24/7.</em></li>
+<li><em>Why 4:</em> Tại sao hệ thống không tự xác nhận? --&gt; <em>Vì cơ chế bắt buộc Seller phải bấm xác nhận thủ công để chốt tồn kho.</em></li>
+<li><em>Why 5 (Root Cause):</em> <strong>Cơ chế xác nhận đơn chưa linh hoạt -- ưu tiên thao tác thủ công thay vì tự động hóa theo phân hạng rủi ro gian hàng.</strong></li>
+</ol>
+<h4 id="phân-tích-5-why-2-tại-sao-tỷ-lệ-cod-refusal-cao-15-20">Phân tích 5-Why #2: Tại sao tỷ lệ COD refusal cao (15-20%)?</h4>
+<ol>
+<li><em>Why 1:</em> Tại sao Buyer từ chối nhận hàng COD? --&gt; <em>Vì Buyer đổi ý hoặc tìm được giá tốt hơn trên sàn khác.</em></li>
+<li><em>Why 2:</em> Tại sao Buyer dễ dàng đổi ý? --&gt; <em>Vì không có cơ chế xác nhận cam kết nhận hàng trước khi ship.</em></li>
+<li><em>Why 3:</em> Tại sao Lazada không áp dụng xác nhận? --&gt; <em>Vì COD là phương thức chủ đạo (~40-45%) và muốn giữ trải nghiệm mua hàng dễ dàng.</em></li>
+<li><em>Why 4:</em> COD refusal gây hậu quả gì? --&gt; <em>Chi phí reverse logistics, lãng phí thời gian shipper, giảm seller score.</em></li>
+<li><em>Why 5 (Root Cause):</em> <strong>Thiếu cơ chế xác nhận cam kết nhận hàng trước khi xử lý đơn COD, kết hợp với chính sách hoàn tiền dễ dàng tạo động cơ "boom hàng".</strong></li>
+</ol>
+<h4 id="sơ-đồ-fishbone-2-thời-gian-hoàn-tiền-kéo-dài-85-ngày-chậm-3-lần-so-với-benchmark-2-3-ngày">Sơ đồ Fishbone #2: Thời gian hoàn tiền kéo dài 8,5 ngày (chậm ~3 lần so với benchmark 2-3 ngày)</h4>
+<ul>
+<li><strong>Con người (Man):</strong> Nhân viên kho kiểm định từng kiện hoàn trả thủ công (không có AI so sánh ảnh); CS phải xem xét bằng chứng không có cấu trúc trước khi duyệt.</li>
+<li><strong>Quy trình (Process):</strong> Pickup hàng trả theo lịch cố định, thất bại phải đặt lại lịch (+1-2 ngày); reverse logistics 1-2 ngày; kích hoạt lệnh hoàn tiền thủ công 1-6 giờ sau khi kiểm định pass.</li>
+<li><strong>Công nghệ (Technology):</strong> Chưa áp dụng Instant Refund rộng rãi (chỉ đơn &lt;200k &amp; tín nhiệm cao); hoàn tiền về thẻ/bank mất 5-15 ngày làm việc theo chu kỳ bank/gateway; chưa có AI phân loại tự động hỗ trợ kiểm định kho.</li>
+<li><strong>Môi trường (Environment):</strong> Quy định/bank clearing cycle phụ thuộc bên thứ ba; giờ hoạt động của kho và 3PL giới hạn theo ca.</li>
+</ul>
+<h4 id="phân-tích-5-why-3-tại-sao-hoàn-tiền-trung-bình-mất-85-ngày">Phân tích 5-Why #3: Tại sao hoàn tiền trung bình mất 8,5 ngày?</h4>
+<ol>
+<li><em>Why 1:</em> Tại sao hoàn tiền mất 8,5 ngày? --&gt; <em>Vì phải chờ pickup, vận chuyển ngược, kiểm định kho rồi mới kích hoạt hoàn tiền.</em></li>
+<li><em>Why 2:</em> Tại sao phải chờ kiểm định kho? --&gt; <em>Vì phải xác nhận hàng về đúng hiện trạng mới dám hoàn tiền, nhưng kiểm định thủ công 4-12 giờ mỗi kiện.</em></li>
+<li><em>Why 3:</em> Tại sao kiểm định chậm? --&gt; <em>Vì nhân viên kho kiểm tra manual từng mục, không có AI so sánh ảnh hỗ trợ.</em></li>
+<li><em>Why 4:</em> Tại sao không đầu tư AI so sánh ảnh? --&gt; <em>Vì chi phí đầu tư warehouse tooling cao và chưa được ưu tiên so với các dự án khác, cộng với rủi ro fraud khi hoàn tiền sớm.</em></li>
+<li><em>Why 5 (Root Cause):</em> <strong>Quy trình hoàn tiền phụ thuộc tuyến tính vào reverse logistics + kiểm định kho thủ công (8h) + kích hoạt lệnh thủ công (1-6h) mà chưa có Instant Refund cho nhóm rủi ro thấp và chưa AI hóa kiểm định — gây thời gian chu kỳ 8,5 ngày, gấp ~3 lần benchmark ngành (2-3 ngày).</strong></li>
+</ol>
+<hr>
+<h2 id="35-phân-tích-định-lượng-quy-trình-xử-lý-đơn-hàng-online">3.5. Phân tích Định lượng Quy trình Xử lý Đơn hàng Online</h2>
+<h3 id="351-phân-tích-thời-gian-chu-kỳ-probability-weighted-cycle-time">3.5.1. Phân tích Thời gian Chu kỳ (Probability-Weighted Cycle Time)</h3>
+<p><strong>Bảng 3.4: Bảng tính toán Thời gian chu kỳ các giai đoạn trong quy trình</strong></p>
+<table>
+<thead>
+<tr>
+<th>Giai đoạn</th>
+<th>Thời gian xử lý thực (PT)</th>
+<th>Thời gian chờ (WT)</th>
+<th>Thời gian chu kỳ (CT)</th>
+<th>Trọng số xác suất</th>
+<th>CT có trọng số</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Đặt hàng &amp; Xác minh</strong></td>
+<td>5 phút (0,08h)</td>
+<td>10 phút (0,17h)</td>
+<td>0,25 giờ</td>
+<td>100%</td>
+<td>0,25 giờ</td>
+</tr>
+<tr>
+<td><strong>2. Seller xác nhận &amp; Đóng gói</strong></td>
+<td>20 phút (0,33h)</td>
+<td>14,0 giờ</td>
+<td>14,33 giờ</td>
+<td>100%</td>
+<td>14,33 giờ</td>
+</tr>
+<tr>
+<td><strong>3. Warehouse QC &amp; Packing (FBL)</strong></td>
+<td>15 phút (0,25h)</td>
+<td>4,0 giờ</td>
+<td>4,25 giờ</td>
+<td>40%</td>
+<td>1,70 giờ</td>
+</tr>
+<tr>
+<td><strong>4. Vận chuyển chặng đầu &amp; Hub</strong></td>
+<td>30 phút (0,50h)</td>
+<td>18,0 giờ</td>
+<td>18,50 giờ</td>
+<td>100%</td>
+<td>18,50 giờ</td>
+</tr>
+<tr>
+<td><strong>5. Phân loại Sort Center &amp; Linehaul</strong></td>
+<td>15 phút (0,25h)</td>
+<td>24,0 giờ</td>
+<td>24,25 giờ</td>
+<td>100%</td>
+<td>24,25 giờ</td>
+</tr>
+<tr>
+<td><strong>6. Giao chặng cuối (Thành công 1st)</strong></td>
+<td>15 phút (0,25h)</td>
+<td>4,0 giờ</td>
+<td>4,25 giờ</td>
+<td>80%</td>
+<td>3,40 giờ</td>
+</tr>
+<tr>
+<td><strong>7. Giao lại chặng cuối (Lần 2/3)</strong></td>
+<td>30 phút (0,50h)</td>
+<td>24,0 giờ</td>
+<td>24,50 giờ</td>
+<td>20%</td>
+<td>4,90 giờ</td>
+</tr>
+<tr>
+<td><strong>8. Đối soát &amp; Chờ giải ngân</strong></td>
+<td>5 phút (0,08h)</td>
+<td>36,0 giờ</td>
+<td>36,08 giờ</td>
+<td>100%</td>
+<td>36,08 giờ</td>
+</tr>
+<tr>
+<td><strong>TỔNG CỘNG QUY TRÌNH (đến giao thành công, happy path)</strong></td>
+<td><strong>2,24 giờ</strong></td>
+<td><strong>124,17 giờ</strong></td>
+<td><strong>126,41 giờ</strong></td>
+<td><strong>-</strong></td>
+<td><strong>103,41 giờ (~4,31 ngày)</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Chỉ số Hiệu suất Thời gian (Process Time Efficiency - PTE):</strong><br>
+  PTE = (Tong PT / Tong CT) x 100% = (2,24 / 126,41) x 100% = 1,77%</li>
+<li><strong>Nhận xét:</strong> <strong>98,23% thời gian quy trình là thời gian chờ lãng phí (WT)</strong>, chỉ có 1,77% thời gian là thực sự thao tác tạo giá trị. Đặc biệt, thời gian chờ giải ngân L+2 chiếm tỷ trọng lớn trong phase cuối.</li>
+</ul>
+<hr>
+<h3 id="352-phân-tích-chi-phí-unit-economics-per-order">3.5.2. Phân tích Chi phí (Unit Economics per Order)</h3>
+<p><strong>Bảng 3.5: Bảng phân bổ Chi phí xử lý biên 1 đơn hàng thành công (Đơn giá trung bình 280.000 VNĐ)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Thành phần chi phí</th>
+<th>Chi phí (VNĐ)</th>
+<th>Tỷ lệ % / Giá trị đơn</th>
+<th>Ghi chú giải thích</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chi phí Hạ tầng IT &amp; Băng thông</td>
+<td>900 VNĐ</td>
+<td>0,32%</td>
+<td>Máy chủ Alibaba Cloud, API Gateway</td>
+</tr>
+<tr>
+<td>Chi phí Đóng gói (Seller chịu)</td>
+<td>5.000 VNĐ</td>
+<td>1,79%</td>
+<td>Hộp carton, băng dính, xốp nổ, phiếu in</td>
+</tr>
+<tr>
+<td>Chi phí Vận chuyển Chặng đầu (Pickup)</td>
+<td>5.500 VNĐ</td>
+<td>1,96%</td>
+<td>Shipper LEX/3PL gom hàng về Hub</td>
+</tr>
+<tr>
+<td>Chi phí Phân loại Sort Center</td>
+<td>2.800 VNĐ</td>
+<td>1,00%</td>
+<td>Vận hành máy chia chọn tự động</td>
+</tr>
+<tr>
+<td>Chi phí Vận chuyển Chặng cuối (Last-mile)</td>
+<td>15.000 VNĐ</td>
+<td>5,36%</td>
+<td>Trả công Shipper giao hàng</td>
+</tr>
+<tr>
+<td>Chi phí Xử lý Thanh toán (Payment GW)</td>
+<td>4.000 VNĐ</td>
+<td>1,43%</td>
+<td>Phí cổng VNPay / OnePay / MoMo</td>
+</tr>
+<tr>
+<td>Chi phí Dự phòng Giao hỏng / COD refusal</td>
+<td>3.500 VNĐ</td>
+<td>1,25%</td>
+<td>Chi phí xử lý khiếu nại + reverse logistics</td>
+</tr>
+<tr>
+<td>Chi phí CSKH / Khiếu nại phân bổ</td>
+<td>2.200 VNĐ</td>
+<td>0,79%</td>
+<td>Phân bổ chi phí CS theo đơn</td>
+</tr>
+<tr>
+<td><strong>TỔNG CHI PHÍ VẬN HÀNH BIÊN (Unit Cost)</strong></td>
+<td><strong>38.900 VNĐ</strong></td>
+<td><strong>13,89%</strong></td>
+<td><strong>Chi phí vận hành trực tiếp / đơn</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="36-quy-trình-quản-lý-nhà-bán-hàng-management-1">3.6. Quy trình Quản lý Nhà bán hàng (Management #1)</h2>
+<h3 id="361-mô-tả-quy-trình">3.6.1. Mô tả quy trình</h3>
+<p>Quy trình thẩm định hồ sơ Seller mới đăng ký (eKYC + OCR), phân hạng Shop (Standard, Gold, Diamond, LazMall), và quản lý hệ thống vi phạm (Warning --&gt; Delist --&gt; Suspended --&gt; Deactivated --&gt; Re-register).</p>
+<h3 id="362-mô-hình-bpmn-thống-kê">3.6.2. Mô hình BPMN &amp; Thống kê</h3>
+<p>Sơ đồ BPMN 2.0 Quản lý Nhà bán hàng gồm <strong>4 Lanes (Seller, Lazada System, Compliance Team, Legal/Giám sát Vận hành)</strong>, <strong>14 Tasks</strong>, <strong>15 Gateways</strong> (XOR — exclusiveGateway thuần):</p>
+<p><img alt="Sơ đồ BPMN Quy trình Quản lý Nhà bán hàng AS-IS" src="docs/screenshots/01-seller-management-asis.png"><br>
+<strong>Hình 3.4: Sơ đồ BPMN quy trình quản lý nhà bán hàng (AS-IS)</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    S_SM([Start: Yêu cầu đăng ký gian hàng]) --&gt; T_SM1[Điền thông tin định danh Seller]
+    T_SM1 --&gt; G_SM1{SĐT đã xác thực?}
+    G_SM1 --&gt;|Chưa xác thực| T_SM2[Gửi OTP xác thực SĐT] --&gt; J_SM1((Gom luồng trước Upload))
+    G_SM1 --&gt;|Đã xác thực| J_SM1
+    J_SM1 --&gt; T_SM3[Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)]
+    T_SM3 --&gt; J_SM2((Gom luồng trước Validate)) --&gt; T_SM4[Validate định danh tự động]
+    T_SM4 --&gt; G_SM2{Tài khoản NH hợp lệ?}
+    G_SM2 --&gt;|Không hợp lệ| T_SM5[Cập nhật tài khoản ngân hàng (giải ngân)] --&gt; J_SM3((Gom luồng trước OCR))
+    G_SM2 --&gt;|Hợp lệ| J_SM3
+    J_SM3 --&gt; T_SM6[Quét OCR + kiểm tra giấy tờ giả]
+    T_SM6 --&gt; G_SM3{Giấy tờ hợp lệ?}
+    G_SM3 --&gt;|Hợp lệ| T_SM7[Chấm điểm rủi ro (Risk scoring)]
+    G_SM3 --&gt;|Không hợp lệ| J_SM4((Gom luồng trước Bổ sung hồ sơ)) --&gt; T_SM8[Bổ sung / sửa hồ sơ]
+    T_SM7 --&gt; G_SM4{Có nghi vấn rủi ro cao?}
+    G_SM4 --&gt;|Không| G_SM5{Phân tầng rủi ro?}
+    G_SM4 --&gt;|Có nghi vấn| J_SM5((Gom luồng trước Compliance review))
+    G_SM5 --&gt;|Manual review| J_SM5
+    G_SM5 --&gt;|Auto duyệt| J_SM6((Gom luồng trước Thông báo))
+    G_SM5 --&gt;|Từ chối| J_SM4
+    J_SM5 --&gt; T_SM9[Compliance review thủ công (24-48h)] --&gt; G_SM6{Kết quả thẩm định?}
+    G_SM6 --&gt;|Duyệt| J_SM6
+    G_SM6 --&gt;|Từ chối| J_SM6
+    G_SM6 --&gt;|Yêu cầu sửa hồ sơ| J_SM4
+    T_SM8 --&gt; G_SM7{Còn lượt sửa hồ sơ?}
+    G_SM7 --&gt;|Còn lượt| J_SM2
+    G_SM7 --&gt;|Hết lượt| End_SM5([End: Hồ sơ đã bị từ chối vĩnh viễn])
+    J_SM6 --&gt; T_SM10[Thông báo kết quả duyệt Seller Centre] --&gt; G_SM8{Phân luồng sau thông báo?}
+    G_SM8 --&gt;|Kích hoạt gian hàng| End_SM1([End: Gian hàng Lazada đã được kích hoạt])
+    G_SM8 --&gt;|Giám sát vi phạm| T_SM11[Giám sát điểm đánh giá &amp; vi phạm (auto)] --&gt; G_SM9{Mức độ vi phạm?}
+    G_SM9 --&gt;|Nhẹ| T_SM12[Gửi cảnh cáo Seller] --&gt; End_SM2([End: Gian hàng đã bị cảnh cáo])
+    G_SM9 --&gt;|Trung bình| T_SM13[Tạm khóa gian hàng (7 ngày)] --&gt; End_SM3([End: Gian hàng đã bị tạm khóa])
+    G_SM9 --&gt;|Nghiêm trọng| T_SM14[Khóa gian hàng vĩnh viễn] --&gt; End_SM4([End: Gian hàng đã bị khóa vĩnh viễn])
+</code></pre>
+<p><strong>Bảng 3.6: Phân tích Định tính &amp; Định lượng Quản lý Nhà bán hàng</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hạng mục phân tích</th>
+<th>Chi tiết kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tỷ lệ VA / BVA / NVA</strong></td>
+<td>VA: 29%, BVA: 71%, NVA: 0% (không có hoạt động lãng phí thuần; BVA chủ yếu là các bước compliance/kiểm soát cần thiết, bottleneck chính là Compliance review thủ công 24-48h).</td>
+</tr>
+<tr>
+<td><strong>Điểm nghẽn (Bottleneck)</strong></td>
+<td>Compliance review thủ công 24-48h (85% hồ sơ vào manual queue); Phê duyệt thủ công giấy phép kinh doanh &amp; giấy ủy quyền thương hiệu đối với LazMall.</td>
+</tr>
+<tr>
+<td><strong>Thời gian chu kỳ (Cycle Time)</strong></td>
+<td>Trung bình 40 giờ (~5 ngày làm việc, theo trọng số xác suất; tối thiểu 15 phút auto-check --&gt; tối đa 5 ngày manual review).</td>
+</tr>
+<tr>
+<td><strong>Chi phí thẩm định / Seller</strong></td>
+<td>24.500 VNĐ / hồ sơ đăng ký (gồm eKYC 2.000, tải hồ sơ 15.000, OTP SMS 500, đối soát giấy phép 1.000, lưu trữ 6.000 VNĐ).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="37-quy-trình-quản-lý-tranh-chấp-và-rủi-ro-management-2">3.7. Quy trình Quản lý Tranh chấp và Rủi ro (Management #2)</h2>
+<h3 id="371-mô-tả-quy-trình">3.7.1. Mô tả quy trình</h3>
+<p>Quy trình giải quyết các vụ việc khiếu nại phức tạp, nghi vấn gian lận COD, boom hàng hàng loạt hoặc tranh chấp pháp lý giữa Buyer và Seller.</p>
+<h3 id="372-mô-hình-bpmn-thống-kê">3.7.2. Mô hình BPMN &amp; Thống kê</h3>
+<p>Sơ đồ BPMN 2.0 Quản lý Tranh chấp gồm <strong>5 Lanes (Buyer, Lazada System (Automated), Seller, CS Agent, Escalation Team)</strong>, <strong>12 Tasks</strong>, <strong>16 Gateways</strong> (toàn bộ XOR — exclusiveGateway):</p>
+<p><img alt="Sơ đồ BPMN Quy trình Quản lý Tranh chấp AS-IS" src="docs/screenshots/02-dispute-management-asis.png"><br>
+<strong>Hình 3.5: Sơ đồ BPMN quy trình quản lý tranh chấp và rủi ro (AS-IS)</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    S_DM([Start: Yêu cầu giải quyết tranh chấp]) --&gt; T_DM1[Tạo tranh chấp + lý do]
+    T_DM1 --&gt; T_DM2[Tự động thu thập dữ liệu đơn hàng]
+    T_DM2 --&gt; T_DM3[AI phân loại tranh chấp (Đơn giản/Phức tạp)]
+    T_DM3 --&gt; G_DM0{Phân luồng sau AI phân loại}
+    G_DM0 --&gt; G_DM1{Vụ việc thuộc nhóm đơn giản?}
+    G_DM0 --&gt; G_DM2{Seller từng vi phạm SLA?}
+    G_DM1 --&gt;|Nhóm đơn giản| End_DM3([End: Tranh chấp đã được AI tự giải quyết])
+    G_DM2 --&gt;|Có vi phạm| J_DM1((Gom luồng trước Thông báo đối soát))
+    G_DM2 --&gt;|Chưa vi phạm| T_DM4[Kiểm tra lịch sử SLA] --&gt; J_DM1
+    J_DM1 --&gt; T_DM5[Gửi thông báo đối soát đến hai bên]
+    T_DM5 --&gt; G_DM3{Seller phản hồi trong 48h?}
+    G_DM3 --&gt;|Không phản hồi| J_DM4((Gom nhánh kết thúc))
+    G_DM3 --&gt;|Phản hồi| T_DM6[Seller phản hồi (≤48h)] --&gt; G_DM4{Phân luồng sau phản hồi?}
+    G_DM4 --&gt;|Đủ hồ sơ| J_DM2((Gom luồng trước CS thẩm định))
+    G_DM4 --&gt;|Cần bổ sung bằng chứng| J_DM3((Gom luồng trước Bổ sung bằng chứng))
+    J_DM3 --&gt; T_DM7[Bổ sung bằng chứng (nếu có)] --&gt; G_DM5{Có bằng chứng cứng?}
+    G_DM5 --&gt;|Có| G_DM6{Bằng chứng đã đầy đủ &amp; hợp lệ?}
+    G_DM5 --&gt;|Không| J_DM5((Gom luồng trước Yêu cầu bổ sung))
+    G_DM6 --&gt;|Đầy đủ| J_DM2
+    G_DM6 --&gt;|Chưa đầy đủ| J_DM5
+    J_DM5 --&gt; T_DM8[Yêu cầu bổ sung bằng chứng] --&gt; J_DM3
+    J_DM2 --&gt; T_DM9[CS thẩm định toàn bộ hồ sơ tranh chấp] --&gt; T_DM10[CS ban hành quyết định xử lý]
+    T_DM10 --&gt; G_DM7{Phân luồng sau quyết định?}
+    G_DM7 --&gt; G_DM8{Buyer thắng?}
+    G_DM7 --&gt; G_DM9{Đồng thuận?}
+    G_DM7 --&gt; T_DM11[Chuyển lên nhóm chuyên trách (Lazada Escalation)]
+    G_DM8 --&gt;|Buyer thắng| J_DM4
+    G_DM8 --&gt;|Không| End_DM2([End: Tranh chấp đã bị bác bỏ])
+    G_DM9 --&gt;|Đồng thuận| J_DM4
+    G_DM9 --&gt;|Không đồng thuận| T_DM11
+    T_DM11 --&gt; T_DM12[Hội đồng thẩm định &amp; ra quyết định cuối] --&gt; G_DM10{Quyết định cuối?} --&gt; J_DM4
+    J_DM4 --&gt; End_DM1([End: Tranh chấp đã được giải quyết])
+</code></pre>
+<p><strong>Bảng 3.7: Phân tích Định tính &amp; Định lượng Quản lý Tranh chấp</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hạng mục phân tích</th>
+<th>Chi tiết kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tỷ lệ VA / BVA / NVA</strong></td>
+<td>VA: 50%, BVA: 50%, NVA: 0% (không có hoạt động lãng phí thuần; BVA là các bước auditing/kiểm soát cần thiết, gây delay do gửi bằng chứng qua lại nhiều vòng).</td>
+</tr>
+<tr>
+<td><strong>Điểm nghẽn (Bottleneck)</strong></td>
+<td>Quá trình thu thập bằng chứng chưa chuẩn hóa; hình ảnh mở hộp bị mờ/thiếu thông tin.</td>
+</tr>
+<tr>
+<td><strong>Thời gian chu kỳ (Cycle Time)</strong></td>
+<td>Trung bình 5,2 ngày (Vụ phức tạp leo thang lên đến 14 ngày).</td>
+</tr>
+<tr>
+<td><strong>Chi phí xử lý / Ca tranh chấp</strong></td>
+<td>68.000 VNĐ / vụ việc.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="38-quy-trình-hoàn-trả-và-hoàn-tiền-core-4">3.8. Quy trình Hoàn trả và Hoàn tiền (Core #4)</h2>
+<h3 id="381-mô-tả-quy-trình">3.8.1. Mô tả quy trình</h3>
+<p>Xử lý các yêu cầu trả hàng/hoàn tiền khi hàng vỡ hỏng, sai mẫu, không nhận được hàng hoặc Buyer đổi ý. Phân biệt 3 loại: Full Return, Partial Refund, Only Refund.</p>
+<h3 id="382-sơ-đồ-bpmn-quy-trình-hoàn-trả-hoàn-tiền">3.8.2. Sơ đồ BPMN quy trình Hoàn trả &amp; Hoàn tiền</h3>
+<p>Sơ đồ BPMN AS-IS gồm <strong>5 Lanes (Buyer, Lazada System, CS Agent, 3PL/Warehouse, Payment Gateway)</strong>, <strong>13 Tasks</strong>, <strong>18 Gateways</strong>; mô hình TO-BE tối ưu tại Mục 3.15.2 gồm <strong>16 Tasks</strong>, <strong>9 Gateways</strong> (thêm 3 cổng AI: kiểm tra mức độ tin cậy của AI xác thực lỗi, kiểm tra pickup thành công và kiểm tra giải ngân thành công; lược giản 3 cổng kiểm tra thủ công — thời hạn hoàn trả, chất lượng bằng chứng và kiểm định hàng):</p>
+<p><img alt="Sơ đồ BPMN Quy trình Hoàn trả và Hoàn tiền AS-IS" src="docs/screenshots/04-return-refund-asis.png"><br>
+<strong>Hình 3.6: Sơ đồ BPMN quy trình hoàn trả và hoàn tiền (AS-IS)</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    S_RR([Start: Buyer yêu cầu hoàn trả hàng]) --&gt; T_RR1[Buyer gửi yêu cầu đổi trả và lý do]
+    T_RR1 --&gt; G_RR1{Còn trong thời gian hoàn trả?}
+    G_RR1 --&gt;|Trễ hạn| T_RR2[Xử lý yêu cầu trễ hạn] --&gt; J_RR1[Gom luồng]
+    G_RR1 --&gt;|Trong hạn| J_RR1
+    J_RR1 --&gt; T_RR3[Kiểm tra tính hợp lệ tự động]
+
+    T_RR3 --&gt; G_RR2{Hợp lệ?}
+    G_RR2 --&gt;|Không| End_RR2([End: Yêu cầu hoàn trả bị từ chối])
+    G_RR2 --&gt;|Có| T_RR4[Buyer tải lên bằng chứng ảnh &amp; video]
+
+    T_RR4 --&gt; T_RR5[AI phân loại bằng chứng khiếu nại]
+    T_RR5 --&gt; G_RR3{Bằng chứng đạt yêu cầu? &amp; AI đủ tin cậy}
+    G_RR3 --&gt;|Ảnh mờ/Thiếu sót| T_RR4
+    G_RR3 --&gt;|Đạt| J_RR2[Gom luồng] --&gt; T_RR6[CS thẩm định hồ sơ khiếu nại]
+
+    T_RR6 --&gt; G_RR4{CS phê duyệt yêu cầu đổi trả?}
+    G_RR4 --&gt;|Từ chối| End_RR2
+    G_RR4 --&gt;|Duyệt| G_RR5{Đơn &lt;200k &amp; Buyer tín nhiệm cao?}
+
+    G_RR5 --&gt;|Có − Return-less refund| J_RR3[Gom luồng trước Kích hoạt hoàn tiền]
+    G_RR5 --&gt;|Không − Cần trả hàng| T_RR7[Buyer bàn giao hàng trả cho LEX/3PL]
+    T_RR7 --&gt; T_RR8[Đặt lịch Shipper đến lấy hàng hoàn]
+
+    T_RR8 --&gt; T_RR9[LEX/3PL pickup hàng trả]
+    T_RR9 --&gt; G_RR6{Pickup thành công?}
+    G_RR6 --&gt;|Thất bại| T_RR10[Đặt lại lịch pickup] --&gt; T_RR9
+    G_RR6 --&gt;|Thành công| T_RR11[Kiểm định hàng hoàn tại kho ≤12h]
+    T_RR11 --&gt; G_RR7{Hàng hoàn đúng hiện trạng &amp; đủ điều kiện?}
+    G_RR7 --&gt;|Không đạt| End_RR2
+    G_RR7 --&gt;|Đạt| J_RR3
+
+    J_RR3 --&gt; T_RR12[Kích hoạt lệnh hoàn tiền]
+    T_RR12 --&gt; G_RR8{Phương thức hoàn tiền?}
+    G_RR8 --&gt;|Ví Lazada Wallet| J_RR4[Gom luồng]
+    G_RR8 --&gt;|Thẻ/Bank| J_RR4
+    J_RR4 --&gt; T_RR13[Gửi thông báo cập nhật tiến độ tự động] --&gt; End_RR1([End: Đã hoàn tiền cho Buyer])
+</code></pre>
+<h3 id="383-phân-tích-định-tính-định-lượng-quy-trình-hoàn-trả-hoàn-tiền">3.8.3. Phân tích Định tính &amp; Định lượng Quy trình Hoàn trả &amp; Hoàn tiền</h3>
+<p><strong>Bảng 3.8: Phân tích Giá trị Gia tăng (VA/BVA/NVA) — 13 hoạt động của quy trình</strong></p>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Hoạt động</th>
+<th>VA</th>
+<th>BVA</th>
+<th>NVA</th>
+<th>Giải thích</th>
+<th>Đề xuất TO-BE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Gửi yêu cầu đổi trả và lý do</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>Nhu cầu chính đáng của KH</td>
+<td>Guided form + lý do chuẩn hóa</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tải lên bằng chứng ảnh và video</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>Bằng chứng cần thiết cho quyết định</td>
+<td>Checklist guided + AI quality check</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Xử lý yêu cầu trễ hạn</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>Xử lý ngoại lệ khi KH bỏ lỡ deadline</td>
+<td>Auto-extend 1 lần, nhắc reminder</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Bàn giao hàng trả cho LEX / 3PL</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>Bắt đầu logistics ngược</td>
+<td>Drop-off point + QR code</td>
+</tr>
+<tr>
+<td>5</td>
+<td>CS thẩm định hồ sơ khiếu nại</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>Cần cho fair decision — Hold lớn</td>
+<td><strong>AI triage evidence</strong> + CS chỉ review ngoại lệ</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Kiểm định hàng hoàn tại kho (≤12h)</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>Inspection thủ công tại kho — waste (bỏ qua khi return-less &lt;200k)</td>
+<td><strong>Return-less refund</strong> low-risk + AI image analysis</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Kiểm tra tính hợp lệ tự động</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>Lọc yêu cầu không hợp lệ — chống lạm dụng</td>
+<td>Auto instant; mở rộng luật</td>
+</tr>
+<tr>
+<td>8</td>
+<td>AI phân loại bằng chứng khiếu nại</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>Phân loại nhanh — rút ngắn thời gian xử lý</td>
+<td>Mở rộng auto-approve path</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Gửi thông báo cập nhật tiến độ tự động</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>KH theo dõi trạng thái — minh bạch</td>
+<td>Giữ nguyên (auto)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Đặt lịch hẹn Shipper đến lấy hàng hoàn</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>Lên lịch pickup — giảm Hold</td>
+<td>Smart scheduling + drop-off point</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Đặt lại lịch pickup</td>
+<td></td>
+<td>✓</td>
+<td></td>
+<td>Xử lý ngoại lệ (KH bận)</td>
+<td>Tự động đề xuất 3 slot kế tiếp</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Kích hoạt lệnh hoàn tiền</td>
+<td></td>
+<td></td>
+<td>✓</td>
+<td>Hoàn tiền thủ công sau khi đã duyệt — waste (nhiều bước click)</td>
+<td>Auto-execute refund qua payment gateway</td>
+</tr>
+<tr>
+<td>13</td>
+<td>LEX / 3PL pickup hàng trả</td>
+<td>✓</td>
+<td></td>
+<td></td>
+<td>Vận chuyển hàng trả — logistics ngược</td>
+<td>Scheduled pickup slot (giảm Hold 4-24h)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tỷ lệ VA/BVA/NVA:</strong> VA <strong>6/13 (46%)</strong>, BVA <strong>5/13 (39%)</strong>, NVA <strong>2/13 (15%)</strong> — NVA tập trung ở kiểm định kho thủ công và kích hoạt lệnh hoàn tiền thủ công, đúng 2 hoạt động mà mô hình TO-BE tự động hóa (Mục 3.15.2), đưa NVA về gần 0.</p>
+<p><strong>Bảng 3.9: Bảng tính toán Thời gian chu kỳ và Chi phí xử lý 1 đơn Hoàn trả (Refund Unit Economics)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Chỉ số Định lượng</th>
+<th>Giá trị hiện tại (AS-IS)</th>
+<th>Giá trị mục tiêu (TO-BE)</th>
+<th>Mức cải thiện</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Thời gian giải quyết trung bình (Avg CT)</strong></td>
+<td>8,5 ngày (204 giờ)</td>
+<td>1,8 ngày (43,2 giờ)</td>
+<td><strong>-78,8%</strong></td>
+</tr>
+<tr>
+<td><strong>Thời gian xử lý thực (PT)</strong></td>
+<td>55 phút (0,92 giờ)</td>
+<td>18 phút (0,30 giờ)</td>
+<td><strong>-67,3%</strong></td>
+</tr>
+<tr>
+<td><strong>Hiệu suất thời gian quy trình (PTE)</strong></td>
+<td>0,45%</td>
+<td>0,69%</td>
+<td><strong>+53,3%</strong></td>
+</tr>
+<tr>
+<td><strong>Chi phí xử lý thủ công / ca (CS Staff)</strong></td>
+<td>52.000 VNĐ</td>
+<td>18.000 VNĐ</td>
+<td><strong>-65,4%</strong></td>
+</tr>
+<tr>
+<td><strong>Tỷ lệ khiếu nại leo thang (Escalation Rate)</strong></td>
+<td>20%</td>
+<td>5-8%</td>
+<td><strong>-60-75%</strong></td>
+</tr>
+<tr>
+<td><strong>Chỉ số Hài lòng Khách hàng (CSAT)</strong></td>
+<td>3,2 / 5,0</td>
+<td>4,5 / 5,0</td>
+<td><strong>+40,6%</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="39-quy-trình-chăm-sóc-khách-hàng-support-1">3.9. Quy trình Chăm sóc Khách hàng (Support #1)</h2>
+<h3 id="391-mô-tả-quy-trình">3.9.1. Mô tả quy trình</h3>
+<p>Quy trình tiếp nhận và xử lý yêu cầu hỗ trợ từ Buyer/Seller qua các kênh Live Chat, Hotline 1900 1010, Email, Help Center với Chatbot AI Lazzie phân tầng tự động.</p>
+<h3 id="392-sơ-đồ-bpmn-quy-trình-cskh">3.9.2. Sơ đồ BPMN quy trình CSKH</h3>
+<p>Sơ đồ BPMN gồm <strong>5 Lanes (Customer, Chatbot/AI, CS Tier 1, CS Tier 2, System)</strong>, <strong>18 Tasks</strong>, <strong>11 Gateways</strong>:</p>
+<p><img alt="Sơ đồ BPMN Quy trình CSKH AS-IS" src="docs/screenshots/05-customer-service-asis.png"><br>
+<strong>Hình 3.7: Sơ đồ BPMN quy trình chăm sóc khách hàng (AS-IS)</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    S_CS([Start: Yêu cầu hỗ trợ từ khách hàng]) --&gt; T_CS1[Mô tả chi tiết vấn đề cần hỗ trợ]
+    T_CS1 --&gt; T_CS2[AI NLP phân loại ý định &amp; mức độ khẩn cấp]
+    T_CS2 --&gt; T_CS3[Hệ thống kiểm tra SLA xử lý ticket]
+    T_CS3 --&gt; G_CS1{SLA còn thời hạn xử lý?}
+    G_CS1 --&gt;|Hết hạn SLA| End_CS3([End: Ticket hỗ trợ đã quá hạn SLA])
+    G_CS1 --&gt;|Còn thời hạn| T_CS4[Hệ thống trích xuất thông tin đơn &amp; tài khoản]
+    T_CS4 --&gt; G_CS2{Chatbot có sẵn kịch bản trả lời?}
+    G_CS2 --&gt;|Có| T_CS5[Chatbot (Lazada Assistant) tự động giải đáp] --&gt; G_CS3{Chatbot giải quyết thành công?}
+    G_CS3 --&gt;|Thành công| J_CS1((Gom luồng trước Xác nhận hoàn tất))
+    G_CS3 --&gt;|Chưa thành công| J_CS2((Gom luồng trước Tier 1))
+    G_CS2 --&gt;|Không| T_CS6[Xác minh danh tính khách hàng] --&gt; G_CS4{Xác minh danh tính thành công?}
+    G_CS4 --&gt;|Thất bại| End_CS2([End: Xác minh danh tính đã thất bại])
+    G_CS4 --&gt;|Thành công| G_CS5{Khách liên hệ lại lần 2?}
+    G_CS5 --&gt;|Có| J_CS2
+    G_CS5 --&gt;|Không| T_CS7[Lấy lịch sử tương tác (auto)] --&gt; J_CS2
+    J_CS2 --&gt; T_CS8[Tư vấn viên Tier 1 tiếp nhận &amp; hỗ trợ] --&gt; T_CS9[Tư vấn viên Tier 1 đưa giải pháp xử lý]
+    T_CS9 --&gt; G_CS6{Tier 1 giải quyết thành công?}
+    G_CS6 --&gt;|Thành công| J_CS1
+    G_CS6 --&gt;|Cần thêm chứng từ| T_CS10[Cung cấp thêm thông tin chứng từ] --&gt; T_CS11[Chờ phản hồi từ tư vấn viên]
+    G_CS6 --&gt;|Cần chuyên sâu| T_CS12[Chuyên viên Tier 2 thẩm định chuyên sâu] --&gt; T_CS13[Chuyên viên Tier 2 xử lý dứt điểm] --&gt; J_CS1
+    T_CS11 --&gt; G_CS7{Quá thời gian chờ phản hồi?}
+    G_CS7 --&gt;|Có| T_CS14[Gửi nhắc nhở phản hồi cho khách hàng] --&gt; J_CS2
+    G_CS7 --&gt;|Không| J_CS2
+    J_CS1 --&gt; T_CS15[Khách hàng bấm xác nhận hoàn tất hỗ trợ] --&gt; T_CS16[Khách hàng chấm điểm khảo sát CSAT]
+    T_CS16 --&gt; G_CS8{Đánh giá CSAT ≥ 4 sao?}
+    G_CS8 --&gt;|Từ 4 sao trở lên| J_CS3((Gom luồng trước Ghi nhận nhật ký))
+    G_CS8 --&gt;|Dưới 4 sao| T_CS17[Khảo sát đánh giá chất lượng (QA Follow-up)] --&gt; J_CS3
+    J_CS3 --&gt; T_CS18[Ghi nhận nhật ký phiên &amp; điểm CSAT] --&gt; End_CS1([End: Phiên hỗ trợ đã kết thúc thành công])
+</code></pre>
+<h3 id="393-phân-tích-định-tính-định-lượng-cskh">3.9.3. Phân tích Định tính &amp; Định lượng CSKH</h3>
+<p><strong>Bảng 3.10: Phân tích Giá trị gia tăng (VA/BVA/NVA) quy trình CSKH</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hoạt động</th>
+<th>Phân loại</th>
+<th>Tỷ lệ %</th>
+<th>Đề xuất cải tiến</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chatbot Lazzie trả lời FAQ tự động</td>
+<td><strong>VA</strong></td>
+<td>35%</td>
+<td>Mở rộng tri thức LLM Generative AI Chatbot</td>
+</tr>
+<tr>
+<td>Agent Tier 1 xử lý vấn đề trực tiếp</td>
+<td><strong>VA</strong></td>
+<td>25%</td>
+<td>Auto-popup thông tin đơn hàng</td>
+</tr>
+<tr>
+<td>Chờ kết nối Tổng đài viên</td>
+<td><strong>NVA</strong></td>
+<td>20%</td>
+<td>Tự động gọi lại (Call-back)</td>
+</tr>
+<tr>
+<td>Agent tra cứu CRM thủ công</td>
+<td><strong>BVA</strong></td>
+<td>12%</td>
+<td>AI gợi ý answer trước khi agent reply</td>
+</tr>
+<tr>
+<td>Chuyển tiếp Ticket Tier 2</td>
+<td><strong>BVA</strong></td>
+<td>8%</td>
+<td>Phân luồng thông minh AI routing</td>
+</tr>
+</tbody>
+</table>
+<p><em>(Nguồn: phân bổ ước tính theo thời gian tiếp xúc trung bình 79 phút/lượt — chatbot FAQ 60% kịch bản, Tier 1 resolve 80%, Tier 2 20%, QA 15%, kết hợp xác suất tiếp nhận; docs/analysis/05 §3.9.2. Tỷ lệ % là ước tính trọng số, không phải số liệu tuyệt đối.)</em></p>
+<hr>
+<h2 id="310-quy-trình-marketing-và-khuyến-mãi-support-2">3.10. Quy trình Marketing và Khuyến mãi (Support #2)</h2>
+<h3 id="3101-mô-tả-quy-trình">3.10.1. Mô tả quy trình</h3>
+<p>Quy trình thiết kế, phê duyệt, mở cổng đăng ký Seller và vận hành các chiến dịch Mega Campaign (9.9, 11.11, 12.12).</p>
+<h3 id="3102-mô-hình-bpmn-thống-kê">3.10.2. Mô hình BPMN &amp; Thống kê</h3>
+<p>Sơ đồ BPMN 2.0 Marketing &amp; Khuyến mãi gồm <strong>5 Lanes (Marketing Team, Approval, Lazada System, Sellers, Buyers)</strong>, <strong>21 Tasks</strong>, <strong>15 Gateways</strong>:</p>
+<p><img alt="Sơ đồ BPMN Quy trình Marketing AS-IS" src="docs/screenshots/06-marketing-asis.png"><br>
+<strong>Hình 3.8: Sơ đồ BPMN quy trình marketing và khuyến mãi (AS-IS)</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    S_MK([Start: Lên kế hoạch chiến dịch Marketing]) --&gt; T_MK1[Marketing Team thiết kế Concept &amp; Budget]
+    T_MK1 --&gt; G_MK1{Hạng mức ngân sách?}
+
+    G_MK1 --&gt;|Dưới 100 triệu| T_MK2[Truong bo phan phe duyet]
+    G_MK1 --&gt;|Trên 100 triệu| T_MK3[CMO/CFO phe duyet]
+    T_MK2 --&gt; G_MK2{Phe duyet OK?}
+    T_MK3 --&gt; G_MK2
+    G_MK2 --&gt;|Tu choi| End_MK1([End: Huy chien dich])
+    G_MK2 --&gt;|Dong y| T_MK4[Creative Team thiet ke banner + landing page]
+
+    T_MK4 --&gt; T_MK5[Legal/Marcom duyet noi dung]
+    T_MK5 --&gt; G_MK3{No dung dat tuan thu?}
+    G_MK3 --&gt;|Khong| T_MK6[Chinh sua lai] --&gt; T_MK4
+    G_MK3 --&gt;|Dat| T_MK7[Mo cang dang ky cho Seller]
+
+    T_MK7 --&gt; T_MK8[Seller dang ky san pham &amp; muc giam gia]
+    T_MK8 --&gt; T_MK9[System tu dong tham dinh dieu kien seller]
+    T_MK9 --&gt; G_MK4{Seller du dieu kien?}
+    G_MK4 --&gt;|Khong| T_MK10[Tu choi Seller tham gia]
+    G_MK4 --&gt;|Du| T_MK11[System duyet SKU &amp; Cau hinh Voucher]
+
+    T_MK11 --&gt; T_MK12[Kich hoat Campaign dung gio G]
+    T_MK12 --&gt; T_MK13[Buyer san Voucher &amp; Dat hang]
+    T_MK13 --&gt; G_MK5{Hieu suat dat KPI?}
+    G_MK5 --&gt;|Dat| T_MK14[Xuat bao cao ROI post-campaign]
+    G_MK5 --&gt;|Khong dat| T_MK15[Tang voucher/ads hoac cat giam som]
+    T_MK14 --&gt; End_MK2([End: Hoan tat chien dich])
+    T_MK15 --&gt; End_MK2
+</code></pre>
+<p><strong>Bảng 3.11: Phân tích Định tính &amp; Định lượng Marketing</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hạng mục phân tích</th>
+<th>Chi tiết kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tỷ lệ VA / BVA / NVA</strong></td>
+<td>VA: 57%, BVA: 33%, NVA: 10% (NVA do cấu hình chiến dịch thủ công và thu thập số liệu đối soát qua Excel; ước tính theo phân loại hoạt động).</td>
+</tr>
+<tr>
+<td><strong>Điểm nghẽn (Bottleneck)</strong></td>
+<td>Quy trình duyệt ngân sách qua nhiều cấp quản lý (Multi-layer approval).</td>
+</tr>
+<tr>
+<td><strong>Thời gian triển khai (Time-to-Market)</strong></td>
+<td>3-4 tuần (từ ý tưởng đến khi chạy chiến dịch).</td>
+</tr>
+<tr>
+<td><strong>Chi phí vận hành Campaign</strong></td>
+<td>420.000.000 VNĐ / Mega Campaign.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="311-quy-trình-quản-lý-nhân-sự--đào-tạo-management-3">3.11. Quy trình Quản lý Nhân sự &amp; Đào tạo (Management #3)</h2>
+<h3 id="3111-mô-tả-quy-trình">3.11.1. Mô tả quy trình</h3>
+<p>Quy trình quản lý nhân sự &amp; đào tạo bao trùm vòng đời nhân sự tại Lazada VN: tuyển dụng, onboarding, đào tạo nội bộ (LMS), chứng chỉ tuân thủ (compliance), và đánh giá năng lực. Quy trình hiện tại phụ thuộc lớn vào thao tác thủ công với vòng duyệt tài chính kéo dài 5–10 ngày.</p>
+<p><strong>Hệ số Owning department:</strong> HR + L&amp;D, Line Manager, Finance<br>
+<strong>Số lane:</strong> 4 (AS-IS: HR Team, Lazada University, Seller / Nhân viên, Compliance) → 5 (TO-BE: thêm Finance; đổi Lazada University → Lazada University (AI), Compliance → Compliance (Hệ thống))<br>
+<strong>End events:</strong> 2 (Chương trình đào tạo đã hoàn tất, Vi phạm chính sách đã được xử lý)<br>
+<strong>Activities:</strong> 17 (AS-IS) → 21 (TO-BE) | <strong>Gateways:</strong> 15 → 15 (14 exclusive + 1 parallel AS-IS; TO-BE toàn bộ exclusive)</p>
+<h3 id="3112-phân-tích-qualitative-quantitative">3.11.2. Phân tích Qualitative &amp; Quantitative</h3>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VA / BVA / NVA</td>
+<td>VA: 40%, BVA: 30%, NVA: 30%</td>
+</tr>
+<tr>
+<td>Tỷ lệ hoàn thành khóa đào tạo</td>
+<td>60% (benchmark ≥90%)</td>
+</tr>
+<tr>
+<td>Thời gian duyệt tài chính</td>
+<td>5–10 ngày</td>
+</tr>
+<tr>
+<td>Chi phí đào tạo/đầu người</td>
+<td>2.5–5M VNĐ/năm</td>
+</tr>
+<tr>
+<td>Completion rate Improvement (TO-BE)</td>
+<td>60% → 90% (+50%)</td>
+</tr>
+<tr>
+<td>Gateways (AS-IS → TO-BE)</td>
+<td>15 → 15</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3113-bpmn-as-is">3.11.3. BPMN AS-IS</h3>
+<p><img alt="BPMN AS-IS Nhân sự &amp; Đào tạo" src="docs/screenshots/07-hr-training-asis.png"><br>
+<strong>Hình 3.15: Sơ đồ BPMN quy trình nhân sự &amp; đào tạo (AS-IS)</strong></p>
+<h3 id="3114-bpmn-to-be">3.11.4. BPMN TO-BE</h3>
+<p><img alt="BPMN TO-BE Nhân sự &amp; Đào tạo" src="docs/screenshots/07-hr-training-tobe.png"><br>
+<strong>Hình 3.16: Sơ đồ BPMN quy trình nhân sự &amp; đào tạo (TO-BE)</strong></p>
+<hr>
+<h2 id="312-quy-trình-thanh-toán--đối-soát-core-2">3.12. Quy trình Thanh toán &amp; Đối soát (Core #2)</h2>
+<h3 id="3121-mô-tả-quy-trình">3.12.1. Mô tả quy trình</h3>
+<p>Quy trình thanh toán &amp; đối soát xử lý toàn bộ dòng tiền: COD, thẻ, ví điện tử, escrow, đối soát ngân hàng, và giải ngân cho seller. COD discrepancy 2–3% (~40 tỷ/tháng) là lãng phí lớn nhất; settlement chậm L+2/L+3 gây stress dòng tiền seller.</p>
+<p><strong>Số lane:</strong> 5 (Buyer, Payment Gateway VNPay/MoMo/ZaloPay, Lazada System (Escrow), Finance, Seller)<br>
+<strong>End events:</strong> 3 (Seller đã nhận tiền thanh toán, Đối soát đã hoàn tất, Đã hoàn tiền về Buyer)<br>
+<strong>Activities:</strong> 22 (AS-IS) | <strong>Gateways:</strong> 16 (XOR + AND — 14 exclusive + 2 parallel)</p>
+<h3 id="3122-phân-tích-qualitative-quantitative">3.12.2. Phân tích Qualitative &amp; Quantitative</h3>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>COD discrepancy</td>
+<td>2–3% (~40 tỷ VND/tháng)</td>
+</tr>
+<tr>
+<td>Settlement cycle</td>
+<td>L+2 (online) / L+3 (COD) (→ TO-BE: L+1 online / L+2 COD)</td>
+</tr>
+<tr>
+<td>Gateway fees toàn sàn</td>
+<td>~67,5–112,5 tỷ VND/tháng (1,5–2,5% × 4.500 tỷ GMV)</td>
+</tr>
+<tr>
+<td>Đối soát COD thủ công</td>
+<td>4–24h/case + 2–4h/ngày matching (→ TO-BE: ML auto-matching)</td>
+</tr>
+<tr>
+<td>VA / BVA / NVA</td>
+<td>VA: 63%, BVA: 27%, NVA: 9% (đếm 14/22, 6/22, 2/22 hoạt động)</td>
+</tr>
+<tr>
+<td>Gateways (AS-IS → TO-BE)</td>
+<td>16 → 14</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3123-bpmn-as-is">3.12.3. BPMN AS-IS</h3>
+<p><img alt="BPMN AS-IS Thanh toán &amp; Đối soát" src="docs/screenshots/08-payment-settlement-asis.png"><br>
+<strong>Hình 3.17: Sơ đồ BPMN quy trình thanh toán &amp; đối soát (AS-IS)</strong></p>
+<h3 id="3124-bpmn-to-be">3.12.4. BPMN TO-BE</h3>
+<p><img alt="BPMN TO-BE Thanh toán &amp; Đối soát" src="docs/screenshots/08-payment-settlement-tobe.png"><br>
+<strong>Hình 3.18: Sơ đồ BPMN quy trình thanh toán &amp; đối soát (TO-BE)</strong></p>
+<hr>
+<h2 id="313-quy-trình-logistics--giao-nhận-core-3">3.13. Quy trình Logistics &amp; Giao nhận (Core #3)</h2>
+<h3 id="3131-mô-tả-quy-trình">3.13.1. Mô tả quy trình</h3>
+<p>Quy trình logistics quản lý pickup → phân loại hub → vận chuyển → last-mile → retry/return. LEX kết hợp 3PL (GHN, J&amp;T, Grab, Ninja Van). Năm lãng phí lớn nhất (Pareto, ~354 tỷ VND/tháng): Return/hoàn về kho (90 tỷ/tháng), Giao lại (85 tỷ/tháng), Chi phí last-mile cao (83,5 tỷ/tháng), Sort Hub inefficiency (55 tỷ/tháng), Tracking không realtime (40,5 tỷ/tháng).</p>
+<p><strong>Số lane:</strong> 5 (Seller, Lazada System, LEX/3PL (GHN, J&amp;T, Grab, NINJAVAN), Shipper (Giao hàng), Buyer)<br>
+<strong>End events:</strong> 2 (Đơn hàng đã giao thành công, Hàng đã hoàn về Seller)<br>
+<strong>Activities:</strong> 20 (AS-IS) | <strong>Gateways:</strong> 13 (toàn bộ XOR — exclusiveGateway)</p>
+<h3 id="3132-phân-tích-qualitative-quantitative">3.13.2. Phân tích Qualitative &amp; Quantitative</h3>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First-attempt delivery</td>
+<td>75–80% (→ TO-BE: 92%)</td>
+</tr>
+<tr>
+<td>Giao lại chi phí</td>
+<td>85 tỷ VND/tháng</td>
+</tr>
+<tr>
+<td>Return/hoàn về kho chi phí</td>
+<td>90 tỷ VND/tháng</td>
+</tr>
+<tr>
+<td>Hub sorting error chi phí</td>
+<td>55 tỷ VND/tháng</td>
+</tr>
+<tr>
+<td>Tracking không realtime chi phí</td>
+<td>40,5 tỷ VND/tháng</td>
+</tr>
+<tr>
+<td>Chi phí last-mile cao (province 40k vs benchmark 30-35k)</td>
+<td>83,5 tỷ VND/tháng</td>
+</tr>
+<tr>
+<td><strong>Tổng chi phí lãng phí logistics</strong></td>
+<td><strong>~354 tỷ VND/tháng</strong></td>
+</tr>
+<tr>
+<td>Transit delay (thành phần trong last-mile)</td>
+<td>40 tỷ VND/tháng</td>
+</tr>
+<tr>
+<td>VA / BVA / NVA</td>
+<td>VA: 38%, BVA: 32%, NVA: 30%</td>
+</tr>
+<tr>
+<td>Gateways (AS-IS → TO-BE)</td>
+<td>13 → 19</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Phân bổ Pareto:</strong> 5 lãng phí lớn nhất (≈354 tỷ VND/tháng): ① Giao lại nhiều lần 24,0% (85 tỷ); ② Return/hoàn về kho 25,4% (90 tỷ); ③ Sort Hub inefficiency 15,5% (55 tỷ); ④ Tracking không realtime 11,4% (40,5 tỷ); ⑤ Chi phí last-mile cao 23,6% (83,5 tỷ). TO-BE: ~246 tỷ VND/tháng (−108 tỷ, −31%).</p>
+</blockquote>
+<h3 id="3133-bpmn-as-is">3.13.3. BPMN AS-IS</h3>
+<p><img alt="BPMN AS-IS Logistics &amp; Giao nhận" src="docs/screenshots/09-logistics-delivery-asis.png"><br>
+<strong>Hình 3.19: Sơ đồ BPMN quy trình logistics &amp; giao nhận (AS-IS)</strong></p>
+<h3 id="3134-bpmn-to-be">3.13.4. BPMN TO-BE</h3>
+<p><img alt="BPMN TO-BE Logistics &amp; Giao nhận" src="docs/screenshots/09-logistics-delivery-tobe.png"><br>
+<strong>Hình 3.20: Sơ đồ BPMN quy trình logistics &amp; giao nhận (TO-BE)</strong></p>
+<hr>
+<h2 id="314-quy-trình-vận-hành-nền-tảng-công-nghệ-support-3">3.14. Quy trình Vận hành Nền tảng Công nghệ (Support #3)</h2>
+<h3 id="3141-mô-tả-quy-trình">3.14.1. Mô tả quy trình</h3>
+<p>Quy trình IT Operations quản lý release, bug fix, CI/CD, và ứng phó sự cố bảo mật. Bug fix loop 2–5 ngày và deploy failure 15% gây chi phí lớn. Đơn vị tham chiếu (lớn nhất): bug fix loop 1,17 tỷ VND/tháng, deploy fail 0,78 tỷ VND/tháng (tổng chi phí IT Ops 3,9 tỷ VND/tháng).</p>
+<p><strong>Số lane:</strong> 5 (Product Owner, Dev Team, QA/Tester, DevOps/CI-CD, Security)<br>
+<strong>End events:</strong> 2 (Tính năng đã deploy thành công, Đã rollback về version trước)<br>
+<strong>Activities:</strong> 18 (AS-IS) | <strong>Gateways:</strong> 16 (toàn bộ XOR — exclusiveGateway)</p>
+<h3 id="3142-phân-tích-qualitative-quantitative">3.14.2. Phân tích Qualitative &amp; Quantitative</h3>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bug fix cycle time</td>
+<td>2–5 ngày (→ TO-BE: &lt;1 ngày)</td>
+</tr>
+<tr>
+<td>Deploy failure rate</td>
+<td>15% (→ TO-BE: &lt;3%)</td>
+</tr>
+<tr>
+<td>Security response time</td>
+<td>7–14 ngày (→ TO-BE: &lt;24h)</td>
+</tr>
+<tr>
+<td>Release cycle</td>
+<td>4–6 tuần (→ TO-BE: 1–2 tuần)</td>
+</tr>
+<tr>
+<td>VA / BVA / NVA</td>
+<td>VA: 32%, BVA: 38%, NVA: 30%</td>
+</tr>
+<tr>
+<td>Gateways (AS-IS → TO-BE)</td>
+<td>16 → 16</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3143-bpmn-as-is">3.14.3. BPMN AS-IS</h3>
+<p><img alt="BPMN AS-IS Vận hành CNTT" src="docs/screenshots/10-it-platform-asis.png"><br>
+<strong>Hình 3.21: Sơ đồ BPMN quy trình vận hành CNTT (AS-IS)</strong></p>
+<h3 id="3144-bpmn-to-be">3.14.4. BPMN TO-BE</h3>
+<p><img alt="BPMN TO-BE Vận hành CNTT" src="docs/screenshots/10-it-platform-tobe.png"><br>
+<strong>Hình 3.22: Sơ đồ BPMN quy trình vận hành CNTT (TO-BE)</strong></p>
+<hr>
+<h2 id="315-phân-tích-as-is--to-be-tổng-hợp-và-sơ-đồ-bpmn-cải-tiến">3.15. Phân tích AS-IS / TO-BE Tổng hợp và Sơ đồ BPMN Cải tiến</h2>
+<blockquote>
+<p><strong>Nguồn dữ liệu tổng hợp:</strong> Toàn bộ vấn đề phát hiện từ 10 quy trình được thống kê đầy đủ trong <strong>Issue Register</strong> (65 vấn đề, gồm phân loại mức độ Cao/TB/Thấp, nguồn phát hiện PV/PT/BM và ma trận ưu tiên Impact × Urgency) tại <a href="docs/analysis/issue-register.md">docs/analysis/issue-register.md</a>. Phần này trình bày kết quả tổng hợp RACI, BPMN TO-BE và các KPI cải thiện tiêu biểu; các bảng Pareto chi tiết theo từng quy trình nằm ở Mục 3.4-3.14.</p>
+</blockquote>
+<h3 id="3151-ma-trận-phân-công-trách-nhiệm-raci-matrix">3.15.1. Ma trận Phân công Trách nhiệm (RACI Matrix)</h3>
+<p><strong>Bảng 3.12: Ma trận RACI cho các hoạt động chính trong hệ thống 10 quy trình</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hoạt động Quy trình</th>
+<th>Buyer</th>
+<th>Seller</th>
+<th>Lazada System</th>
+<th>LEX/3PL</th>
+<th>CSKH Team</th>
+<th>Finance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Duyệt đăng ký &amp; Onboarding Seller (Q1)</td>
+<td>I</td>
+<td><strong>R</strong></td>
+<td><strong>A / C</strong></td>
+<td>I</td>
+<td>C</td>
+<td>I</td>
+</tr>
+<tr>
+<td>Đặt hàng &amp; Thanh toán (Q4)</td>
+<td><strong>R</strong></td>
+<td>I</td>
+<td><strong>A / C</strong></td>
+<td>I</td>
+<td>I</td>
+<td>C</td>
+</tr>
+<tr>
+<td>Xác nhận &amp; Đóng gói (Q4)</td>
+<td>I</td>
+<td><strong>R / A</strong></td>
+<td>C</td>
+<td>I</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<td>Warehouse QC &amp; Packing (Q4)</td>
+<td>I</td>
+<td>I</td>
+<td><strong>A</strong></td>
+<td>C</td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<td>Gom hàng &amp; Vận chuyển (Q6)</td>
+<td>I</td>
+<td>I</td>
+<td>C</td>
+<td><strong>R / A</strong></td>
+<td>I</td>
+<td>I</td>
+</tr>
+<tr>
+<td>Giao chặng cuối &amp; COD (Q6)</td>
+<td><strong>C</strong></td>
+<td>I</td>
+<td>I</td>
+<td><strong>R / A</strong></td>
+<td>I</td>
+<td>C</td>
+</tr>
+<tr>
+<td>Trả hàng &amp; Hoàn tiền (Q7)</td>
+<td><strong>R</strong></td>
+<td>C</td>
+<td><strong>A</strong></td>
+<td>C</td>
+<td><strong>R</strong></td>
+<td>C</td>
+</tr>
+<tr>
+<td>Giải ngân Ví Seller (Q5)</td>
+<td>I</td>
+<td>I</td>
+<td><strong>A</strong></td>
+<td>I</td>
+<td>I</td>
+<td><strong>R</strong></td>
+</tr>
+<tr>
+<td>Xử lý tranh chấp (Q2)</td>
+<td><strong>R</strong></td>
+<td><strong>R</strong></td>
+<td><strong>A</strong></td>
+<td>C</td>
+<td><strong>R</strong></td>
+<td>C</td>
+</tr>
+<tr>
+<td>CSKH &amp; Hỗ trợ (Q8)</td>
+<td><strong>R</strong></td>
+<td>C</td>
+<td><strong>A</strong></td>
+<td>I</td>
+<td><strong>R</strong></td>
+<td>I</td>
+</tr>
+<tr>
+<td>Marketing &amp; Khuyến mãi (Q9)</td>
+<td>C</td>
+<td>C</td>
+<td><strong>A / R</strong></td>
+<td>I</td>
+<td>C</td>
+<td>C</td>
+</tr>
+<tr>
+<td>Đào tạo &amp; Phát triển năng lực (Q3)</td>
+<td>I</td>
+<td><strong>R</strong></td>
+<td><strong>A / R</strong></td>
+<td>I</td>
+<td>I</td>
+<td>C</td>
+</tr>
+<tr>
+<td>Vận hành nền tảng CNTT &amp; AIOps (Q10)</td>
+<td>I</td>
+<td>I</td>
+<td><strong>A / R</strong></td>
+<td>C</td>
+<td>C</td>
+<td>C</td>
+</tr>
+</tbody>
+</table>
+<p><em>(Ghi chú: R = Responsible - Người thực hiện, A = Accountable - Người chịu trách nhiệm chính, C = Consulted - Người tham vấn, I = Informed - Người nhận thông báo)</em></p>
+<hr>
+<h3 id="3152-sơ-đồ-bpmn-quy-trình-to-be-cải-tiến-cho-10-quy-trình">3.15.2. Sơ đồ BPMN Quy trình TO-BE (Cải tiến cho 10 quy trình)</h3>
+<p>Dưới đây là các hình ảnh mô hình BPMN TO-BE đã được tối ưu hóa loại bỏ nấc trung gian, ứng dụng eKYC tự động, AI phân tích rủi ro đơn hàng và tự động hóa cao:</p>
+<h4 id="1-sơ-đồ-bpmn-to-be-xử-lý-đơn-hàng-online">1. Sơ đồ BPMN TO-BE Xử lý Đơn hàng Online:</h4>
+<p><img alt="Sơ đồ BPMN Xử lý Đơn hàng TO-BE" src="docs/screenshots/03-order-processing-tobe.png"><br>
+<strong>Hình 3.9: Sơ đồ BPMN quy trình xử lý đơn hàng online (TO-BE)</strong></p>
+<h4 id="2-sơ-đồ-bpmn-to-be-quản-lý-nhà-bán-hàng">2. Sơ đồ BPMN TO-BE Quản lý Nhà bán hàng:</h4>
+<p>Sơ đồ TO-BE gồm <strong>4 Lanes (Seller, Lazada System, Compliance Team, Legal/Giám sát Vận hành)</strong>, <strong>13 Tasks</strong>, <strong>7 Gateways</strong> (toàn bộ XOR) và <strong>5 End Events</strong>; hồ sơ nghi vấn chuyển Compliance review thủ công có <strong>Timer "Hạn chót SLA 24h" (PT24H)</strong> — kết quả thẩm định phải trả về trong vòng 24 giờ (đối chiếu file <code>processes-to-be/01-seller-management.bpmn</code>).<br>
+<img alt="Sơ đồ BPMN Quản lý Nhà bán hàng TO-BE" src="docs/screenshots/01-seller-management-tobe.png"><br>
+<strong>Hình 3.10: Sơ đồ BPMN quy trình quản lý nhà bán hàng (TO-BE)</strong></p>
+<h4 id="3-sơ-đồ-bpmn-to-be-quản-lý-tranh-chấp-rủi-ro">3. Sơ đồ BPMN TO-BE Quản lý Tranh chấp &amp; Rủi ro:</h4>
+<p><img alt="Sơ đồ BPMN Quản lý Tranh chấp TO-BE" src="docs/screenshots/02-dispute-management-tobe.png"><br>
+<strong>Hình 3.11: Sơ đồ BPMN quy trình quản lý tranh chấp và rủi ro (TO-BE)</strong></p>
+<h4 id="4-sơ-đồ-bpmn-to-be-hoàn-trả-hoàn-tiền">4. Sơ đồ BPMN TO-BE Hoàn trả &amp; Hoàn tiền:</h4>
+<p><img alt="Sơ đồ BPMN Hoàn trả &amp; Hoàn tiền TO-BE" src="docs/screenshots/04-return-refund-tobe.png"><br>
+<strong>Hình 3.12: Sơ đồ BPMN quy trình hoàn trả và hoàn tiền (TO-BE)</strong></p>
+<h4 id="5-sơ-đồ-bpmn-to-be-chăm-sóc-khách-hàng">5. Sơ đồ BPMN TO-BE Chăm sóc Khách hàng:</h4>
+<p>Sơ đồ TO-BE gồm <strong>5 Lanes (Customer, Chatbot AI, CS Tier 1, CS Tier 2, System)</strong>, <strong>14 Tasks</strong>, <strong>9 Gateways</strong> (toàn bộ XOR) và <strong>2 End Events</strong> (đối chiếu file <code>processes-to-be/05-customer-service.bpmn</code>).<br>
+<img alt="Sơ đồ BPMN CSKH TO-BE" src="docs/screenshots/05-customer-service-tobe.png"><br>
+<strong>Hình 3.13: Sơ đồ BPMN quy trình chăm sóc khách hàng (TO-BE)</strong></p>
+<h4 id="6-sơ-đồ-bpmn-to-be-marketing-khuyến-mãi">6. Sơ đồ BPMN TO-BE Marketing &amp; Khuyến mãi:</h4>
+<p><img alt="Sơ đồ BPMN Marketing TO-BE" src="docs/screenshots/06-marketing-tobe.png"><br>
+<strong>Hình 3.14: Sơ đồ BPMN quy trình marketing và khuyến mãi (TO-BE)</strong></p>
+<blockquote>
+<p><strong>Ghi chú:</strong> Sơ đồ TO-BE của 4 quy trình còn lại (Nhân sự &amp; Đào tạo, Thanh toán &amp; Đối soát, Logistics &amp; Giao nhận, Vận hành CNTT) được trình bày kèm phân tích chi tiết tại Mục 3.11.4 (Hình 3.16), 3.12.4 (Hình 3.18), 3.13.4 (Hình 3.20), 3.14.4 (Hình 3.22).</p>
+</blockquote>
+<hr>
+<h3 id="3153-bảng-tổng-hợp-giải-pháp-cải-tiến-to-be">3.15.3. Bảng Tổng hợp Giải pháp Cải tiến TO-BE</h3>
+<p><strong>Bảng 3.13: Bảng tổng hợp giải pháp cải tiến TO-BE cho 10 quy trình</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Quy trình</th>
+<th>Giải pháp TO-BE áp dụng</th>
+<th>Chỉ số KPI cải thiện kỳ vọng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P1</strong></td>
+<td>Order Processing</td>
+<td>Tự động chấp nhận đơn sau hết SLA 2h (thay vì chờ Seller thủ công 24-48h); rút ngắn auto-confirm nhận hàng 7 ngày → 24-72h cho Shop Diamond/Gold; Cơ chế xác nhận nhận hàng trước khi ship COD</td>
+<td>Tỷ lệ giao 1st thành công: 75–80% --&gt; 92%; Giảm COD refusal: 15–20% --&gt; 8%</td>
+</tr>
+<tr>
+<td><strong>P2</strong></td>
+<td>Return &amp; Refund</td>
+<td>Cấu hình Instant Refund cho đơn giá trị nhỏ (&lt;200K) &amp; Shop uy tín; Phân biệt auto/manual ngay gateway đầu</td>
+<td>Thời gian hoàn tiền: 8,5 ngày --&gt; 1,8 ngày (-78,8%)</td>
+</tr>
+<tr>
+<td><strong>P3</strong></td>
+<td>Seller Management</td>
+<td>Ứng dụng eKYC &amp; OCR tự động đọc duyệt chứng từ Seller; AI Risk Scoring + tự động kích hoạt gian hàng Low-risk trong 3 giây</td>
+<td>Thời gian duyệt Seller: 40h --&gt; 2h (-95%)</td>
+</tr>
+<tr>
+<td><strong>P4</strong></td>
+<td>Dispute Management</td>
+<td>Form nộp bằng chứng chuẩn hóa cấu trúc + AI Image Verification + Auto-escalation theo giá trị</td>
+<td>Giảm 60-75% tỷ lệ khiếu nại leo thang lên Senior (20% → 5-8%, Bảng 3.9)</td>
+</tr>
+<tr>
+<td><strong>P5</strong></td>
+<td>Customer Service</td>
+<td>Tích hợp LLM Generative AI Chatbot Lazzie tiếp nhận tự động 80% yêu cầu (resolve ~45%); Omnichannel routing thông minh</td>
+<td>AHT giảm 82% (79 phút → ~14 phút, KPI doc 05)</td>
+</tr>
+<tr>
+<td><strong>P6</strong></td>
+<td>Marketing Campaign</td>
+<td>Luồng duyệt ngân sách phân tầng rủi ro (Risk-tiered Approval); Auto-report dashboard realtime</td>
+<td>Time-to-Market: 3-4 tuần --&gt; 1 tuần</td>
+</tr>
+<tr>
+<td><strong>P7</strong></td>
+<td>HR &amp; Training</td>
+<td>LMS tự động hóa onboarding + compliance quiz bắt buộc; Rút ngắn vòng duyệt tài chính</td>
+<td>Tỷ lệ hoàn thành khóa đào tạo: 60% --&gt; 90% (+50%)</td>
+</tr>
+<tr>
+<td><strong>P8</strong></td>
+<td>Payment &amp; Settlement</td>
+<td>Auto-reconcile COD + API tích hợp bank realtime</td>
+<td>Settlement: L+2/L+3 --&gt; L+1 (online) / L+2 (COD); COD discrepancy: 2–3% --&gt; 0,5%</td>
+</tr>
+<tr>
+<td><strong>P9</strong></td>
+<td>Logistics &amp; Delivery</td>
+<td>AI Route Optimization + slot hẹn giờ + quy trình drop-off network</td>
+<td>First-attempt delivery: 75-80% --&gt; 92%; Giao lại: 20-25% --&gt; 8% (-60-68%)</td>
+</tr>
+<tr>
+<td><strong>P10</strong></td>
+<td>IT Operations</td>
+<td>CI/CD tự động hóa + AIOps giám sát sự cố realtime</td>
+<td>Bug fix: 2–5 ngày --&gt; &lt;1 ngày; Deploy failure: 15% --&gt; &lt;3%</td>
+</tr>
+</tbody>
+</table>
+<p><em>(Ghi chú: Sơ đồ BPMN TO-BE của 4 quy trình P7-P10 được trình bày tại Mục 3.11.4, 3.12.4, 3.13.4, 3.14.4 — Hình 3.16, 3.18, 3.20, 3.22.)</em></p>
+<hr>
+<h1 id="chương-4-kết-luận-và-đề-xuất">Chương 4. KẾT LUẬN VÀ ĐỀ XUẤT</h1>
+<h2 id="41-kết-luận">4.1. Kết luận</h2>
+<p>Đồ án <strong>"Hệ thống Quản trị Quy trình Nghiệp vụ Lazada Việt Nam"</strong> đã hoàn thành toàn bộ các mục tiêu đề ra theo đúng yêu cầu bài tập môn học IE203:<br>
+1. Systematize thành công <strong>10 quy trình nghiệp vụ</strong> thuộc 3 nhóm Quản lý, Cốt lõi, Hỗ trợ với sơ đồ kiến trúc tổng thể theo mô hình Ngôi nhà (House Diagram).<br>
+2. Mô hình hóa đầy đủ <strong>10 quy trình trọng điểm</strong> bằng chuẩn BPMN 2.0 (10 file .bpmn AS-IS + 10 TO-BE, kèm ảnh tại docs/screenshots/), với cấu trúc mô hình AS-IS được xác thực hợp lệ 100% bởi bộ kiểm tra tự động (3 thuộc tính van der Aalst — docs/petri-net, soundness-check.py).<br>
+3. Áp dụng đồng bộ các phương pháp phân tích định tính (VA/BVA/NVA, Waste Analysis, Fishbone, 5-Why, Pareto) và định lượng (Cycle Time, Unit Economics, Defect Rates) sâu sắc.<br>
+4. Đề xuất các giải pháp TO-BE khả thi mang lại cải thiện định lượng rõ rệt: giảm thời gian chu kỳ 50-95% trên các quy trình trọng điểm (duyệt Seller 40h→2h -95%, hoàn tiền 8,5→1,8 ngày -78,8%, kiểm định kho 8h→2h -75%) và giảm 65,4% chi phí xử lý đơn vị (Bảng 3.9) và giảm 60-75% tỷ lệ khiếu nại leo thang. Các chỉ số định lượng mang tính ước tính từ dữ liệu phỏng vấn mẫu và báo cáo thị trường công khai (xem 4.2).</p>
+<h2 id="42-hạn-chế-của-đồ-án">4.2. Hạn chế của đồ án</h2>
+<ul>
+<li>Do hạn chế truy cập dữ liệu bảo mật nội bộ của Lazada, một số chỉ số định lượng thời gian và chi phí dựa trên giả định tính toán từ nguồn dữ liệu phỏng vấn mẫu, báo cáo thị trường công khai và chính sách Seller Center.</li>
+<li>Thị phần và số liệu tài chính Lazada Group không được tách biệt theo từng quốc gia, nên các con số về Lazada Việt Nam mang tính ước tính.</li>
+<li>Quy trình HR &amp; Training (Quy trình #7) được mô tả ở mức tổng quan do tính chất phức tạp và liên quan đến dữ liệu nhạy cảm.</li>
+</ul>
+<h2 id="43-hướng-phát-triển-tiếp-theo">4.3. Hướng phát triển tiếp theo</h2>
+<ul>
+<li>Triển khai thực thi trực tiếp các file BPMN 2.0 trên hệ thống BPMS Engine thực tế như <strong>Camunda Automation Platform Engine</strong> để chạy simulation đo lường tải thực tế.</li>
+<li>Mở rộng phân tích định lượng bằng dữ liệu giả lập Monte Carlo cho Cycle Time và chi phí.</li>
+<li>Nghiên cứu tích hợp AI/ML model chấm điểm rủi ro đơn hàng real-time để giảm tỷ lệ COD refusal.</li>
+<li>Tích hợp phân tích Cross-border Commerce (TMall/Gmarket) và FBL Warehouse Operations như sub-process riêng.</li>
+</ul>
+<hr>
+<h1 id="tài-liệu-tham-khảo">TÀI LIỆU THAM KHẢO</h1>
+<ol>
+<li>Lazada Vietnam (2026), <em>Seller Center &amp; Help Center</em>, [Online]. Available: https://sellercenter.lazada.vn</li>
+<li>Wikipedia (2026), <em>Lazada Group</em>, [Online]. Available: https://en.wikipedia.org/wiki/Lazada_Group</li>
+<li>CafeF (2026), <em>Sau 14 năm tại Việt Nam, Lazada sẽ phát triển theo hướng nào trong giai đoạn mới</em>, [Online]. Available: https://cafef.vn/sau-14-nam-tai-viet-nam-lazada-se-phat-trien-theo-huong-nao-trong-giai-doan-moi-188260325124722081.chn</li>
+<li>CafeF (2026), <em>Lazada bị phạt 350 triệu đồng</em>, [Online]. Available: https://cafef.vn/lazada-bi-phat-350-trieu-dong-188260817200639733.chn</li>
+<li>CafeF (2026), <em>LazMall và cuộc all-in của Lazada (Interview CEO Jason Liu)</em>, [Online]. Available: https://cafef.vn/lazmall-va-cu-all-in-cua-lazada-188260604192934021.chn</li>
+<li>ThS. Hà Lê Hoài Trung (2026), <em>Bài giảng Hệ thống Quản trị Quy trình Nghiệp vụ (IE203)</em>, Trường Đại học Công nghệ Thông tin — ĐHQG TP.HCM.</li>
+<li>OMG (2011), <em>Business Process Model and Notation (BPMN) Version 2.0 Specification</em>, Object Management Group.</li>
+<li>Dumas, M., La Rosa, M., Mendling, J., &amp; Reijers, H. A. (2018), <em>Fundamentals of Business Process Management (2nd ed.)</em>, Springer.</li>
+<li>Google-Temasek-Bain (2024), <em>e-Conomy SEA 2024 Report</em>, [Online].</li>
+<li>YouNet ECI (2024), <em>E-commerce Market Share Report Vietnam 2024</em>, [Online].</li>
+</ol>
+<hr>
+<h1 id="phụ-lục-a-bộ-câu-hỏi-phỏng-vấn-chuẩn">PHỤ LỤC A: BỘ CÂU HỎI PHỎNG VẤN CHUẨN</h1>
+<p><em>(Bao gồm 20 câu hỏi phỏng vấn chuẩn hóa: 10 định tính + 10 định lượng)</em></p>
+<h2 id="a-10-câu-hỏi-định-tính">A. 10 Câu hỏi ĐỊNH TÍNH</h2>
+<h3 id="a1-5-câu-cấu-trúc-thang-đo-likert-1-5">A1. 5 câu CẤU TRÚC (Thang đo Likert 1-5)</h3>
+<ul>
+<li><strong>Q1:</strong> Mức độ hài lòng chung của Anh/Chị đối với quy trình xử lý đơn hàng trên Lazada? (1: Rất không hài lòng --&gt; 5: Rất hài lòng)</li>
+<li><strong>Q2:</strong> Mức độ thuận tiện khi thực hiện thao tác quản lý đơn hàng trên Seller Center Lazada? (1: Rất bất tiện --&gt; 5: Rất thuận tiện)</li>
+<li><strong>Q3:</strong> Đánh giá tính hữu ích của Chatbot Lazzie trong việc hỗ trợ giải đáp vấn đề nhanh chóng? (1: Không hữu ích --&gt; 5: Rất hữu ích)</li>
+<li><strong>Q4:</strong> Mức độ hợp lý của thời gian quy định cho Seller xác nhận đơn hàng (24-48 giờ)? (1: Rất không hợp lý --&gt; 5: Rất hợp lý)</li>
+<li><strong>Q5:</strong> Mức độ công bằng và minh bạch của quy trình xử lý khiếu nại Hoàn trả/Hoàn tiền của Lazada? (1: Rất thiếu công bằng --&gt; 5: Rất công bằng)</li>
+</ul>
+<h3 id="a2-5-câu-không-cấu-trúc-câu-hỏi-mở-open-ended">A2. 5 câu KHÔNG CẤU TRÚC (Câu hỏi mở Open-ended)</h3>
+<ul>
+<li><strong>Q6:</strong> Anh/Chị hãy mô tả chi tiết các bước thực tế từ lúc nhận thông báo đơn mới đến khi giao thành công bưu kiện cho LEX/3PL?</li>
+<li><strong>Q7:</strong> Những khó khăn hoặc sự cố thường gặp nhất trong quá trình vận hành đơn hàng hàng ngày là gì?</li>
+<li><strong>Q8:</strong> Nếu được đề xuất thay đổi 1 bước trong quy trình hiện tại, Anh/Chị muốn thay đổi bước nào nhất và tại sao?</li>
+<li><strong>Q9:</strong> Hệ thống Lazada có những điểm nghẽn nào ảnh hưởng trực tiếp đến trải nghiệm mua hàng của Buyer (ví dụ: giao trễ, hoàn tiền chậm)?</li>
+<li><strong>Q10:</strong> Anh/Chị xử lý thế nào khi gặp trường hợp đơn hàng bị khiếu nại hoàn tiền không chính đáng hoặc boom hàng COD?</li>
+</ul>
+<h2 id="b-10-câu-hỏi-định-lượng">B. 10 Câu hỏi ĐỊNH LƯỢNG</h2>
+<h3 id="b1-5-câu-cấu-trúc-trắc-nghiệm-nhiều-lựa-chọn">B1. 5 câu CẤU TRÚC (Trắc nghiệm nhiều lựa chọn)</h3>
+<ul>
+<li><strong>Q11:</strong> Trung bình gian hàng của Anh/Chị xử lý bao nhiêu đơn hàng mỗi ngày? (&lt;10 đơn / 10-50 đơn / 50-100 đơn / &gt;100 đơn)</li>
+<li><strong>Q12:</strong> Thời gian trung bình để hoàn tất đóng gói 1 bưu kiện là bao lâu? (&lt;5 phút / 5-15 phút / 15-30 phút / &gt;30 phút)</li>
+<li><strong>Q13:</strong> Tỷ lệ đơn hàng bị trả về / hoàn tiền trên tổng số đơn của gian hàng là bao nhiêu %? (&lt;2% / 2-5% / 5-10% / &gt;10%)</li>
+<li><strong>Q14:</strong> Tần suất LEX/3PL đến kho gom hàng trung bình bao nhiêu lần một ngày? (1 lần / 2 lần / &gt;2 lần)</li>
+<li><strong>Q15:</strong> Chi phí vật tư đóng gói trung bình cho 1 đơn hàng tiêu chuẩn là bao nhiêu VNĐ? (&lt;3.000 / 3.000-5.000 / &gt;5.000 VNĐ)</li>
+</ul>
+<h3 id="b2-5-câu-không-cấu-trúc-nhập-số-liệu-thực-tế">B2. 5 câu KHÔNG CẤU TRÚC (Nhập số liệu thực tế)</h3>
+<ul>
+<li><strong>Q16:</strong> Thời gian trung bình từ lúc đơn hàng phát sinh đến khi bưu kiện được LEX/3PL quét mã nhận hàng là bao nhiêu giờ?</li>
+<li><strong>Q17:</strong> Tỷ lệ % đơn hàng giao thành công ngay ở lần giao đầu tiên (1st attempt) của gian hàng là bao nhiêu %?</li>
+<li><strong>Q18:</strong> Tổng chi phí vận hành biên ước tính để xử lý 1 đơn hàng (bao gồm nhân công, bao bì, điện nước) là bao nhiêu VNĐ?</li>
+<li><strong>Q19:</strong> Trong các đợt Mega Sale (9.9, 11.11, 12.12), lượng đơn hàng tăng gấp bao nhiêu lần so với ngày thường?</li>
+<li><strong>Q20:</strong> Thời gian trung bình từ khi Buyer bấm "Trả hàng" đến khi tiền được giải quyết hoàn tất là bao nhiêu ngày?</li>
+</ul>
+<hr>
+<h1 id="phụ-lục-b-biểu-mẫu-workshop-và-kịch-bản-phỏng-vấn-mẫu">PHỤ LỤC B: BIỂU MẪU WORKSHOP VÀ KỊCH BẢN PHỎNG VẤN MẪU</h1>
+<p><strong>TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN - ĐHQG TP.HCM</strong><br>
+<strong>BIÊN BẢN WORKSHOP KHẢO SÁT &amp; PHỎNG VẤN QUY TRÌNH NGHIỆP VỤ LAZADA</strong>  </p>
+<ul>
+<li><strong>Thời gian:</strong> 09:00 - 12:00, Ngày 20 tháng 08 năm 2026 (khớp biên bản workshop)  </li>
+<li><strong>Địa điểm:</strong> Phòng họp Online (Teams Meeting ID: 482-573-218)  </li>
+<li><strong>Chủ trì:</strong> Nhóm nghiên cứu Đồ án Lazada BA  </li>
+<li><strong>Thành phần tham dự:</strong> 10 người phỏng vấn sâu từ các bộ phận nội bộ Lazada VN (Seller Operations, Dispute Resolution, Fulfillment Operations, Return &amp; Refund, Customer Service, Marketing, HR &amp; Training, Payment &amp; Settlement, Logistics/LEX, IT Platform) — chi tiết tại <code>appendix/interviews/01…10</code>.  </li>
+</ul>
+<p><strong>NỘI DUNG THẢO LUẬN &amp; GHI NHẬN:</strong><br>
+1. <em>Ý kiến đại diện Seller:</em> Thời gian chờ LEX đến lấy hàng (Pickup) trong ngày Mega Sale thường bị trễ 12-24h so với hẹn. Đề xuất mở rộng điểm Drop-off tự động và tối ưu cutoff time linh hoạt.<br>
+2. <em>Ý kiến đại diện LEX Shipper:</em> Tỷ lệ COD refusal cao (15-20%) gây lãng phí thời gian và nhiên liệu. Đề xuất Lazada áp dụng cơ chế xác nhận nhận hàng trước khi ship và AI gợi ý định vị địa chỉ.<br>
+3. <em>Ý kiến đại diện CSKH:</em> Quy trình thẩm định hình ảnh trả hàng thủ công mất trung bình 18 phút/case, cần AI tự động so sánh ảnh trước và sau khi đóng gói để tăng tốc inspection.</p>
+<hr>
+<h1 id="phụ-lục-c-kế-hoạch-thực-hiện-đồ-án-gantt-chart">PHỤ LỤC C: KẾ HOẠCH THỰC HIỆN ĐỒ ÁN (GANTT CHART)</h1>
+<p><strong>Bảng C.1: Kế hoạch thực hiện đồ án 12 tuần (Gantt Chart)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tuần thứ</th>
+<th>Hạng mục công việc chính</th>
+<th>Sản phẩm đầu ra (Deliverable)</th>
+<th>Người thực hiện</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tuần 1 - 2</td>
+<td>Thu thập tài liệu, khảo sát 10 quy trình</td>
+<td>Sơ đồ Kiến trúc Quy trình &amp; PROCESSES.md</td>
+<td>Cả 2 thành viên</td>
+</tr>
+<tr>
+<td>Tuần 3 - 4</td>
+<td>Vẽ 10 sơ đồ BPMN 2.0 AS-IS</td>
+<td>10 file XML <code>.bpmn</code> chuẩn Camunda</td>
+<td>Cả 2 thành viên</td>
+</tr>
+<tr>
+<td>Tuần 5 - 6</td>
+<td>Phân tích định tính VA/NVA/Waste/Fishbone</td>
+<td>Các bảng phân tích định tính &amp; Pareto</td>
+<td>Thành viên A &amp; B</td>
+</tr>
+<tr>
+<td>Tuần 7 - 8</td>
+<td>Phân tích định lượng Cycle Time &amp; Chi phí</td>
+<td>Bảng tính toán Cycle Time &amp; Unit Economics</td>
+<td>Thành viên B</td>
+</tr>
+<tr>
+<td>Tuần 9 - 10</td>
+<td>Thiết kế mô hình TO-BE &amp; Đề xuất KPI</td>
+<td>10 file BPMN TO-BE &amp; Ma trận RACI</td>
+<td>Cả 2 thành viên</td>
+</tr>
+<tr>
+<td>Tuần 11- 12</td>
+<td>Hoàn thiện báo cáo Master &amp; Slide Marp</td>
+<td>File <code>DOAN-LAZADA-FINAL.md</code> &amp; Marp Slides</td>
+<td>Cả 2 thành viên</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="phụ-lục-d-danh-mục-thuật-ngữ-và-sổ-tay-glossary">PHỤ LỤC D: DANH MỤC THUẬT NGỮ VÀ SỔ TAY (GLOSSARY)</h1>
+<p><strong>Bảng D.1: Danh mục 30 Thuật ngữ Quản trị Quy trình &amp; TMĐT Lazada</strong></p>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Thuật ngữ (Term)</th>
+<th>Định nghĩa &amp; Giải thích chi tiết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Activity (Tác vụ)</strong></td>
+<td>Một bước công việc được thực hiện trong quy trình BPMN.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>AS-IS Model</strong></td>
+<td>Mô hình phản ánh hiện trạng thực tế của quy trình khi chưa cải tiến.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>BPMN 2.0</strong></td>
+<td>Ký hiệu đồ họa chuẩn hóa quốc tế để biểu diễn quy trình nghiệp vụ.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>BVA (Business Value-Added)</strong></td>
+<td>Hoạt động không tạo giá trị trực tiếp cho khách nhưng cần thiết cho vận hành.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Cycle Time (CT)</strong></td>
+<td>Tổng thời gian trôi qua từ khi bắt đầu đến khi kết thúc quy trình.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Drop-off</strong></td>
+<td>Hình thức Seller tự mang bưu kiện đã đóng gói ra bưu cục ĐVVC.</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>eKYC</strong></td>
+<td>Electronic Know Your Customer -- xác minh danh tính điện tử qua OCR &amp; selfie.</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Escrow Account</strong></td>
+<td>Tài khoản bảo hộ giữ tiền giao dịch của Lazada trước khi giải ngân.</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Exclusive Gateway (XOR)</strong></td>
+<td>Cổng điều kiện trong BPMN chỉ cho phép duy nhất 1 nhánh được thực thi.</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>FBL (Fulfilled by Lazada)</strong></td>
+<td>Dịch vụ lưu kho, đóng gói và vận chuyển bởi Lazada (tương tự FBA).</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Fishbone Diagram</strong></td>
+<td>Biểu đồ xương cá Ishikawa dùng để tìm nguyên nhân gốc rễ của vấn đề.</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>Fulfillment</strong></td>
+<td>Quy trình toàn bộ từ khâu lưu kho, nhặt hàng, đóng gói đến giao nhận.</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Hold Waste</strong></td>
+<td>Lãng phí do thời gian chờ đợi trệch nhịp giữa các bước trong quy trình.</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Lane (Làn)</strong></td>
+<td>Đường làn trong sơ đồ BPMN phân định trách nhiệm của từng tác nhân.</td>
+</tr>
+<tr>
+<td>15</td>
+<td><strong>Last-mile Delivery</strong></td>
+<td>Giai đoạn vận chuyển chặng cuối từ kho bưu cục đến tay người nhận.</td>
+</tr>
+<tr>
+<td>16</td>
+<td><strong>LEX (Lazada Express)</strong></td>
+<td>Đơn vị vận chuyển nội bộ thuộc hệ sinh thái Lazada.</td>
+</tr>
+<tr>
+<td>17</td>
+<td><strong>Line-haul</strong></td>
+<td>Vận chuyển chặng giữa tuyến cố định kết nối giữa các kho trung chuyển.</td>
+</tr>
+<tr>
+<td>18</td>
+<td><strong>LazMall</strong></td>
+<td>Kênh gian hàng chính hãng 100% trên Lazada với chính sách hoàn trả 15 ngày.</td>
+</tr>
+<tr>
+<td>19</td>
+<td><strong>Move Waste</strong></td>
+<td>Lãng phí do di chuyển hàng hóa/dữ liệu qua quá nhiều nấc trung gian.</td>
+</tr>
+<tr>
+<td>20</td>
+<td><strong>NVA (Non-Value-Added)</strong></td>
+<td>Hoạt động lãng phí không tạo ra bất kỳ giá trị nào, cần loại bỏ.</td>
+</tr>
+<tr>
+<td>21</td>
+<td><strong>Overdo Waste</strong></td>
+<td>Lãng phí do thực hiện dư thừa thao tác hoặc kiểm tra quá mức cần thiết.</td>
+</tr>
+<tr>
+<td>22</td>
+<td><strong>Parallel Gateway (AND)</strong></td>
+<td>Cổng rẽ nhánh song song cho phép thực thi đồng thời nhiều tác vụ.</td>
+</tr>
+<tr>
+<td>23</td>
+<td><strong>Pareto Chart</strong></td>
+<td>Biểu đồ kết hợp cột và đường thể hiện quy tắc 80% hậu quả do 20% nguyên nhân.</td>
+</tr>
+<tr>
+<td>24</td>
+<td><strong>Petri Net Soundness</strong></td>
+<td>Đội đúng đắn toán học của mô hình BPMN (không bị kẹt lặp Deadlock).</td>
+</tr>
+<tr>
+<td>25</td>
+<td><strong>Pickup</strong></td>
+<td>Dịch vụ Shipper của ĐVVC đến tận kho của Seller để lấy hàng.</td>
+</tr>
+<tr>
+<td>26</td>
+<td><strong>Processing Time (PT)</strong></td>
+<td>Thời gian làm việc thực tế chạm trực tiếp vào tác vụ.</td>
+</tr>
+<tr>
+<td>27</td>
+<td><strong>RACI Matrix</strong></td>
+<td>Bảng phân công trách nhiệm: Responsible, Accountable, Consulted, Informed.</td>
+</tr>
+<tr>
+<td>28</td>
+<td><strong>SiPOC Diagram</strong></td>
+<td>Khung nhìn tổng quát quy trình gồm Supplier, Input, Process, Output, Customer.</td>
+</tr>
+<tr>
+<td>29</td>
+<td><strong>TO-BE Model</strong></td>
+<td>Mô hình quy trình tương lai lý tưởng sau khi đã cải tiến tối ưu.</td>
+</tr>
+<tr>
+<td>30</td>
+<td><strong>Waiting Time (WT)</strong></td>
+<td>Thời gian chết chờ đợi trong quy trình (WT = CT - PT).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="danh-mục-hình-vẽ">DANH MỤC HÌNH VẼ</h1>
+<ul>
+<li><strong>Hình 1.1:</strong> Sơ đồ cơ cấu tổ chức Lazada Việt Nam</li>
+<li><strong>Hình 2.1:</strong> Sơ đồ kiến trúc quy trình nghiệp vụ Lazada</li>
+<li><strong>Hình 3.1:</strong> Sơ đồ SiPOC quy trình xử lý đơn hàng online</li>
+<li><strong>Hình 3.2:</strong> Sơ đồ BPMN quy trình xử lý đơn hàng online (AS-IS)</li>
+<li><strong>Hình 3.3:</strong> Biểu đồ Pareto phân bố lãng phí quy trình</li>
+<li><strong>Hình 3.4:</strong> Sơ đồ BPMN quy trình quản lý nhà bán hàng (AS-IS)</li>
+<li><strong>Hình 3.5:</strong> Sơ đồ BPMN quy trình quản lý tranh chấp và rủi ro (AS-IS)</li>
+<li><strong>Hình 3.6:</strong> Sơ đồ BPMN quy trình hoàn trả và hoàn tiền (AS-IS)</li>
+<li><strong>Hình 3.7:</strong> Sơ đồ BPMN quy trình chăm sóc khách hàng (AS-IS)</li>
+<li><strong>Hình 3.8:</strong> Sơ đồ BPMN quy trình marketing và khuyến mãi (AS-IS)</li>
+<li><strong>Hình 3.9:</strong> Sơ đồ BPMN quy trình xử lý đơn hàng online (TO-BE)</li>
+<li><strong>Hình 3.10:</strong> Sơ đồ BPMN quy trình quản lý nhà bán hàng (TO-BE)</li>
+<li><strong>Hình 3.11:</strong> Sơ đồ BPMN quy trình quản lý tranh chấp và rủi ro (TO-BE)</li>
+<li><strong>Hình 3.12:</strong> Sơ đồ BPMN quy trình hoàn trả và hoàn tiền (TO-BE)</li>
+<li><strong>Hình 3.13:</strong> Sơ đồ BPMN quy trình chăm sóc khách hàng (TO-BE)</li>
+<li><strong>Hình 3.14:</strong> Sơ đồ BPMN quy trình marketing và khuyến mãi (TO-BE)</li>
+<li><strong>Hình 3.15:</strong> Sơ đồ BPMN quy trình nhân sự &amp; đào tạo (AS-IS)</li>
+<li><strong>Hình 3.16:</strong> Sơ đồ BPMN quy trình nhân sự &amp; đào tạo (TO-BE)</li>
+<li><strong>Hình 3.17:</strong> Sơ đồ BPMN quy trình thanh toán &amp; đối soát (AS-IS)</li>
+<li><strong>Hình 3.18:</strong> Sơ đồ BPMN quy trình thanh toán &amp; đối soát (TO-BE)</li>
+<li><strong>Hình 3.19:</strong> Sơ đồ BPMN quy trình logistics &amp; giao nhận (AS-IS)</li>
+<li><strong>Hình 3.20:</strong> Sơ đồ BPMN quy trình logistics &amp; giao nhận (TO-BE)</li>
+<li><strong>Hình 3.21:</strong> Sơ đồ BPMN quy trình vận hành CNTT (AS-IS)</li>
+<li><strong>Hình 3.22:</strong> Sơ đồ BPMN quy trình vận hành CNTT (TO-BE)</li>
+</ul>
+<hr>
+<h1 id="danh-mục-bảng">DANH MỤC BẢNG</h1>
+<ul>
+<li><strong>Bảng 1.1:</strong> Thông tin quy mô Lazada Việt Nam</li>
+<li><strong>Bảng 1.2:</strong> Thị phần TMĐT Việt Nam (2024)</li>
+<li><strong>Bảng 1.3:</strong> Mô hình phí hoa hồng theo ngành hàng</li>
+<li><strong>Bảng 2.1:</strong> Bảng tổng hợp 10 quy trình nghiệp vụ Lazada</li>
+<li><strong>Bảng 3.1:</strong> Thống kê các thành phần sơ đồ BPMN Xử lý Đơn hàng</li>
+<li><strong>Bảng 3.2:</strong> Bảng phân tích Giá trị gia tăng quy trình Xử lý Đơn hàng</li>
+<li><strong>Bảng 3.3:</strong> Bảng phân tích Lãng phí quy trình Xử lý Đơn hàng</li>
+<li><strong>Bảng 3.4:</strong> Bảng tính toán Thời gian chu kỳ các giai đoạn trong quy trình</li>
+<li><strong>Bảng 3.5:</strong> Bảng phân bổ Chi phí xử lý biên 1 đơn hàng thành công</li>
+<li><strong>Bảng 3.6:</strong> Phân tích Định tính &amp; Định lượng Quản lý Nhà bán hàng</li>
+<li><strong>Bảng 3.7:</strong> Phân tích Định tính &amp; Định lượng Quản lý Tranh chấp</li>
+<li><strong>Bảng 3.8:</strong> Phân tích Giá trị Gia tăng (VA/BVA/NVA) quy trình Hoàn trả &amp; Hoàn tiền</li>
+<li><strong>Bảng 3.9:</strong> Bảng tính toán Thời gian chu kỳ &amp; Chi phí xử lý 1 đơn Hoàn trả</li>
+<li><strong>Bảng 3.10:</strong> Phân tích Giá trị gia tăng (VA/BVA/NVA) quy trình CSKH</li>
+<li><strong>Bảng 3.11:</strong> Phân tích Định tính &amp; Định lượng Marketing</li>
+<li><strong>Bảng 3.12:</strong> Ma trận RACI cho các hoạt động chính trong hệ thống quy trình</li>
+<li><strong>Bảng 3.13:</strong> Bảng tổng hợp giải pháp cải tiến TO-BE cho 10 quy trình</li>
+<li><strong>Bảng C.1:</strong> Kế hoạch thực hiện đồ án 12 tuần (Gantt Chart)</li>
+<li><strong>Bảng D.1:</strong> Danh mục 30 Thuật ngữ Quản trị Quy trình &amp; TMĐT Lazada</li>
+</ul>
+<hr>
+<p><strong>HẾT BÁO CÁO</strong></p>
+</body>
+</html>

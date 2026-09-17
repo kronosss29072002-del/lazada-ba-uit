@@ -1,0 +1,530 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_DisputeManagementToBe" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_DisputeManagement" name="Quản lý Tranh chấp TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Buyer" name="Buyer">
+        <bpmn:flowNodeRef>StartEvent_Dispute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateDispute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StructuredUpload</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
+        <bpmn:flowNodeRef>Task_CollectData</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ComputeDynamicSLA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_LowValue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoRefund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Complexity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyParties</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_SLA_Simple</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_SLA_Complex</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_ESLA_24h</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Settle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Settled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Refunded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_NotifyParties_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_Settle_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_NotifyParties_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_AI" name="AI Engine (Automated)">
+        <bpmn:flowNodeRef>Task_AITriage</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Seller">
+        <bpmn:flowNodeRef>Task_SellerReply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_SellerReply_3</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_CS" name="CS Agent">
+        <bpmn:flowNodeRef>Task_ReviewCase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Decide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Decision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Rejected</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Escalation" name="Escalation Team">
+        <bpmn:flowNodeRef>Task_Escalate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeniorReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SeniorDecision</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Dispute" name="Tranh chấp mới phát sinh">
+      <bpmn:outgoing>Flow_Start_Create</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_CreateDispute" name="Tạo tranh chấp + lý do">
+      <bpmn:incoming>Flow_Start_Create</bpmn:incoming>
+      <bpmn:outgoing>Flow_Create_Upload</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_StructuredUpload" name="Upload evidence có cấu trúc (ảnh/video theo danh mục)">
+      <bpmn:incoming>Flow_Create_Upload</bpmn:incoming>
+      <bpmn:outgoing>Flow_Upload_Collect</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CollectData" name="Tự động thu thập dữ liệu đơn hàng">
+      <bpmn:incoming>Flow_Upload_Collect</bpmn:incoming>
+      <bpmn:outgoing>Flow_Collect_Triage</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ComputeDynamicSLA" name="Tính SLA động theo độ phức tạp">
+      <bpmn:incoming>Flow_LowValue_Compute</bpmn:incoming>
+      <bpmn:outgoing>Flow_Compute_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_LowValue" name="Case rõ ràng &amp; giá trị &lt;200k?" default="Flow_LowValue_Refund">
+      <bpmn:incoming>Flow_Triage_LowValue</bpmn:incoming>
+      <bpmn:outgoing>Flow_LowValue_Refund</bpmn:outgoing>
+      <bpmn:outgoing>Flow_LowValue_Compute</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_AutoRefund" name="Tự động hoàn tiền (case rõ ràng &lt;200k)">
+      <bpmn:incoming>Flow_LowValue_Refund</bpmn:incoming>
+      <bpmn:outgoing>Flow_Refund_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_Complexity" name="Độ phức tạp case?" default="Flow_Simple_Notify">
+      <bpmn:incoming>Flow_Compute_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Simple_Notify</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Complex_Notify</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_NotifyParties" name="Thông báo 2 bên kèm SLA động">
+      <bpmn:incoming>Flow_Join_Task_NotifyParties_1_to_Task_NotifyParties</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_NotifyParties_to_Split_Task_NotifyParties_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Timer_SLA_Simple" name="SLA 24h: case đơn giản">
+      <bpmn:incoming>Flow_Simple_NotifyTimer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Simple_TimerReply</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_SLA_Simple">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">PT24H</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Timer_SLA_Complex" name="SLA 48h: case phức tạp">
+      <bpmn:incoming>Flow_Complex_NotifyTimer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Complex_TimerReply</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_SLA_Complex">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">PT48H</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Timer_ESLA_24h" name="SLA &lt;24h: chờ xử lý escalation">
+      <bpmn:incoming>Flow_Escalate_Timer</bpmn:incoming>
+      <bpmn:outgoing>Flow_ESLA_Review</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_ESLA_24h">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">PT12H</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Task_Settle" name="Hoàn tất giải quyết (hoàn tiền/bồi thường)">
+      <bpmn:incoming>Flow_Join_Task_Settle_2_to_Task_Settle</bpmn:incoming>
+      <bpmn:outgoing>Flow_Settle_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AITriage" name="AI phân loại evidence (ảnh/video) tự động">
+      <bpmn:incoming>Flow_Collect_Triage</bpmn:incoming>
+      <bpmn:outgoing>Flow_Triage_LowValue</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_SellerReply" name="Seller phản hồi evidence trong SLA">
+      <bpmn:incoming>Flow_Join_Task_SellerReply_3_to_Task_SellerReply</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reply_Review</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReviewCase" name="CS review evidence đã được AI phân loại">
+      <bpmn:incoming>Flow_Reply_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_Decide</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Decide" name="CS đưa quyết định">
+      <bpmn:incoming>Flow_Review_Decide</bpmn:incoming>
+      <bpmn:outgoing>Flow_Decide_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_Decision" name="Kết quả xử lý?" default="Flow_Gate_Settle">
+      <bpmn:incoming>Flow_Decide_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gate_Settle</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Reject</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Escalate</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Escalate" name="Chuyển lên escalation team">
+      <bpmn:incoming>Flow_Gate_Escalate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Escalate_Timer</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SeniorReview" name="Senior review + quyết định cuối">
+      <bpmn:incoming>Flow_ESLA_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Senior_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_SeniorDecision" name="Quyết định senior?" default="Flow_Senior_Settle">
+      <bpmn:incoming>Flow_Senior_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Senior_Settle</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Senior_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Settled" name="Tranh chấp đã được giải quyết">
+      <bpmn:incoming>Flow_Settle_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Refunded" name="Đã tự động hoàn tiền thành công">
+      <bpmn:incoming>Flow_Refund_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Join_End_Rejected_1" name="Gom nhánh kết thúc">
+      <bpmn:incoming>Flow_Gate_Reject</bpmn:incoming>
+      <bpmn:incoming>Flow_Senior_Reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_End_Rejected_1_to_End_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Rejected" name="Tranh chấp đã bị bác bỏ">
+      <bpmn:incoming>Flow_Join_End_Rejected_1_to_End_Rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Create" sourceRef="StartEvent_Dispute" targetRef="Task_CreateDispute" />
+    <bpmn:sequenceFlow id="Flow_Create_Upload" sourceRef="Task_CreateDispute" targetRef="Task_StructuredUpload" />
+    <bpmn:sequenceFlow id="Flow_Upload_Collect" sourceRef="Task_StructuredUpload" targetRef="Task_CollectData" />
+    <bpmn:sequenceFlow id="Flow_Collect_Triage" sourceRef="Task_CollectData" targetRef="Task_AITriage" />
+    <bpmn:sequenceFlow id="Flow_Triage_LowValue" sourceRef="Task_AITriage" targetRef="Gate_LowValue" />
+    <bpmn:sequenceFlow id="Flow_LowValue_Refund" sourceRef="Gate_LowValue" targetRef="Task_AutoRefund" name="Giá trị &lt; 200k &amp; rõ ràng" />
+    <bpmn:sequenceFlow id="Flow_LowValue_Compute" sourceRef="Gate_LowValue" targetRef="Task_ComputeDynamicSLA" name="Không rõ ràng / ≥ 200k">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${caseValue &gt;= 200000 or not clearCut}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Refund_End" sourceRef="Task_AutoRefund" targetRef="End_Refunded" />
+    <bpmn:sequenceFlow id="Flow_Compute_Gate" sourceRef="Task_ComputeDynamicSLA" targetRef="Gate_Complexity" />
+    <bpmn:sequenceFlow id="Flow_Simple_Notify" sourceRef="Gate_Complexity" targetRef="Join_Task_NotifyParties_1" name="Case đơn giản" />
+    <bpmn:sequenceFlow id="Flow_Complex_Notify" sourceRef="Gate_Complexity" targetRef="Join_Task_NotifyParties_1" name="Case phức tạp">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${complex == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Simple_NotifyTimer" sourceRef="Split_Task_NotifyParties_1" targetRef="Timer_SLA_Simple" />
+    <bpmn:sequenceFlow id="Flow_Complex_NotifyTimer" sourceRef="Split_Task_NotifyParties_1" targetRef="Timer_SLA_Complex" />
+    <bpmn:sequenceFlow id="Flow_Simple_TimerReply" sourceRef="Timer_SLA_Simple" targetRef="Join_Task_SellerReply_3" />
+    <bpmn:sequenceFlow id="Flow_Complex_TimerReply" sourceRef="Timer_SLA_Complex" targetRef="Join_Task_SellerReply_3" />
+    <bpmn:sequenceFlow id="Flow_Reply_Review" sourceRef="Task_SellerReply" targetRef="Task_ReviewCase" />
+    <bpmn:sequenceFlow id="Flow_Review_Decide" sourceRef="Task_ReviewCase" targetRef="Task_Decide" />
+    <bpmn:sequenceFlow id="Flow_Decide_Gate" sourceRef="Task_Decide" targetRef="Gate_Decision" />
+    <bpmn:sequenceFlow id="Flow_Gate_Settle" sourceRef="Gate_Decision" targetRef="Join_Task_Settle_2" name="Có cơ sở giải quyết" />
+    <bpmn:sequenceFlow id="Flow_Gate_Reject" sourceRef="Gate_Decision" targetRef="Join_End_Rejected_1" name="Không đủ cơ sở → bác bỏ">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == "reject"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Gate_Escalate" sourceRef="Gate_Decision" targetRef="Task_Escalate" name="Phức tạp → escalation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == "escalate"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Escalate_Timer" sourceRef="Task_Escalate" targetRef="Timer_ESLA_24h" />
+    <bpmn:sequenceFlow id="Flow_ESLA_Review" sourceRef="Timer_ESLA_24h" targetRef="Task_SeniorReview" />
+    <bpmn:sequenceFlow id="Flow_Senior_Gate" sourceRef="Task_SeniorReview" targetRef="Gate_SeniorDecision" />
+    <bpmn:sequenceFlow id="Flow_Senior_Settle" sourceRef="Gate_SeniorDecision" targetRef="Join_Task_Settle_2" name="Chấp thuận giải quyết" />
+    <bpmn:sequenceFlow id="Flow_Senior_Reject" sourceRef="Gate_SeniorDecision" targetRef="Join_End_Rejected_1" name="Bác bỏ">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${result == "reject"}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Settle_End" sourceRef="Task_Settle" targetRef="End_Settled" />
+    <bpmn:exclusiveGateway id="Join_Task_NotifyParties_1" name="Gom luồng trước khi Thông báo 2 bên kèm SLA động">
+      <bpmn:incoming>Flow_Simple_Notify</bpmn:incoming>
+      <bpmn:incoming>Flow_Complex_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_NotifyParties_1_to_Task_NotifyParties</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_NotifyParties_1_to_Task_NotifyParties" sourceRef="Join_Task_NotifyParties_1" targetRef="Task_NotifyParties" />
+    <bpmn:exclusiveGateway id="Join_Task_Settle_2" name="Gom luồng trước khi Hoàn tất giải quyết (hoàn tiền/bồi thường)">
+      <bpmn:incoming>Flow_Gate_Settle</bpmn:incoming>
+      <bpmn:incoming>Flow_Senior_Settle</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_Settle_2_to_Task_Settle</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_Settle_2_to_Task_Settle" sourceRef="Join_Task_Settle_2" targetRef="Task_Settle" />
+    <bpmn:exclusiveGateway id="Join_Task_SellerReply_3" name="Gom luồng trước khi Seller phản hồi evidence trong SLA">
+      <bpmn:incoming>Flow_Simple_TimerReply</bpmn:incoming>
+      <bpmn:incoming>Flow_Complex_TimerReply</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_SellerReply_3_to_Task_SellerReply</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_SellerReply_3_to_Task_SellerReply" sourceRef="Join_Task_SellerReply_3" targetRef="Task_SellerReply" />
+    <bpmn:exclusiveGateway id="Split_Task_NotifyParties_1" name="Phân luồng sau Thông báo 2 bên kèm SLA động">
+      <bpmn:incoming>Flow_Task_NotifyParties_to_Split_Task_NotifyParties_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Simple_NotifyTimer</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Complex_NotifyTimer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_NotifyParties_to_Split_Task_NotifyParties_1" sourceRef="Task_NotifyParties" targetRef="Split_Task_NotifyParties_1" />
+    <bpmn:sequenceFlow id="Flow_Join_End_Rejected_1_to_End_Rejected" sourceRef="Join_End_Rejected_1" targetRef="End_Rejected" name="" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_DisputeManagement">
+      <bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer">
+        <dc:Bounds x="30" y="0" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System">
+        <dc:Bounds x="30" y="200" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_AI_di" bpmnElement="Lane_AI">
+        <dc:Bounds x="30" y="400" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller">
+        <dc:Bounds x="30" y="600" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_CS_di" bpmnElement="Lane_CS">
+        <dc:Bounds x="30" y="800" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Escalation_di" bpmnElement="Lane_Escalation">
+        <dc:Bounds x="30" y="1000" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Dispute_di" bpmnElement="StartEvent_Dispute">
+        <dc:Bounds x="80" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateDispute_di" bpmnElement="Task_CreateDispute">
+        <dc:Bounds x="300" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_StructuredUpload_di" bpmnElement="Task_StructuredUpload">
+        <dc:Bounds x="520" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CollectData_di" bpmnElement="Task_CollectData">
+        <dc:Bounds x="740" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ComputeDynamicSLA_di" bpmnElement="Task_ComputeDynamicSLA">
+        <dc:Bounds x="1400" y="222" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoRefund_di" bpmnElement="Task_AutoRefund">
+        <dc:Bounds x="1400" y="307" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_LowValue_di" bpmnElement="Gate_LowValue">
+        <dc:Bounds x="1180" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_Complexity_di" bpmnElement="Gate_Complexity">
+        <dc:Bounds x="1620" y="234" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Refunded_di" bpmnElement="End_Refunded">
+        <dc:Bounds x="1620" y="324" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotifyParties_di" bpmnElement="Task_NotifyParties">
+        <dc:Bounds x="2060" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_SLA_Simple_di" bpmnElement="Timer_SLA_Simple">
+        <dc:Bounds x="2500" y="239" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_SLA_Complex_di" bpmnElement="Timer_SLA_Complex">
+        <dc:Bounds x="2500" y="324" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_ESLA_24h_di" bpmnElement="Timer_ESLA_24h">
+        <dc:Bounds x="4040" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Settle_di" bpmnElement="Task_Settle">
+        <dc:Bounds x="4920" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AITriage_di" bpmnElement="Task_AITriage">
+        <dc:Bounds x="960" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SellerReply_di" bpmnElement="Task_SellerReply">
+        <dc:Bounds x="2940" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewCase_di" bpmnElement="Task_ReviewCase">
+        <dc:Bounds x="3160" y="865" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Decide_di" bpmnElement="Task_Decide">
+        <dc:Bounds x="3380" y="865" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_Decision_di" bpmnElement="Gate_Decision">
+        <dc:Bounds x="3600" y="877" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Escalate_di" bpmnElement="Task_Escalate">
+        <dc:Bounds x="3820" y="1065" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeniorReview_di" bpmnElement="Task_SeniorReview">
+        <dc:Bounds x="4260" y="1065" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_SeniorDecision_di" bpmnElement="Gate_SeniorDecision">
+        <dc:Bounds x="4480" y="1077" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Settled_di" bpmnElement="End_Settled">
+        <dc:Bounds x="5140" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_End_Rejected_1_di" bpmnElement="Join_End_Rejected_1">
+        <dc:Bounds x="4700" y="877" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected">
+        <dc:Bounds x="4920" y="882" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_NotifyParties_1_di" bpmnElement="Join_Task_NotifyParties_1">
+        <dc:Bounds x="1840" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_Settle_2_di" bpmnElement="Join_Task_Settle_2">
+        <dc:Bounds x="4700" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_SellerReply_3_di" bpmnElement="Join_Task_SellerReply_3">
+        <dc:Bounds x="2720" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_Task_NotifyParties_1_di" bpmnElement="Split_Task_NotifyParties_1">
+        <dc:Bounds x="2280" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_Create_di" bpmnElement="Flow_Start_Create">
+        <di:waypoint x="116" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="300" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Create_Upload_di" bpmnElement="Flow_Create_Upload">
+        <di:waypoint x="410" y="100" />
+        <di:waypoint x="520" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Upload_Collect_di" bpmnElement="Flow_Upload_Collect">
+        <di:waypoint x="630" y="100" />
+        <di:waypoint x="665" y="100" />
+        <di:waypoint x="665" y="300" />
+        <di:waypoint x="740" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Collect_Triage_di" bpmnElement="Flow_Collect_Triage">
+        <di:waypoint x="850" y="300" />
+        <di:waypoint x="885" y="300" />
+        <di:waypoint x="885" y="500" />
+        <di:waypoint x="960" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Triage_LowValue_di" bpmnElement="Flow_Triage_LowValue">
+        <di:waypoint x="1070" y="500" />
+        <di:waypoint x="1105" y="500" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1180" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_LowValue_Refund_di" bpmnElement="Flow_LowValue_Refund">
+        <di:waypoint x="1203" y="323" />
+        <di:waypoint x="1203" y="342" />
+        <di:waypoint x="1400" y="342" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="325" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_LowValue_Compute_di" bpmnElement="Flow_LowValue_Compute">
+        <di:waypoint x="1203" y="277" />
+        <di:waypoint x="1203" y="257" />
+        <di:waypoint x="1400" y="257" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="260" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End">
+        <di:waypoint x="1510" y="342" />
+        <di:waypoint x="1545" y="342" />
+        <di:waypoint x="1545" y="342" />
+        <di:waypoint x="1620" y="342" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Compute_Gate_di" bpmnElement="Flow_Compute_Gate">
+        <di:waypoint x="1510" y="257" />
+        <di:waypoint x="1545" y="257" />
+        <di:waypoint x="1545" y="257" />
+        <di:waypoint x="1620" y="257" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Simple_Notify_di" bpmnElement="Flow_Simple_Notify">
+        <di:waypoint x="1643" y="280" />
+        <di:waypoint x="1643" y="300" />
+        <di:waypoint x="1840" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1649" y="283" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Complex_Notify_di" bpmnElement="Flow_Complex_Notify">
+        <di:waypoint x="1643" y="280" />
+        <di:waypoint x="1643" y="300" />
+        <di:waypoint x="1840" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1649" y="283" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Simple_NotifyTimer_di" bpmnElement="Flow_Simple_NotifyTimer">
+        <di:waypoint x="2303" y="277" />
+        <di:waypoint x="2303" y="257" />
+        <di:waypoint x="2500" y="257" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Complex_NotifyTimer_di" bpmnElement="Flow_Complex_NotifyTimer">
+        <di:waypoint x="2303" y="323" />
+        <di:waypoint x="2303" y="342" />
+        <di:waypoint x="2500" y="342" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Simple_TimerReply_di" bpmnElement="Flow_Simple_TimerReply">
+        <di:waypoint x="2536" y="257" />
+        <di:waypoint x="2571" y="257" />
+        <di:waypoint x="2571" y="700" />
+        <di:waypoint x="2720" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Complex_TimerReply_di" bpmnElement="Flow_Complex_TimerReply">
+        <di:waypoint x="2536" y="342" />
+        <di:waypoint x="2571" y="342" />
+        <di:waypoint x="2571" y="700" />
+        <di:waypoint x="2720" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reply_Review_di" bpmnElement="Flow_Reply_Review">
+        <di:waypoint x="3050" y="700" />
+        <di:waypoint x="3085" y="700" />
+        <di:waypoint x="3085" y="900" />
+        <di:waypoint x="3160" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Review_Decide_di" bpmnElement="Flow_Review_Decide">
+        <di:waypoint x="3270" y="900" />
+        <di:waypoint x="3380" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Decide_Gate_di" bpmnElement="Flow_Decide_Gate">
+        <di:waypoint x="3490" y="900" />
+        <di:waypoint x="3525" y="900" />
+        <di:waypoint x="3525" y="900" />
+        <di:waypoint x="3600" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Settle_di" bpmnElement="Flow_Gate_Settle">
+        <di:waypoint x="3623" y="877" />
+        <di:waypoint x="3623" y="300" />
+        <di:waypoint x="4700" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3629" y="581" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Reject_di" bpmnElement="Flow_Gate_Reject">
+        <di:waypoint x="3646" y="900" />
+        <di:waypoint x="4700" y="900" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4138" y="884" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Escalate_di" bpmnElement="Flow_Gate_Escalate">
+        <di:waypoint x="3623" y="923" />
+        <di:waypoint x="3623" y="1100" />
+        <di:waypoint x="3820" y="1100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3629" y="1004" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Escalate_Timer_di" bpmnElement="Flow_Escalate_Timer">
+        <di:waypoint x="3930" y="1100" />
+        <di:waypoint x="3965" y="1100" />
+        <di:waypoint x="3965" y="300" />
+        <di:waypoint x="4040" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ESLA_Review_di" bpmnElement="Flow_ESLA_Review">
+        <di:waypoint x="4076" y="300" />
+        <di:waypoint x="4111" y="300" />
+        <di:waypoint x="4111" y="1100" />
+        <di:waypoint x="4260" y="1100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Senior_Gate_di" bpmnElement="Flow_Senior_Gate">
+        <di:waypoint x="4370" y="1100" />
+        <di:waypoint x="4405" y="1100" />
+        <di:waypoint x="4405" y="1100" />
+        <di:waypoint x="4480" y="1100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Senior_Settle_di" bpmnElement="Flow_Senior_Settle">
+        <di:waypoint x="4503" y="1077" />
+        <di:waypoint x="4503" y="300" />
+        <di:waypoint x="4700" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4509" y="681" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Senior_Reject_di" bpmnElement="Flow_Senior_Reject">
+        <di:waypoint x="4503" y="1077" />
+        <di:waypoint x="4503" y="900" />
+        <di:waypoint x="4700" y="900" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4509" y="981" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Settle_End_di" bpmnElement="Flow_Settle_End">
+        <di:waypoint x="5030" y="300" />
+        <di:waypoint x="5065" y="300" />
+        <di:waypoint x="5065" y="300" />
+        <di:waypoint x="5140" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_NotifyParties_1_to_Task_NotifyParties_di" bpmnElement="Flow_Join_Task_NotifyParties_1_to_Task_NotifyParties">
+        <di:waypoint x="1886" y="300" />
+        <di:waypoint x="1973" y="300" />
+        <di:waypoint x="1973" y="300" />
+        <di:waypoint x="2060" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_Settle_2_to_Task_Settle_di" bpmnElement="Flow_Join_Task_Settle_2_to_Task_Settle">
+        <di:waypoint x="4746" y="300" />
+        <di:waypoint x="4833" y="300" />
+        <di:waypoint x="4833" y="300" />
+        <di:waypoint x="4920" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_SellerReply_3_to_Task_SellerReply_di" bpmnElement="Flow_Join_Task_SellerReply_3_to_Task_SellerReply">
+        <di:waypoint x="2766" y="700" />
+        <di:waypoint x="2853" y="700" />
+        <di:waypoint x="2853" y="700" />
+        <di:waypoint x="2940" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task_NotifyParties_to_Split_Task_NotifyParties_1_di" bpmnElement="Flow_Task_NotifyParties_to_Split_Task_NotifyParties_1">
+        <di:waypoint x="2170" y="300" />
+        <di:waypoint x="2205" y="300" />
+        <di:waypoint x="2205" y="300" />
+        <di:waypoint x="2280" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_End_Rejected_1_to_End_Rejected_di" bpmnElement="Flow_Join_End_Rejected_1_to_End_Rejected">
+        <di:waypoint x="4746" y="900" />
+        <di:waypoint x="4920" y="900" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,636 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_OrderProcessingToBe" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_OrderProcessingToBe" name="Xử lý Đơn hàng Online TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Buyer" name="Buyer">
+        <bpmn:flowNodeRef>StartEvent_Checkout</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Pay</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveGoods</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmReceipt</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
+        <bpmn:flowNodeRef>Task_ValidateOrder</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LockInventory</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SellerConfirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_2h</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoAccept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ConfirmResult</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SellerAccepted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GenerateLabelQR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoPickupSched</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AI_ETA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_ETA30</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PreDeliveryContact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TrackDelivery</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_DeliverySuccess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_BuyerConfirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_7d</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoConfirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReleasePayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoCancel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyCancel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoRefund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ReleasePayment_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_AutoCancel_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Seller">
+        <bpmn:flowNodeRef>Task_ConfirmOrder</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PackageGoods</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_3PL" name="3PL/Shipper">
+        <bpmn:flowNodeRef>Task_Pickup</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DeliverAttempt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_DeliverAttempt_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_DeliverAttempt_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Payment" name="Payment Gateway">
+        <bpmn:flowNodeRef>Task_VerifyPayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExecuteRefund</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Checkout" name="Yêu cầu đặt hàng">
+      <bpmn:outgoing>Flow_Checkout_Validate</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Pay" name="Thanh toán đơn hàng (COD / Thẻ / Ví / Chuyển khoản)">
+      <bpmn:incoming>Flow_Validate_Pay</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pay_Verify</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_ReceiveGoods" name="Nhận hàng từ shipper">
+      <bpmn:incoming>Flow_Deliver_Success</bpmn:incoming>
+      <bpmn:outgoing>Flow_Receive_Confirm</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_ConfirmReceipt" name="Xác nhận đã nhận hàng">
+      <bpmn:incoming>Flow_Receive_Confirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirm_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_ValidateOrder" name="Tự động xác thực thông tin đơn">
+      <bpmn:incoming>Flow_Checkout_Validate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Validate_Pay</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_LockInventory" name="Khóa tồn kho + tạo đơn">
+      <bpmn:incoming>Flow_Verify_Process</bpmn:incoming>
+      <bpmn:outgoing>Flow_Lock_SellerConfirm</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Timer_2h" name="Hết 2h SLA - chờ phản hồi Seller">
+      <bpmn:incoming>Flow_GateSeller_Timer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Timer_AutoAccept</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_2h">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Task_AutoAccept" name="Tự động chấp nhận đơn sau 2h">
+      <bpmn:incoming>Flow_Timer_AutoAccept</bpmn:incoming>
+      <bpmn:outgoing>Flow_AutoAccept_Merge</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_GenerateLabelQR" name="Tạo nhãn vận đơn QR số hóa">
+      <bpmn:incoming>Flow_Package_Label</bpmn:incoming>
+      <bpmn:outgoing>Flow_Label_PickupSched</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AutoPickupSched" name="Tự động lên lịch lấy hàng với 3PL">
+      <bpmn:incoming>Flow_Label_PickupSched</bpmn:incoming>
+      <bpmn:outgoing>Flow_PickupSched_Pickup</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AI_ETA" name="Dự đoán thời gian giao (AI ETA)">
+      <bpmn:incoming>Flow_Pickup_ETA</bpmn:incoming>
+      <bpmn:outgoing>Flow_ETA_Timer</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Timer_ETA30" name="Trước giao 30 phút">
+      <bpmn:incoming>Flow_ETA_Timer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Timer_Contact</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_ETA30">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">2026-08-12T18:30:00Z</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Task_PreDeliveryContact" name="Liên hệ trước giao hàng (gọi/nhắn 30 phút)">
+      <bpmn:incoming>Flow_Timer_Contact</bpmn:incoming>
+      <bpmn:outgoing>Flow_Contact_Track</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_TrackDelivery" name="Cập nhật định vị đơn hàng realtime">
+      <bpmn:incoming>Flow_Contact_Track</bpmn:incoming>
+      <bpmn:outgoing>Flow_Track_Deliver</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Timer_7d" name="Hết 7 ngày SLA - xác nhận nhận hàng">
+      <bpmn:incoming>Flow_Buyer_Timer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Timer_AutoConfirm</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_7d">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P7D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Task_AutoConfirm" name="Tự động xác nhận đã nhận hàng">
+      <bpmn:incoming>Flow_Timer_AutoConfirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_AutoConfirm_Release</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ReleasePayment" name="Giải ngân cho Seller">
+      <bpmn:outgoing>Flow_Release_End</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AutoCancel" name="Tự động hủy đơn">
+      <bpmn:outgoing>Flow_Cancel_Notify</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_NotifyCancel" name="Thông báo hủy đơn">
+      <bpmn:incoming>Flow_Cancel_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_Refund</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AutoRefund" name="Tự động hoàn tiền Buyer">
+      <bpmn:incoming>Flow_Notify_Refund</bpmn:incoming>
+      <bpmn:outgoing>Flow_Refund_Execute</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_ConfirmOrder" name="Xác nhận đơn (thủ công)">
+      <bpmn:incoming>Flow_GateSeller_Manual</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirm_Result</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PackageGoods" name="Đóng gói hàng">
+      <bpmn:incoming>Flow_SellerAccepted_Package</bpmn:incoming>
+      <bpmn:outgoing>Flow_Package_Label</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_Pickup" name="3PL lấy hàng (theo lịch tự động)">
+      <bpmn:incoming>Flow_PickupSched_Pickup</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pickup_ETA</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Task_DeliverAttempt" name="Giao hàng (attempt)">
+      <bpmn:incoming>Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_VerifyPayment" name="Gateway verify thanh toán">
+      <bpmn:incoming>Flow_Pay_Verify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Verify_Process</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ExecuteRefund" name="Cổng thanh toán xử lý hoàn tiền">
+      <bpmn:incoming>Flow_Refund_Execute</bpmn:incoming>
+      <bpmn:outgoing>Flow_Refund_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_SellerConfirm" name="Seller phản hồi?" default="Flow_GateSeller_Timer">
+      <bpmn:incoming>Flow_Lock_SellerConfirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_GateSeller_Manual</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GateSeller_Timer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_ConfirmResult" name="Chấp nhận đơn?" default="Flow_ConfirmResult_Refuse">
+      <bpmn:incoming>Flow_Confirm_Result</bpmn:incoming>
+      <bpmn:outgoing>Flow_ConfirmResult_Accept</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ConfirmResult_Refuse</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_SellerAccepted" name="Đã chấp nhận">
+      <bpmn:incoming>Flow_ConfirmResult_Accept</bpmn:incoming>
+      <bpmn:incoming>Flow_AutoAccept_Merge</bpmn:incoming>
+      <bpmn:outgoing>Flow_SellerAccepted_Package</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_DeliverySuccess" name="Giao thành công?" default="Flow_Fail_Cancel">
+      <bpmn:incoming>Flow_Deliver_Fail</bpmn:incoming>
+      <bpmn:outgoing>Flow_Retry_Deliver</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Fail_Cancel</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_BuyerConfirm" name="Buyer đã xác nhận?" default="Flow_Buyer_Timer">
+      <bpmn:incoming>Flow_Confirm_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Buyer_Release</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Buyer_Timer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Delivered" name="Đơn hàng đã hoàn tất">
+      <bpmn:incoming>Flow_Release_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Refunded" name="Đã hoàn tiền cho Buyer">
+      <bpmn:incoming>Flow_Refund_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Checkout_Validate" sourceRef="StartEvent_Checkout" targetRef="Task_ValidateOrder" />
+    <bpmn:sequenceFlow id="Flow_Validate_Pay" sourceRef="Task_ValidateOrder" targetRef="Task_Pay" />
+    <bpmn:sequenceFlow id="Flow_Pay_Verify" sourceRef="Task_Pay" targetRef="Task_VerifyPayment" />
+    <bpmn:sequenceFlow id="Flow_Verify_Process" sourceRef="Task_VerifyPayment" targetRef="Task_LockInventory" />
+    <bpmn:sequenceFlow id="Flow_Lock_SellerConfirm" sourceRef="Task_LockInventory" targetRef="Gate_SellerConfirm" />
+    <bpmn:sequenceFlow id="Flow_GateSeller_Manual" sourceRef="Gate_SellerConfirm" targetRef="Task_ConfirmOrder" name="Chưa phản hồi trong 2h">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${sellerResponded}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GateSeller_Timer" sourceRef="Gate_SellerConfirm" targetRef="Timer_2h" name="Đã quá 2h SLA" />
+    <bpmn:sequenceFlow id="Flow_Confirm_Result" sourceRef="Task_ConfirmOrder" targetRef="Gate_ConfirmResult" />
+    <bpmn:sequenceFlow id="Flow_ConfirmResult_Accept" sourceRef="Gate_ConfirmResult" targetRef="Gate_SellerAccepted" name="Chấp nhận">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${accepted}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ConfirmResult_Refuse" sourceRef="Gate_ConfirmResult" targetRef="Join_Task_AutoCancel_2" name="Từ chối" />
+    <bpmn:sequenceFlow id="Flow_Timer_AutoAccept" sourceRef="Timer_2h" targetRef="Task_AutoAccept" />
+    <bpmn:sequenceFlow id="Flow_AutoAccept_Merge" sourceRef="Task_AutoAccept" targetRef="Gate_SellerAccepted" />
+    <bpmn:sequenceFlow id="Flow_SellerAccepted_Package" sourceRef="Gate_SellerAccepted" targetRef="Task_PackageGoods" />
+    <bpmn:sequenceFlow id="Flow_Package_Label" sourceRef="Task_PackageGoods" targetRef="Task_GenerateLabelQR" />
+    <bpmn:sequenceFlow id="Flow_Label_PickupSched" sourceRef="Task_GenerateLabelQR" targetRef="Task_AutoPickupSched" />
+    <bpmn:sequenceFlow id="Flow_PickupSched_Pickup" sourceRef="Task_AutoPickupSched" targetRef="Task_Pickup" />
+    <bpmn:sequenceFlow id="Flow_Pickup_ETA" sourceRef="Task_Pickup" targetRef="Task_AI_ETA" />
+    <bpmn:sequenceFlow id="Flow_ETA_Timer" sourceRef="Task_AI_ETA" targetRef="Timer_ETA30" />
+    <bpmn:sequenceFlow id="Flow_Timer_Contact" sourceRef="Timer_ETA30" targetRef="Task_PreDeliveryContact" />
+    <bpmn:sequenceFlow id="Flow_Contact_Track" sourceRef="Task_PreDeliveryContact" targetRef="Task_TrackDelivery" />
+    <bpmn:sequenceFlow id="Flow_Track_Deliver" sourceRef="Task_TrackDelivery" targetRef="Join_Task_DeliverAttempt_3" />
+    <bpmn:sequenceFlow id="Flow_Deliver_Success" sourceRef="Split_Task_DeliverAttempt_1" targetRef="Task_ReceiveGoods" />
+    <bpmn:sequenceFlow id="Flow_Deliver_Fail" sourceRef="Split_Task_DeliverAttempt_1" targetRef="Gate_DeliverySuccess" />
+    <bpmn:sequenceFlow id="Flow_Retry_Deliver" sourceRef="Gate_DeliverySuccess" targetRef="Join_Task_DeliverAttempt_3" name="Giao thất bại (≤3 lần)">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${attempts &lt; maxAttempts}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Fail_Cancel" sourceRef="Gate_DeliverySuccess" targetRef="Join_Task_AutoCancel_2" name="Giao thất bại hết giới hạn" />
+    <bpmn:sequenceFlow id="Flow_Receive_Confirm" sourceRef="Task_ReceiveGoods" targetRef="Task_ConfirmReceipt" />
+    <bpmn:sequenceFlow id="Flow_Confirm_Gate" sourceRef="Task_ConfirmReceipt" targetRef="Gate_BuyerConfirm" />
+    <bpmn:sequenceFlow id="Flow_Buyer_Release" sourceRef="Gate_BuyerConfirm" targetRef="Join_Task_ReleasePayment_1" name="Buyer xác nhận / quá hạn">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${buyerConfirmed}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Buyer_Timer" sourceRef="Gate_BuyerConfirm" targetRef="Timer_7d" name="Đã quá 7 ngày xác nhận" />
+    <bpmn:sequenceFlow id="Flow_Timer_AutoConfirm" sourceRef="Timer_7d" targetRef="Task_AutoConfirm" />
+    <bpmn:sequenceFlow id="Flow_AutoConfirm_Release" sourceRef="Task_AutoConfirm" targetRef="Join_Task_ReleasePayment_1" />
+    <bpmn:sequenceFlow id="Flow_Release_End" sourceRef="Task_ReleasePayment" targetRef="End_Delivered" />
+    <bpmn:sequenceFlow id="Flow_Cancel_Notify" sourceRef="Task_AutoCancel" targetRef="Task_NotifyCancel" />
+    <bpmn:sequenceFlow id="Flow_Notify_Refund" sourceRef="Task_NotifyCancel" targetRef="Task_AutoRefund" />
+    <bpmn:sequenceFlow id="Flow_Refund_Execute" sourceRef="Task_AutoRefund" targetRef="Task_ExecuteRefund" />
+    <bpmn:sequenceFlow id="Flow_Refund_End" sourceRef="Task_ExecuteRefund" targetRef="End_Refunded" />
+    <bpmn:exclusiveGateway id="Join_Task_ReleasePayment_1" name="Gom luồng trước khi Giải ngân cho Seller">
+      <bpmn:incoming>Flow_Buyer_Release</bpmn:incoming>
+      <bpmn:incoming>Flow_AutoConfirm_Release</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment" sourceRef="Join_Task_ReleasePayment_1" targetRef="Task_ReleasePayment" />
+    <bpmn:exclusiveGateway id="Join_Task_AutoCancel_2" name="Gom luồng trước khi Tự động hủy đơn">
+      <bpmn:incoming>Flow_ConfirmResult_Refuse</bpmn:incoming>
+      <bpmn:incoming>Flow_Fail_Cancel</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel" sourceRef="Join_Task_AutoCancel_2" targetRef="Task_AutoCancel" />
+    <bpmn:exclusiveGateway id="Join_Task_DeliverAttempt_3" name="Gom luồng trước khi Giao hàng (attempt)">
+      <bpmn:incoming>Flow_Track_Deliver</bpmn:incoming>
+      <bpmn:incoming>Flow_Retry_Deliver</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt" sourceRef="Join_Task_DeliverAttempt_3" targetRef="Task_DeliverAttempt" />
+    <bpmn:exclusiveGateway id="Split_Task_DeliverAttempt_1" name="Phân luồng sau Giao hàng (attempt)">
+      <bpmn:outgoing>Flow_Deliver_Success</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Deliver_Fail</bpmn:outgoing>
+      <bpmn:incoming>Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1</bpmn:incoming>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1" sourceRef="Task_DeliverAttempt" targetRef="Split_Task_DeliverAttempt_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_OrderProcessingToBe">
+      <bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer">
+        <dc:Bounds x="30" y="0" width="6086" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System">
+        <dc:Bounds x="30" y="200" width="6086" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller">
+        <dc:Bounds x="30" y="400" width="6086" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_3PL_di" bpmnElement="Lane_3PL">
+        <dc:Bounds x="30" y="600" width="6086" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Payment_di" bpmnElement="Lane_Payment">
+        <dc:Bounds x="30" y="800" width="6086" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Checkout_di" bpmnElement="StartEvent_Checkout">
+        <dc:Bounds x="80" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Pay_di" bpmnElement="Task_Pay">
+        <dc:Bounds x="520" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods">
+        <dc:Bounds x="4480" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmReceipt_di" bpmnElement="Task_ConfirmReceipt">
+        <dc:Bounds x="4700" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ValidateOrder_di" bpmnElement="Task_ValidateOrder">
+        <dc:Bounds x="300" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LockInventory_di" bpmnElement="Task_LockInventory">
+        <dc:Bounds x="960" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_2h_di" bpmnElement="Timer_2h">
+        <dc:Bounds x="1400" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoAccept_di" bpmnElement="Task_AutoAccept">
+        <dc:Bounds x="1620" y="222" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_ConfirmResult_di" bpmnElement="Gate_ConfirmResult">
+        <dc:Bounds x="1620" y="319" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GenerateLabelQR_di" bpmnElement="Task_GenerateLabelQR">
+        <dc:Bounds x="2280" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoPickupSched_di" bpmnElement="Task_AutoPickupSched">
+        <dc:Bounds x="2500" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AI_ETA_di" bpmnElement="Task_AI_ETA">
+        <dc:Bounds x="2940" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_ETA30_di" bpmnElement="Timer_ETA30">
+        <dc:Bounds x="3160" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PreDeliveryContact_di" bpmnElement="Task_PreDeliveryContact">
+        <dc:Bounds x="3380" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TrackDelivery_di" bpmnElement="Task_TrackDelivery">
+        <dc:Bounds x="3600" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_7d_di" bpmnElement="Timer_7d">
+        <dc:Bounds x="5140" y="239" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotifyCancel_di" bpmnElement="Task_NotifyCancel">
+        <dc:Bounds x="5140" y="307" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoConfirm_di" bpmnElement="Task_AutoConfirm">
+        <dc:Bounds x="5360" y="222" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoRefund_di" bpmnElement="Task_AutoRefund">
+        <dc:Bounds x="5360" y="307" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReleasePayment_di" bpmnElement="Task_ReleasePayment">
+        <dc:Bounds x="5800" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoCancel_di" bpmnElement="Task_AutoCancel">
+        <dc:Bounds x="4920" y="222" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_BuyerConfirm_di" bpmnElement="Gate_BuyerConfirm">
+        <dc:Bounds x="4920" y="319" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmOrder_di" bpmnElement="Task_ConfirmOrder">
+        <dc:Bounds x="1400" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PackageGoods_di" bpmnElement="Task_PackageGoods">
+        <dc:Bounds x="2060" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Pickup_di" bpmnElement="Task_Pickup">
+        <dc:Bounds x="2720" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DeliverAttempt_di" bpmnElement="Task_DeliverAttempt">
+        <dc:Bounds x="4040" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifyPayment_di" bpmnElement="Task_VerifyPayment">
+        <dc:Bounds x="740" y="865" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ExecuteRefund_di" bpmnElement="Task_ExecuteRefund">
+        <dc:Bounds x="5580" y="865" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_SellerConfirm_di" bpmnElement="Gate_SellerConfirm">
+        <dc:Bounds x="1180" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_SellerAccepted_di" bpmnElement="Gate_SellerAccepted">
+        <dc:Bounds x="1840" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_DeliverySuccess_di" bpmnElement="Gate_DeliverySuccess">
+        <dc:Bounds x="4480" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Delivered_di" bpmnElement="End_Delivered">
+        <dc:Bounds x="6020" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Refunded_di" bpmnElement="End_Refunded">
+        <dc:Bounds x="5800" y="882" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_ReleasePayment_1_di" bpmnElement="Join_Task_ReleasePayment_1">
+        <dc:Bounds x="5580" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_AutoCancel_2_di" bpmnElement="Join_Task_AutoCancel_2">
+        <dc:Bounds x="4700" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_DeliverAttempt_3_di" bpmnElement="Join_Task_DeliverAttempt_3">
+        <dc:Bounds x="3820" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_Task_DeliverAttempt_1_di" bpmnElement="Split_Task_DeliverAttempt_1">
+        <dc:Bounds x="4260" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Checkout_Validate_di" bpmnElement="Flow_Checkout_Validate">
+        <di:waypoint x="116" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="151" y="300" />
+        <di:waypoint x="300" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Validate_Pay_di" bpmnElement="Flow_Validate_Pay">
+        <di:waypoint x="410" y="300" />
+        <di:waypoint x="445" y="300" />
+        <di:waypoint x="445" y="100" />
+        <di:waypoint x="520" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Pay_Verify_di" bpmnElement="Flow_Pay_Verify">
+        <di:waypoint x="630" y="100" />
+        <di:waypoint x="665" y="100" />
+        <di:waypoint x="665" y="900" />
+        <di:waypoint x="740" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Verify_Process_di" bpmnElement="Flow_Verify_Process">
+        <di:waypoint x="850" y="900" />
+        <di:waypoint x="885" y="900" />
+        <di:waypoint x="885" y="300" />
+        <di:waypoint x="960" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Lock_SellerConfirm_di" bpmnElement="Flow_Lock_SellerConfirm">
+        <di:waypoint x="1070" y="300" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1180" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GateSeller_Manual_di" bpmnElement="Flow_GateSeller_Manual">
+        <di:waypoint x="1203" y="323" />
+        <di:waypoint x="1203" y="500" />
+        <di:waypoint x="1400" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GateSeller_Timer_di" bpmnElement="Flow_GateSeller_Timer">
+        <di:waypoint x="1226" y="300" />
+        <di:waypoint x="1400" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1278" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Confirm_Result_di" bpmnElement="Flow_Confirm_Result">
+        <di:waypoint x="1510" y="500" />
+        <di:waypoint x="1545" y="500" />
+        <di:waypoint x="1545" y="342" />
+        <di:waypoint x="1620" y="342" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ConfirmResult_Accept_di" bpmnElement="Flow_ConfirmResult_Accept">
+        <di:waypoint x="1643" y="319" />
+        <di:waypoint x="1643" y="300" />
+        <di:waypoint x="1840" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1649" y="302" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ConfirmResult_Refuse_di" bpmnElement="Flow_ConfirmResult_Refuse">
+        <di:waypoint x="1643" y="319" />
+        <di:waypoint x="1643" y="300" />
+        <di:waypoint x="4700" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1649" y="302" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Timer_AutoAccept_di" bpmnElement="Flow_Timer_AutoAccept">
+        <di:waypoint x="1436" y="300" />
+        <di:waypoint x="1471" y="300" />
+        <di:waypoint x="1471" y="257" />
+        <di:waypoint x="1620" y="257" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AutoAccept_Merge_di" bpmnElement="Flow_AutoAccept_Merge">
+        <di:waypoint x="1730" y="257" />
+        <di:waypoint x="1765" y="257" />
+        <di:waypoint x="1765" y="300" />
+        <di:waypoint x="1840" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SellerAccepted_Package_di" bpmnElement="Flow_SellerAccepted_Package">
+        <di:waypoint x="1863" y="323" />
+        <di:waypoint x="1863" y="500" />
+        <di:waypoint x="2060" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Package_Label_di" bpmnElement="Flow_Package_Label">
+        <di:waypoint x="2170" y="500" />
+        <di:waypoint x="2205" y="500" />
+        <di:waypoint x="2205" y="300" />
+        <di:waypoint x="2280" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Label_PickupSched_di" bpmnElement="Flow_Label_PickupSched">
+        <di:waypoint x="2390" y="300" />
+        <di:waypoint x="2500" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_PickupSched_Pickup_di" bpmnElement="Flow_PickupSched_Pickup">
+        <di:waypoint x="2610" y="300" />
+        <di:waypoint x="2645" y="300" />
+        <di:waypoint x="2645" y="700" />
+        <di:waypoint x="2720" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Pickup_ETA_di" bpmnElement="Flow_Pickup_ETA">
+        <di:waypoint x="2830" y="700" />
+        <di:waypoint x="2865" y="700" />
+        <di:waypoint x="2865" y="300" />
+        <di:waypoint x="2940" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ETA_Timer_di" bpmnElement="Flow_ETA_Timer">
+        <di:waypoint x="3050" y="300" />
+        <di:waypoint x="3085" y="300" />
+        <di:waypoint x="3085" y="300" />
+        <di:waypoint x="3160" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Timer_Contact_di" bpmnElement="Flow_Timer_Contact">
+        <di:waypoint x="3196" y="300" />
+        <di:waypoint x="3231" y="300" />
+        <di:waypoint x="3231" y="300" />
+        <di:waypoint x="3380" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Contact_Track_di" bpmnElement="Flow_Contact_Track">
+        <di:waypoint x="3490" y="300" />
+        <di:waypoint x="3600" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Track_Deliver_di" bpmnElement="Flow_Track_Deliver">
+        <di:waypoint x="3710" y="300" />
+        <di:waypoint x="3745" y="300" />
+        <di:waypoint x="3745" y="700" />
+        <di:waypoint x="3820" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Deliver_Success_di" bpmnElement="Flow_Deliver_Success">
+        <di:waypoint x="4283" y="677" />
+        <di:waypoint x="4283" y="100" />
+        <di:waypoint x="4480" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Deliver_Fail_di" bpmnElement="Flow_Deliver_Fail">
+        <di:waypoint x="4283" y="677" />
+        <di:waypoint x="4283" y="300" />
+        <di:waypoint x="4480" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Retry_Deliver_di" bpmnElement="Flow_Retry_Deliver">
+        <di:waypoint x="4503" y="277" />
+        <di:waypoint x="4503" y="214" />
+        <di:waypoint x="3843" y="214" />
+        <di:waypoint x="3843" y="677" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4143" y="200" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fail_Cancel_di" bpmnElement="Flow_Fail_Cancel">
+        <di:waypoint x="4526" y="300" />
+        <di:waypoint x="4700" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4578" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Receive_Confirm_di" bpmnElement="Flow_Receive_Confirm">
+        <di:waypoint x="4590" y="100" />
+        <di:waypoint x="4700" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Confirm_Gate_di" bpmnElement="Flow_Confirm_Gate">
+        <di:waypoint x="4810" y="100" />
+        <di:waypoint x="4845" y="100" />
+        <di:waypoint x="4845" y="342" />
+        <di:waypoint x="4920" y="342" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Buyer_Release_di" bpmnElement="Flow_Buyer_Release">
+        <di:waypoint x="4943" y="319" />
+        <di:waypoint x="4943" y="300" />
+        <di:waypoint x="5580" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4949" y="302" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Buyer_Timer_di" bpmnElement="Flow_Buyer_Timer">
+        <di:waypoint x="4943" y="319" />
+        <di:waypoint x="4943" y="257" />
+        <di:waypoint x="5140" y="257" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4949" y="281" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Timer_AutoConfirm_di" bpmnElement="Flow_Timer_AutoConfirm">
+        <di:waypoint x="5176" y="257" />
+        <di:waypoint x="5211" y="257" />
+        <di:waypoint x="5211" y="257" />
+        <di:waypoint x="5360" y="257" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AutoConfirm_Release_di" bpmnElement="Flow_AutoConfirm_Release">
+        <di:waypoint x="5470" y="257" />
+        <di:waypoint x="5505" y="257" />
+        <di:waypoint x="5505" y="300" />
+        <di:waypoint x="5580" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Release_End_di" bpmnElement="Flow_Release_End">
+        <di:waypoint x="5910" y="300" />
+        <di:waypoint x="5945" y="300" />
+        <di:waypoint x="5945" y="300" />
+        <di:waypoint x="6020" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Cancel_Notify_di" bpmnElement="Flow_Cancel_Notify">
+        <di:waypoint x="5030" y="257" />
+        <di:waypoint x="5065" y="257" />
+        <di:waypoint x="5065" y="342" />
+        <di:waypoint x="5140" y="342" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Notify_Refund_di" bpmnElement="Flow_Notify_Refund">
+        <di:waypoint x="5250" y="342" />
+        <di:waypoint x="5360" y="342" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Refund_Execute_di" bpmnElement="Flow_Refund_Execute">
+        <di:waypoint x="5470" y="342" />
+        <di:waypoint x="5505" y="342" />
+        <di:waypoint x="5505" y="900" />
+        <di:waypoint x="5580" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End">
+        <di:waypoint x="5690" y="900" />
+        <di:waypoint x="5725" y="900" />
+        <di:waypoint x="5725" y="900" />
+        <di:waypoint x="5800" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment_di" bpmnElement="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment">
+        <di:waypoint x="5626" y="300" />
+        <di:waypoint x="5713" y="300" />
+        <di:waypoint x="5713" y="300" />
+        <di:waypoint x="5800" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel_di" bpmnElement="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel">
+        <di:waypoint x="4723" y="277" />
+        <di:waypoint x="4723" y="257" />
+        <di:waypoint x="4920" y="257" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt_di" bpmnElement="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt">
+        <di:waypoint x="3866" y="700" />
+        <di:waypoint x="3953" y="700" />
+        <di:waypoint x="3953" y="700" />
+        <di:waypoint x="4040" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1_di" bpmnElement="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1">
+        <di:waypoint x="4150" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4260" y="700" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

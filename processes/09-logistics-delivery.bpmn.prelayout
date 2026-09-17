@@ -1,0 +1,649 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_LogisticsDelivery" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_LogisticsDelivery" name="Quy trình Vận chuyển &amp; Giao nhận" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Seller" name="Seller">
+        <bpmn:flowNodeRef>StartEvent_OrderConfirmed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PrepareParcel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PackageGoods</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SchedulePickup</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReworkParcel</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System">
+        <bpmn:flowNodeRef>Task_GenerateAWB</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Assign3PL</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_3PLAvailable</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateShipment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendTracking</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveReturn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateCOD</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Delivered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Returned</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_3PL" name="LEX / 3PL (GHN, J&amp;T, Grab, NINJAVAN)">
+        <bpmn:flowNodeRef>Task_PickupParcel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_PickupSuccess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SortWarehouse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SortOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TransitHub</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OutForDelivery</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_FirstAttempt</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Shipper" name="Shipper (Giao hàng)">
+        <bpmn:flowNodeRef>Task_DeliverToBuyer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_DeliveredOrFailed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RetryDelivery</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_RetryCount</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RescheduleDelivery</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Buyer" name="Buyer">
+        <bpmn:flowNodeRef>Task_ReceiveGoods</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_AcceptGoods</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmReceive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RejectGoods</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_OrderConfirmed" name="Đơn hàng đã được xác nhận">
+      <bpmn:outgoing>Flow_S1_Prep</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_PrepareParcel" name="Seller chuẩn bị hàng hóa đóng gói">
+      <bpmn:incoming>Flow_S1_Prep</bpmn:incoming>
+      <bpmn:outgoing>Flow_Prep_Package</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PackageGoods" name="Đóng gói hàng hóa &amp; gắn nhãn vận chuyển">
+      <bpmn:incoming>Flow_Prep_Package</bpmn:incoming>
+      <bpmn:outgoing>Flow_Package_Schedule</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SchedulePickup" name="Đặt lịch hẹn lấy hàng từ 3PL">
+      <bpmn:outgoing>Flow_Schedule_AWB</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_SchedulePickup_in</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReworkParcel" name="Seller đóng gói lại hàng hóa theo yêu cầu">
+      <bpmn:incoming>Flow_Reschedule_Rework</bpmn:incoming>
+      <bpmn:outgoing>Flow_Rework_Schedule</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_Rework_Schedule" sourceRef="Task_ReworkParcel" targetRef="Join_Task_SchedulePickup_1" />
+    <bpmn:userTask id="Task_SendTracking" name="Gửi mã theo dõi vận chuyển cho Buyer">
+      <bpmn:incoming>Flow_Create_SendTrack</bpmn:incoming>
+      <bpmn:outgoing>Flow_SendTrack_Transit</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_GenerateAWB" name="Tạo vận đơn tự động (AWB)">
+      <bpmn:incoming>Flow_Schedule_AWB</bpmn:incoming>
+      <bpmn:outgoing>Flow_AWB_Assign</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Assign3PL" name="Phân công 3PL phù hợp (LEX/GHN/J&amp;T)">
+      <bpmn:outgoing>Flow_Assign_Gate3PL</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_Assign3PL_in</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_3PLAvailable" name="3PL có slots nhận hàng?">
+      <bpmn:incoming>Flow_Assign_Gate3PL</bpmn:incoming>
+      <bpmn:outgoing>Flow_3PLYes_Pickup</bpmn:outgoing>
+      <bpmn:outgoing>Flow_3PLNo_Reassign</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_CreateShipment" name="Tạo lô hàng vận chuyển trên hệ thống">
+      <bpmn:incoming>Flow_SortYes_Create</bpmn:incoming>
+      <bpmn:outgoing>Flow_Create_SendTrack</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ReceiveReturn" name="Nhận hàng hoàn về từ 3PL (giao thất bại 3 lần)">
+      <bpmn:outgoing>Flow_Return_End</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_ReceiveReturn_in</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_UpdateCOD" name="Cập nhật trạng thái COD trên hệ thống">
+      <bpmn:incoming>Flow_Confirm_COD</bpmn:incoming>
+      <bpmn:outgoing>Flow_COD_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Delivered" name="Đơn hàng đã giao thành công">
+      <bpmn:incoming>Flow_COD_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Returned" name="Hàng đã hoàn về Seller">
+      <bpmn:incoming>Flow_Return_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_PickupParcel" name="3PL nhận hàng từ kho Seller">
+      <bpmn:incoming>Flow_3PLYes_Pickup</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pickup_GatePickup</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_PickupSuccess" name="3PL nhận hàng thành công?">
+      <bpmn:incoming>Flow_Pickup_GatePickup</bpmn:incoming>
+      <bpmn:outgoing>Flow_PickupYes_Sort</bpmn:outgoing>
+      <bpmn:outgoing>Flow_PickupNo_Reschedule</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_SortWarehouse" name="Phân loại hàng tại kho trung tâm 3PL">
+      <bpmn:incoming>Flow_PickupYes_Sort</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sort_GateSort</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_SortOK" name="Phân loại chính xác (số AWB khớp)?">
+      <bpmn:incoming>Flow_Sort_GateSort</bpmn:incoming>
+      <bpmn:outgoing>Flow_SortYes_Create</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SortNo_Rework</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_TransitHub" name="Vận chuyển hàng qua các trung tâm phân loại">
+      <bpmn:incoming>Flow_SendTrack_Transit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Transit_Out</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_OutForDelivery" name="Hàng xuất kho — shipper nhận giao">
+      <bpmn:incoming>Flow_Transit_Out</bpmn:incoming>
+      <bpmn:outgoing>Flow_Out_GateFirst</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_FirstAttempt" name="Lần giao đầu tiên có thể thực hiện?">
+      <bpmn:incoming>Flow_Out_GateFirst</bpmn:incoming>
+      <bpmn:outgoing>Flow_FirstYes_Deliver</bpmn:outgoing>
+      <bpmn:outgoing>Flow_FirstNo_Shipper</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_DeliverToBuyer" name="Shipper giao hàng cho Buyer tại địa chỉ">
+      <bpmn:incoming>Flow_FirstYes_Deliver</bpmn:incoming>
+      <bpmn:outgoing>Flow_Deliver_GateResult</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_DeliveredOrFailed" name="Giao hàng thành công?">
+      <bpmn:incoming>Flow_Deliver_GateResult</bpmn:incoming>
+      <bpmn:outgoing>Flow_DeliverYes_Receive</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DeliverNo_Retry</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_RetryDelivery" name="Hẹn giao lại lần tiếp theo">
+      <bpmn:outgoing>Flow_Retry_GateCount</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_RetryDelivery_in</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_RetryCount" name="Đã thử giao ≥ 3 lần thất bại?">
+      <bpmn:incoming>Flow_Retry_GateCount</bpmn:incoming>
+      <bpmn:outgoing>Flow_RetryCount_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RetryCount_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_RescheduleDelivery" name="Chuyển hoàn hàng về kho Seller">
+      <bpmn:incoming>Flow_Join_Task_RescheduleDelivery_in</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_RescheduleDelivery_to_Split_Task_RescheduleDelivery_1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReceiveGoods" name="Buyer nhận hàng &amp; kiểm tra tại chỗ">
+      <bpmn:incoming>Flow_DeliverYes_Receive</bpmn:incoming>
+      <bpmn:outgoing>Flow_Receive_GateAccept</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_AcceptGoods" name="Buyer chấp nhận hàng?">
+      <bpmn:incoming>Flow_Receive_GateAccept</bpmn:incoming>
+      <bpmn:outgoing>Flow_Accept_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Accept_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ConfirmReceive" name="Buyer xác nhận đã nhận hàng">
+      <bpmn:incoming>Flow_Accept_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirm_COD</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_RejectGoods" name="Buyer từ chối nhận hàng (lý do)">
+      <bpmn:incoming>Flow_Accept_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reject_Return</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_S1_Prep" sourceRef="StartEvent_OrderConfirmed" targetRef="Task_PrepareParcel" />
+    <bpmn:sequenceFlow id="Flow_Prep_Package" sourceRef="Task_PrepareParcel" targetRef="Task_PackageGoods" />
+    <bpmn:sequenceFlow id="Flow_Package_Schedule" sourceRef="Task_PackageGoods" targetRef="Join_Task_SchedulePickup_1" />
+    <bpmn:sequenceFlow id="Flow_Schedule_AWB" sourceRef="Task_SchedulePickup" targetRef="Task_GenerateAWB" />
+    <bpmn:sequenceFlow id="Flow_AWB_Assign" sourceRef="Task_GenerateAWB" targetRef="Join_Task_Assign3PL_1" />
+    <bpmn:sequenceFlow id="Flow_Assign_Gate3PL" sourceRef="Task_Assign3PL" targetRef="Gate_3PLAvailable" />
+    <bpmn:sequenceFlow id="Flow_3PLYes_Pickup" name="Có slot" sourceRef="Gate_3PLAvailable" targetRef="Task_PickupParcel" />
+    <bpmn:sequenceFlow id="Flow_3PLNo_Reassign" name="Hết slot — phân công lại" sourceRef="Gate_3PLAvailable" targetRef="Join_Task_Assign3PL_1" />
+    <bpmn:sequenceFlow id="Flow_Pickup_GatePickup" sourceRef="Task_PickupParcel" targetRef="Gate_PickupSuccess" />
+    <bpmn:sequenceFlow id="Flow_PickupYes_Sort" name="Thuận lợi" sourceRef="Gate_PickupSuccess" targetRef="Task_SortWarehouse" />
+    <bpmn:sequenceFlow id="Flow_PickupNo_Reschedule" name="Thuận lợi — báo cáo" sourceRef="Gate_PickupSuccess" targetRef="Join_Task_RescheduleDelivery_1" />
+    <bpmn:sequenceFlow id="Flow_Sort_GateSort" sourceRef="Task_SortWarehouse" targetRef="Gate_SortOK" />
+    <bpmn:sequenceFlow id="Flow_SortYes_Create" name="Chính xác" sourceRef="Gate_SortOK" targetRef="Task_CreateShipment" />
+    <bpmn:sequenceFlow id="Flow_SortNo_Rework" name="Sai sót — yêu cầu đóng gói lại" sourceRef="Gate_SortOK" targetRef="Join_Task_SchedulePickup_1" />
+    <bpmn:sequenceFlow id="Flow_Create_SendTrack" sourceRef="Task_CreateShipment" targetRef="Task_SendTracking" />
+    <bpmn:sequenceFlow id="Flow_SendTrack_Transit" sourceRef="Task_SendTracking" targetRef="Task_TransitHub" />
+    <bpmn:sequenceFlow id="Flow_Transit_Out" sourceRef="Task_TransitHub" targetRef="Task_OutForDelivery" />
+    <bpmn:sequenceFlow id="Flow_Out_GateFirst" sourceRef="Task_OutForDelivery" targetRef="Gate_FirstAttempt" />
+    <bpmn:sequenceFlow id="Flow_FirstYes_Deliver" name="Shipper rảnh" sourceRef="Gate_FirstAttempt" targetRef="Task_DeliverToBuyer" />
+    <bpmn:sequenceFlow id="Flow_FirstNo_Shipper" name="Shipper bận — xếp lại" sourceRef="Gate_FirstAttempt" targetRef="Join_Task_RetryDelivery_1" />
+    <bpmn:sequenceFlow id="Flow_Deliver_GateResult" sourceRef="Task_DeliverToBuyer" targetRef="Gate_DeliveredOrFailed" />
+    <bpmn:sequenceFlow id="Flow_DeliverYes_Receive" name="Thành công" sourceRef="Gate_DeliveredOrFailed" targetRef="Task_ReceiveGoods" />
+    <bpmn:sequenceFlow id="Flow_DeliverNo_Retry" name="Thất bại" sourceRef="Gate_DeliveredOrFailed" targetRef="Join_Task_RetryDelivery_1" />
+    <bpmn:sequenceFlow id="Flow_Retry_GateCount" sourceRef="Task_RetryDelivery" targetRef="Gate_RetryCount" />
+    <bpmn:sequenceFlow id="Flow_RetryCount_Yes" name="≥3 lần — hoàn hàng" sourceRef="Gate_RetryCount" targetRef="Join_Task_RescheduleDelivery_1" />
+    <bpmn:sequenceFlow id="Flow_RetryCount_No" name="≤2 lần — thử lại" sourceRef="Gate_RetryCount" targetRef="Join_Task_SchedulePickup_1" />
+    <bpmn:sequenceFlow id="Flow_Reschedule_Return" name="Hoàn về kho" sourceRef="Split_Task_RescheduleDelivery_1" targetRef="Join_Task_ReceiveReturn_1" />
+    <bpmn:sequenceFlow id="Flow_Reschedule_Rework" name="Đóng gói lại" sourceRef="Split_Task_RescheduleDelivery_1" targetRef="Task_ReworkParcel" />
+    <bpmn:sequenceFlow id="Flow_Return_End" sourceRef="Task_ReceiveReturn" targetRef="EndEvent_Returned" />
+    <bpmn:sequenceFlow id="Flow_Receive_GateAccept" sourceRef="Task_ReceiveGoods" targetRef="Gate_AcceptGoods" />
+    <bpmn:sequenceFlow id="Flow_Accept_Yes" name="Chấp nhận" sourceRef="Gate_AcceptGoods" targetRef="Task_ConfirmReceive" />
+    <bpmn:sequenceFlow id="Flow_Accept_No" name="Từ chối" sourceRef="Gate_AcceptGoods" targetRef="Task_RejectGoods" />
+    <bpmn:sequenceFlow id="Flow_Confirm_COD" sourceRef="Task_ConfirmReceive" targetRef="Task_UpdateCOD" />
+    <bpmn:sequenceFlow id="Flow_Reject_Return" sourceRef="Task_RejectGoods" targetRef="Join_Task_ReceiveReturn_1" />
+    <bpmn:sequenceFlow id="Flow_COD_End" sourceRef="Task_UpdateCOD" targetRef="EndEvent_Delivered" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_SchedulePickup_in" sourceRef="Join_Task_SchedulePickup_1" targetRef="Task_SchedulePickup" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_Assign3PL_in" sourceRef="Join_Task_Assign3PL_1" targetRef="Task_Assign3PL" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_ReceiveReturn_in" sourceRef="Join_Task_ReceiveReturn_1" targetRef="Task_ReceiveReturn" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_RetryDelivery_in" sourceRef="Join_Task_RetryDelivery_1" targetRef="Task_RetryDelivery" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_RescheduleDelivery_in" sourceRef="Join_Task_RescheduleDelivery_1" targetRef="Task_RescheduleDelivery" />
+    <bpmn:sequenceFlow id="Flow_Task_RescheduleDelivery_to_Split_Task_RescheduleDelivery_1" sourceRef="Task_RescheduleDelivery" targetRef="Split_Task_RescheduleDelivery_1" />
+    <bpmn:exclusiveGateway id="Join_Task_SchedulePickup_1" name="Gom luồng trước khi Đặt lịch hẹn lấy hàng từ 3PL">
+      <bpmn:incoming>Flow_Package_Schedule</bpmn:incoming>
+      <bpmn:incoming>Flow_SortNo_Rework</bpmn:incoming>
+      <bpmn:incoming>Flow_Rework_Schedule</bpmn:incoming>
+      <bpmn:incoming>Flow_RetryCount_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_SchedulePickup_in</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_Assign3PL_1" name="Gom luồng trước khi Phân công 3PL phù hợp (LEX/GHN/J&amp;T)">
+      <bpmn:incoming>Flow_AWB_Assign</bpmn:incoming>
+      <bpmn:incoming>Flow_3PLNo_Reassign</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_Assign3PL_in</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_ReceiveReturn_1" name="Gom luồng trước khi Nhận hàng hoàn về từ 3PL (giao thất bại 3 lần)">
+      <bpmn:incoming>Flow_Reschedule_Return</bpmn:incoming>
+      <bpmn:incoming>Flow_Reject_Return</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ReceiveReturn_in</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_RetryDelivery_1" name="Gom luồng trước khi Hẹn giao lại lần tiếp theo">
+      <bpmn:incoming>Flow_DeliverNo_Retry</bpmn:incoming>
+      <bpmn:incoming>Flow_FirstNo_Shipper</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_RetryDelivery_in</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_RescheduleDelivery_1" name="Gom luồng trước khi Chuyển hoàn hàng về kho Seller">
+      <bpmn:incoming>Flow_RetryCount_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_PickupNo_Reschedule</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_RescheduleDelivery_in</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Split_Task_RescheduleDelivery_1" name="Phân luồng sau khi Chuyển hoàn hàng về kho Seller">
+      <bpmn:outgoing>Flow_Reschedule_Return</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Reschedule_Rework</bpmn:outgoing>
+      <bpmn:incoming>Flow_Task_RescheduleDelivery_to_Split_Task_RescheduleDelivery_1</bpmn:incoming>
+    </bpmn:exclusiveGateway>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_LogisticsDelivery">
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller">
+        <dc:Bounds x="30" y="0" width="6306" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System">
+        <dc:Bounds x="30" y="200" width="6306" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_3PL_di" bpmnElement="Lane_3PL">
+        <dc:Bounds x="30" y="400" width="6306" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Shipper_di" bpmnElement="Lane_Shipper">
+        <dc:Bounds x="30" y="600" width="6306" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer">
+        <dc:Bounds x="30" y="800" width="6306" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_OrderConfirmed_di" bpmnElement="StartEvent_OrderConfirmed">
+        <dc:Bounds x="80" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PrepareParcel_di" bpmnElement="Task_PrepareParcel">
+        <dc:Bounds x="300" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PackageGoods_di" bpmnElement="Task_PackageGoods">
+        <dc:Bounds x="520" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SchedulePickup_di" bpmnElement="Task_SchedulePickup">
+        <dc:Bounds x="960" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReworkParcel_di" bpmnElement="Task_ReworkParcel">
+        <dc:Bounds x="5800" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SendTracking_di" bpmnElement="Task_SendTracking">
+        <dc:Bounds x="3160" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GenerateAWB_di" bpmnElement="Task_GenerateAWB">
+        <dc:Bounds x="1180" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Assign3PL_di" bpmnElement="Task_Assign3PL">
+        <dc:Bounds x="1620" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_3PLAvailable_di" bpmnElement="Gate_3PLAvailable">
+        <dc:Bounds x="1840" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateShipment_di" bpmnElement="Task_CreateShipment">
+        <dc:Bounds x="2940" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveReturn_di" bpmnElement="Task_ReceiveReturn">
+        <dc:Bounds x="6020" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_UpdateCOD_di" bpmnElement="Task_UpdateCOD">
+        <dc:Bounds x="5140" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Delivered_di" bpmnElement="EndEvent_Delivered">
+        <dc:Bounds x="5360" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Returned_di" bpmnElement="EndEvent_Returned">
+        <dc:Bounds x="6240" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PickupParcel_di" bpmnElement="Task_PickupParcel">
+        <dc:Bounds x="2060" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_PickupSuccess_di" bpmnElement="Gate_PickupSuccess">
+        <dc:Bounds x="2280" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SortWarehouse_di" bpmnElement="Task_SortWarehouse">
+        <dc:Bounds x="2500" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_SortOK_di" bpmnElement="Gate_SortOK">
+        <dc:Bounds x="2720" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TransitHub_di" bpmnElement="Task_TransitHub">
+        <dc:Bounds x="3380" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OutForDelivery_di" bpmnElement="Task_OutForDelivery">
+        <dc:Bounds x="3600" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_FirstAttempt_di" bpmnElement="Gate_FirstAttempt">
+        <dc:Bounds x="3820" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DeliverToBuyer_di" bpmnElement="Task_DeliverToBuyer">
+        <dc:Bounds x="4040" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_DeliveredOrFailed_di" bpmnElement="Gate_DeliveredOrFailed">
+        <dc:Bounds x="4260" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RetryDelivery_di" bpmnElement="Task_RetryDelivery">
+        <dc:Bounds x="4700" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_RetryCount_di" bpmnElement="Gate_RetryCount">
+        <dc:Bounds x="4920" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RescheduleDelivery_di" bpmnElement="Task_RescheduleDelivery">
+        <dc:Bounds x="5360" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods">
+        <dc:Bounds x="4480" y="865" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_AcceptGoods_di" bpmnElement="Gate_AcceptGoods">
+        <dc:Bounds x="4700" y="877" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmReceive_di" bpmnElement="Task_ConfirmReceive">
+        <dc:Bounds x="4920" y="822" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RejectGoods_di" bpmnElement="Task_RejectGoods">
+        <dc:Bounds x="4920" y="907" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_SchedulePickup_1_di" bpmnElement="Join_Task_SchedulePickup_1">
+        <dc:Bounds x="740" y="77" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_Assign3PL_1_di" bpmnElement="Join_Task_Assign3PL_1">
+        <dc:Bounds x="1400" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_ReceiveReturn_1_di" bpmnElement="Join_Task_ReceiveReturn_1">
+        <dc:Bounds x="5800" y="877" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_RetryDelivery_1_di" bpmnElement="Join_Task_RetryDelivery_1">
+        <dc:Bounds x="4480" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_RescheduleDelivery_1_di" bpmnElement="Join_Task_RescheduleDelivery_1">
+        <dc:Bounds x="5140" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_Task_RescheduleDelivery_1_di" bpmnElement="Split_Task_RescheduleDelivery_1">
+        <dc:Bounds x="5580" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Rework_Schedule_di" bpmnElement="Flow_Rework_Schedule">
+        <di:waypoint x="5855" y="65" />
+        <di:waypoint x="5855" y="14" />
+        <di:waypoint x="763" y="14" />
+        <di:waypoint x="763" y="77" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_S1_Prep_di" bpmnElement="Flow_S1_Prep">
+        <di:waypoint x="116" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="300" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Prep_Package_di" bpmnElement="Flow_Prep_Package">
+        <di:waypoint x="410" y="100" />
+        <di:waypoint x="520" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Package_Schedule_di" bpmnElement="Flow_Package_Schedule">
+        <di:waypoint x="630" y="100" />
+        <di:waypoint x="665" y="100" />
+        <di:waypoint x="665" y="100" />
+        <di:waypoint x="740" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Schedule_AWB_di" bpmnElement="Flow_Schedule_AWB">
+        <di:waypoint x="1070" y="100" />
+        <di:waypoint x="1105" y="100" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1180" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AWB_Assign_di" bpmnElement="Flow_AWB_Assign">
+        <di:waypoint x="1290" y="300" />
+        <di:waypoint x="1325" y="300" />
+        <di:waypoint x="1325" y="300" />
+        <di:waypoint x="1400" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Assign_Gate3PL_di" bpmnElement="Flow_Assign_Gate3PL">
+        <di:waypoint x="1730" y="300" />
+        <di:waypoint x="1765" y="300" />
+        <di:waypoint x="1765" y="300" />
+        <di:waypoint x="1840" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3PLYes_Pickup_di" bpmnElement="Flow_3PLYes_Pickup">
+        <di:waypoint x="1863" y="323" />
+        <di:waypoint x="1863" y="500" />
+        <di:waypoint x="2060" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1869" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3PLNo_Reassign_di" bpmnElement="Flow_3PLNo_Reassign">
+        <di:waypoint x="1863" y="277" />
+        <di:waypoint x="1863" y="214" />
+        <di:waypoint x="1423" y="214" />
+        <di:waypoint x="1423" y="277" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1613" y="200" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Pickup_GatePickup_di" bpmnElement="Flow_Pickup_GatePickup">
+        <di:waypoint x="2170" y="500" />
+        <di:waypoint x="2205" y="500" />
+        <di:waypoint x="2205" y="500" />
+        <di:waypoint x="2280" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_PickupYes_Sort_di" bpmnElement="Flow_PickupYes_Sort">
+        <di:waypoint x="2326" y="500" />
+        <di:waypoint x="2413" y="500" />
+        <di:waypoint x="2413" y="500" />
+        <di:waypoint x="2500" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2334" y="484" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_PickupNo_Reschedule_di" bpmnElement="Flow_PickupNo_Reschedule">
+        <di:waypoint x="2326" y="500" />
+        <di:waypoint x="5140" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3698" y="484" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sort_GateSort_di" bpmnElement="Flow_Sort_GateSort">
+        <di:waypoint x="2610" y="500" />
+        <di:waypoint x="2645" y="500" />
+        <di:waypoint x="2645" y="500" />
+        <di:waypoint x="2720" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SortYes_Create_di" bpmnElement="Flow_SortYes_Create">
+        <di:waypoint x="2743" y="477" />
+        <di:waypoint x="2743" y="300" />
+        <di:waypoint x="2940" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2749" y="381" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SortNo_Rework_di" bpmnElement="Flow_SortNo_Rework">
+        <di:waypoint x="2743" y="477" />
+        <di:waypoint x="2743" y="14" />
+        <di:waypoint x="763" y="14" />
+        <di:waypoint x="763" y="77" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1723" y="0" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Create_SendTrack_di" bpmnElement="Flow_Create_SendTrack">
+        <di:waypoint x="3050" y="300" />
+        <di:waypoint x="3160" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SendTrack_Transit_di" bpmnElement="Flow_SendTrack_Transit">
+        <di:waypoint x="3270" y="300" />
+        <di:waypoint x="3305" y="300" />
+        <di:waypoint x="3305" y="500" />
+        <di:waypoint x="3380" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Transit_Out_di" bpmnElement="Flow_Transit_Out">
+        <di:waypoint x="3490" y="500" />
+        <di:waypoint x="3600" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Out_GateFirst_di" bpmnElement="Flow_Out_GateFirst">
+        <di:waypoint x="3710" y="500" />
+        <di:waypoint x="3745" y="500" />
+        <di:waypoint x="3745" y="500" />
+        <di:waypoint x="3820" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_FirstYes_Deliver_di" bpmnElement="Flow_FirstYes_Deliver">
+        <di:waypoint x="3843" y="523" />
+        <di:waypoint x="3843" y="700" />
+        <di:waypoint x="4040" y="700" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3849" y="604" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_FirstNo_Shipper_di" bpmnElement="Flow_FirstNo_Shipper">
+        <di:waypoint x="3866" y="500" />
+        <di:waypoint x="4480" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4138" y="484" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Deliver_GateResult_di" bpmnElement="Flow_Deliver_GateResult">
+        <di:waypoint x="4150" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4260" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DeliverYes_Receive_di" bpmnElement="Flow_DeliverYes_Receive">
+        <di:waypoint x="4283" y="723" />
+        <di:waypoint x="4283" y="900" />
+        <di:waypoint x="4480" y="900" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4289" y="804" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DeliverNo_Retry_di" bpmnElement="Flow_DeliverNo_Retry">
+        <di:waypoint x="4283" y="677" />
+        <di:waypoint x="4283" y="500" />
+        <di:waypoint x="4480" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4289" y="581" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Retry_GateCount_di" bpmnElement="Flow_Retry_GateCount">
+        <di:waypoint x="4810" y="700" />
+        <di:waypoint x="4845" y="700" />
+        <di:waypoint x="4845" y="700" />
+        <di:waypoint x="4920" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetryCount_Yes_di" bpmnElement="Flow_RetryCount_Yes">
+        <di:waypoint x="4943" y="677" />
+        <di:waypoint x="4943" y="500" />
+        <di:waypoint x="5140" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4949" y="581" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RetryCount_No_di" bpmnElement="Flow_RetryCount_No">
+        <di:waypoint x="4943" y="677" />
+        <di:waypoint x="4943" y="14" />
+        <di:waypoint x="763" y="14" />
+        <di:waypoint x="763" y="77" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2823" y="0" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reschedule_Return_di" bpmnElement="Flow_Reschedule_Return">
+        <di:waypoint x="5603" y="723" />
+        <di:waypoint x="5603" y="900" />
+        <di:waypoint x="5800" y="900" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5609" y="804" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reschedule_Rework_di" bpmnElement="Flow_Reschedule_Rework">
+        <di:waypoint x="5603" y="677" />
+        <di:waypoint x="5603" y="100" />
+        <di:waypoint x="5800" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5609" y="381" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Return_End_di" bpmnElement="Flow_Return_End">
+        <di:waypoint x="6130" y="300" />
+        <di:waypoint x="6165" y="300" />
+        <di:waypoint x="6165" y="300" />
+        <di:waypoint x="6240" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Receive_GateAccept_di" bpmnElement="Flow_Receive_GateAccept">
+        <di:waypoint x="4590" y="900" />
+        <di:waypoint x="4625" y="900" />
+        <di:waypoint x="4625" y="900" />
+        <di:waypoint x="4700" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Accept_Yes_di" bpmnElement="Flow_Accept_Yes">
+        <di:waypoint x="4723" y="877" />
+        <di:waypoint x="4723" y="857" />
+        <di:waypoint x="4920" y="857" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4729" y="860" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Accept_No_di" bpmnElement="Flow_Accept_No">
+        <di:waypoint x="4723" y="923" />
+        <di:waypoint x="4723" y="942" />
+        <di:waypoint x="4920" y="942" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4729" y="925" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Confirm_COD_di" bpmnElement="Flow_Confirm_COD">
+        <di:waypoint x="5030" y="857" />
+        <di:waypoint x="5065" y="857" />
+        <di:waypoint x="5065" y="300" />
+        <di:waypoint x="5140" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reject_Return_di" bpmnElement="Flow_Reject_Return">
+        <di:waypoint x="5030" y="942" />
+        <di:waypoint x="5065" y="942" />
+        <di:waypoint x="5065" y="900" />
+        <di:waypoint x="5800" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_COD_End_di" bpmnElement="Flow_COD_End">
+        <di:waypoint x="5250" y="300" />
+        <di:waypoint x="5285" y="300" />
+        <di:waypoint x="5285" y="300" />
+        <di:waypoint x="5360" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_SchedulePickup_in_di" bpmnElement="Flow_Join_Task_SchedulePickup_in">
+        <di:waypoint x="786" y="100" />
+        <di:waypoint x="873" y="100" />
+        <di:waypoint x="873" y="100" />
+        <di:waypoint x="960" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_Assign3PL_in_di" bpmnElement="Flow_Join_Task_Assign3PL_in">
+        <di:waypoint x="1446" y="300" />
+        <di:waypoint x="1533" y="300" />
+        <di:waypoint x="1533" y="300" />
+        <di:waypoint x="1620" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_ReceiveReturn_in_di" bpmnElement="Flow_Join_Task_ReceiveReturn_in">
+        <di:waypoint x="5823" y="877" />
+        <di:waypoint x="5823" y="300" />
+        <di:waypoint x="6020" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_RetryDelivery_in_di" bpmnElement="Flow_Join_Task_RetryDelivery_in">
+        <di:waypoint x="4503" y="523" />
+        <di:waypoint x="4503" y="700" />
+        <di:waypoint x="4700" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_RescheduleDelivery_in_di" bpmnElement="Flow_Join_Task_RescheduleDelivery_in">
+        <di:waypoint x="5163" y="523" />
+        <di:waypoint x="5163" y="700" />
+        <di:waypoint x="5360" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task_RescheduleDelivery_to_Split_Task_RescheduleDelivery_1_di" bpmnElement="Flow_Task_RescheduleDelivery_to_Split_Task_RescheduleDelivery_1">
+        <di:waypoint x="5470" y="700" />
+        <di:waypoint x="5505" y="700" />
+        <di:waypoint x="5505" y="700" />
+        <di:waypoint x="5580" y="700" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

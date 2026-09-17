@@ -1,0 +1,656 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_SellerManagement" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_SellerManagement" name="Quản lý Nhà bán hàng" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Seller" name="Seller">
+        <bpmn:flowNodeRef>StartEvent_Register</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Register</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UploadDocs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FixBankInfo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FixRejection</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Approved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_UploadDocs_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_FixRejection_4</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
+        <bpmn:flowNodeRef>Gate_PhoneVerif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_VerifyPhone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ValidateIdentity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_BankValid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OCRCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_DocValid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ResubmitLimit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ScoreRisk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_RiskDoubt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_AutoApprove</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyResult</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ValidateIdentity_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_OCRCheck_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_NotifyResult_6</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_NotifyResult_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Compliance" name="Compliance Team">
+        <bpmn:flowNodeRef>Task_ManualReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Approve</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ManualReview_5</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Legal" name="Legal / Giám sát Vận hành">
+        <bpmn:flowNodeRef>Task_MonitorViolations</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ViolationSeverity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Warn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Suspend</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Ban</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Warned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Suspended</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Banned</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Register" name="Yêu cầu đăng ký gian hàng">
+      <bpmn:outgoing>Flow_Register_Submit</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Register" name="Điền thông tin định danh Seller">
+      <bpmn:incoming>Flow_Register_Submit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Register_Phone</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_PhoneVerif" name="SĐT đã xác thực?">
+      <bpmn:incoming>Flow_Register_Phone</bpmn:incoming>
+      <bpmn:outgoing>Flow_Phone_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Phone_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_VerifyPhone" name="Gửi OTP xác thực SĐT">
+      <bpmn:incoming>Flow_Phone_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Verify_Upload</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_UploadDocs" name="Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)">
+      <bpmn:outgoing>Flow_Docs_Validate</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_ValidateIdentity" name="Validate định danh tự động">
+      <bpmn:outgoing>Flow_Validate_Bank</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_BankValid" name="Tài khoản NH hợp lệ?">
+      <bpmn:incoming>Flow_Validate_Bank</bpmn:incoming>
+      <bpmn:outgoing>Flow_Bank_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Bank_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_FixBankInfo" name="Cập nhật tài khoản ngân hàng (giải ngân)">
+      <bpmn:incoming>Flow_Bank_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_FixBank_OCR</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_OCRCheck" name="Quét OCR + kiểm tra giấy tờ giả">
+      <bpmn:outgoing>Flow_OCR_Gate</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_DocValid" name="Giấy tờ hợp lệ?">
+      <bpmn:incoming>Flow_OCR_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_DocValid_Pass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DocValid_Fail</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_FixRejection" name="Bổ sung / sửa hồ sơ">
+      <bpmn:outgoing>Flow_Fix_Gate</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_FixRejection_4_to_Task_FixRejection</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_ResubmitLimit" name="Còn lượt sửa hồ sơ?">
+      <bpmn:incoming>Flow_Fix_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Resubmit_OK</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Resubmit_End</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ScoreRisk" name="Chấm điểm rủi ro (Risk scoring)">
+      <bpmn:incoming>Flow_DocValid_Pass</bpmn:incoming>
+      <bpmn:outgoing>Flow_Risk_Doubt</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_RiskDoubt" name="Có nghi vấn rủi ro cao?">
+      <bpmn:incoming>Flow_Risk_Doubt</bpmn:incoming>
+      <bpmn:outgoing>Flow_Doubt_No</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Doubt_Yes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_AutoApprove" name="Phân tầng rủi ro?">
+      <bpmn:incoming>Flow_Doubt_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gate_Auto</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Manual</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ManualReview" name="Compliance review thủ công (24-48h)">
+      <bpmn:outgoing>Flow_Manual_Approve</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_ManualReview_5_to_Task_ManualReview</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_Approve" name="Kết quả thẩm định?">
+      <bpmn:incoming>Flow_Manual_Approve</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approve_Notify</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Reject_Notify</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Reject_Fix</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_NotifyResult" name="Thông báo kết quả duyệt Seller Centre">
+      <bpmn:incoming>Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_MonitorViolations" name="Giám sát điểm đánh giá &amp; vi phạm (auto)">
+      <bpmn:incoming>Flow_Notify_Monitor</bpmn:incoming>
+      <bpmn:outgoing>Flow_Monitor_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_ViolationSeverity" name="Mức độ vi phạm?">
+      <bpmn:incoming>Flow_Monitor_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gate_Warn</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Suspend</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Ban</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Warn" name="Gửi cảnh cáo Seller">
+      <bpmn:incoming>Flow_Gate_Warn</bpmn:incoming>
+      <bpmn:outgoing>Flow_Warn_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Suspend" name="Tạm khóa gian hàng (7 ngày)">
+      <bpmn:incoming>Flow_Gate_Suspend</bpmn:incoming>
+      <bpmn:outgoing>Flow_Suspend_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Ban" name="Khóa gian hàng vĩnh viễn">
+      <bpmn:incoming>Flow_Gate_Ban</bpmn:incoming>
+      <bpmn:outgoing>Flow_Ban_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_Approved" name="Gian hàng Lazada đã được kích hoạt">
+      <bpmn:incoming>Flow_Notify_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Rejected" name="Hồ sơ đã bị từ chối vĩnh viễn">
+      <bpmn:incoming>Flow_Resubmit_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Warned" name="Gian hàng đã bị cảnh cáo">
+      <bpmn:incoming>Flow_Warn_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Suspended" name="Gian hàng đã bị tạm khóa">
+      <bpmn:incoming>Flow_Suspend_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Banned" name="Gian hàng đã bị khóa vĩnh viễn">
+      <bpmn:incoming>Flow_Ban_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Register_Submit" sourceRef="StartEvent_Register" targetRef="Task_Register" />
+    <bpmn:sequenceFlow id="Flow_Register_Phone" sourceRef="Task_Register" targetRef="Gate_PhoneVerif" />
+    <bpmn:sequenceFlow id="Flow_Phone_Yes" name="Đã xác thực" sourceRef="Gate_PhoneVerif" targetRef="Join_Task_UploadDocs_1" />
+    <bpmn:sequenceFlow id="Flow_Phone_No" name="Chưa xác thực" sourceRef="Gate_PhoneVerif" targetRef="Task_VerifyPhone" />
+    <bpmn:sequenceFlow id="Flow_Verify_Upload" sourceRef="Task_VerifyPhone" targetRef="Join_Task_UploadDocs_1" />
+    <bpmn:sequenceFlow id="Flow_Docs_Validate" sourceRef="Task_UploadDocs" targetRef="Join_Task_ValidateIdentity_2" />
+    <bpmn:sequenceFlow id="Flow_Validate_Bank" sourceRef="Task_ValidateIdentity" targetRef="Gate_BankValid" />
+    <bpmn:sequenceFlow id="Flow_Bank_Yes" name="Hợp lệ" sourceRef="Gate_BankValid" targetRef="Join_Task_OCRCheck_3" />
+    <bpmn:sequenceFlow id="Flow_Bank_No" name="Không hợp lệ" sourceRef="Gate_BankValid" targetRef="Task_FixBankInfo" />
+    <bpmn:sequenceFlow id="Flow_FixBank_OCR" sourceRef="Task_FixBankInfo" targetRef="Join_Task_OCRCheck_3" />
+    <bpmn:sequenceFlow id="Flow_OCR_Gate" sourceRef="Task_OCRCheck" targetRef="Gate_DocValid" />
+    <bpmn:sequenceFlow id="Flow_DocValid_Pass" name="Đạt chuẩn OCR" sourceRef="Gate_DocValid" targetRef="Task_ScoreRisk" />
+    <bpmn:sequenceFlow id="Flow_DocValid_Fail" name="Lỗi OCR" sourceRef="Gate_DocValid" targetRef="Join_Task_FixRejection_4" />
+    <bpmn:sequenceFlow id="Flow_Fix_Gate" sourceRef="Task_FixRejection" targetRef="Gate_ResubmitLimit" />
+    <bpmn:sequenceFlow id="Flow_Resubmit_OK" name="Còn lượt" sourceRef="Gate_ResubmitLimit" targetRef="Join_Task_ValidateIdentity_2" />
+    <bpmn:sequenceFlow id="Flow_Resubmit_End" name="Hết lượt (3 lần)" sourceRef="Gate_ResubmitLimit" targetRef="End_Rejected" />
+    <bpmn:sequenceFlow id="Flow_Risk_Doubt" sourceRef="Task_ScoreRisk" targetRef="Gate_RiskDoubt" />
+    <bpmn:sequenceFlow id="Flow_Doubt_No" name="Rủi ro thấp/vừa" sourceRef="Gate_RiskDoubt" targetRef="Gate_AutoApprove" />
+    <bpmn:sequenceFlow id="Flow_Doubt_Yes" name="Nghi vấn cao" sourceRef="Gate_RiskDoubt" targetRef="Join_Task_ManualReview_5" />
+    <bpmn:sequenceFlow id="Flow_Gate_Auto" name="Điểm tốt (Low-risk)" sourceRef="Gate_AutoApprove" targetRef="Join_Task_NotifyResult_6" />
+    <bpmn:sequenceFlow id="Flow_Gate_Manual" name="Cần hậu kiểm" sourceRef="Gate_AutoApprove" targetRef="Join_Task_ManualReview_5" />
+    <bpmn:sequenceFlow id="Flow_Gate_Reject" name="Không đạt" sourceRef="Gate_AutoApprove" targetRef="Join_Task_FixRejection_4" />
+    <bpmn:sequenceFlow id="Flow_Manual_Approve" sourceRef="Task_ManualReview" targetRef="Gate_Approve" />
+    <bpmn:sequenceFlow id="Flow_Approve_Notify" name="Chấp thuận" sourceRef="Gate_Approve" targetRef="Join_Task_NotifyResult_6" />
+    <bpmn:sequenceFlow id="Flow_Reject_Notify" name="Từ chối" sourceRef="Gate_Approve" targetRef="Join_Task_NotifyResult_6" />
+    <bpmn:sequenceFlow id="Flow_Reject_Fix" name="Yêu cầu bổ sung" sourceRef="Gate_Approve" targetRef="Join_Task_FixRejection_4" />
+    <bpmn:sequenceFlow id="Flow_Notify_End" sourceRef="Split_Task_NotifyResult_1" targetRef="End_Approved" />
+    <bpmn:sequenceFlow id="Flow_Notify_Monitor" sourceRef="Split_Task_NotifyResult_1" targetRef="Task_MonitorViolations" />
+    <bpmn:sequenceFlow id="Flow_Monitor_Gate" sourceRef="Task_MonitorViolations" targetRef="Gate_ViolationSeverity" />
+    <bpmn:sequenceFlow id="Flow_Gate_Warn" name="Nhẹ (1-2 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Warn" />
+    <bpmn:sequenceFlow id="Flow_Gate_Suspend" name="Trung bình (3-5 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Suspend" />
+    <bpmn:sequenceFlow id="Flow_Gate_Ban" name="Nặng (&gt;6 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Ban" />
+    <bpmn:sequenceFlow id="Flow_Warn_End" sourceRef="Task_Warn" targetRef="End_Warned" />
+    <bpmn:sequenceFlow id="Flow_Suspend_End" sourceRef="Task_Suspend" targetRef="End_Suspended" />
+    <bpmn:sequenceFlow id="Flow_Ban_End" sourceRef="Task_Ban" targetRef="End_Banned" />
+    <bpmn:exclusiveGateway id="Join_Task_UploadDocs_1" name="Gom luồng trước khi Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)">
+      <bpmn:incoming>Flow_Phone_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_Verify_Upload</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs" sourceRef="Join_Task_UploadDocs_1" targetRef="Task_UploadDocs" />
+    <bpmn:exclusiveGateway id="Join_Task_ValidateIdentity_2" name="Gom luồng trước khi Validate định danh tự động">
+      <bpmn:incoming>Flow_Docs_Validate</bpmn:incoming>
+      <bpmn:incoming>Flow_Resubmit_OK</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity" sourceRef="Join_Task_ValidateIdentity_2" targetRef="Task_ValidateIdentity" />
+    <bpmn:exclusiveGateway id="Join_Task_OCRCheck_3" name="Gom luồng trước khi Quét OCR + kiểm tra giấy tờ giả">
+      <bpmn:incoming>Flow_Bank_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_FixBank_OCR</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck" sourceRef="Join_Task_OCRCheck_3" targetRef="Task_OCRCheck" />
+    <bpmn:exclusiveGateway id="Join_Task_FixRejection_4" name="Gom luồng trước khi Bổ sung / sửa hồ sơ">
+      <bpmn:incoming>Flow_DocValid_Fail</bpmn:incoming>
+      <bpmn:incoming>Flow_Gate_Reject</bpmn:incoming>
+      <bpmn:incoming>Flow_Reject_Fix</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_FixRejection_4_to_Task_FixRejection</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_FixRejection_4_to_Task_FixRejection" sourceRef="Join_Task_FixRejection_4" targetRef="Task_FixRejection" />
+    <bpmn:exclusiveGateway id="Join_Task_ManualReview_5" name="Gom luồng trước khi Compliance review thủ công (24-48h)">
+      <bpmn:incoming>Flow_Doubt_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_Gate_Manual</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ManualReview_5_to_Task_ManualReview</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ManualReview_5_to_Task_ManualReview" sourceRef="Join_Task_ManualReview_5" targetRef="Task_ManualReview" />
+    <bpmn:exclusiveGateway id="Join_Task_NotifyResult_6" name="Gom luồng trước khi Thông báo kết quả duyệt Seller Centre">
+      <bpmn:incoming>Flow_Gate_Auto</bpmn:incoming>
+      <bpmn:incoming>Flow_Approve_Notify</bpmn:incoming>
+      <bpmn:incoming>Flow_Reject_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult" sourceRef="Join_Task_NotifyResult_6" targetRef="Task_NotifyResult" />
+    <bpmn:exclusiveGateway id="Split_Task_NotifyResult_1" name="Phân luồng sau Thông báo kết quả duyệt Seller Centre">
+      <bpmn:outgoing>Flow_Notify_End</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Notify_Monitor</bpmn:outgoing>
+      <bpmn:incoming>Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1</bpmn:incoming>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1" sourceRef="Task_NotifyResult" targetRef="Split_Task_NotifyResult_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_SellerManagement">
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller">
+        <dc:Bounds x="30" y="0" width="5646" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System">
+        <dc:Bounds x="30" y="200" width="5646" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Compliance_di" bpmnElement="Lane_Compliance">
+        <dc:Bounds x="30" y="400" width="5646" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Legal_di" bpmnElement="Lane_Legal">
+        <dc:Bounds x="30" y="600" width="5646" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Register_di" bpmnElement="StartEvent_Register">
+        <dc:Bounds x="80" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Register_di" bpmnElement="Task_Register">
+        <dc:Bounds x="300" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_PhoneVerif_di" bpmnElement="Gate_PhoneVerif">
+        <dc:Bounds x="520" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifyPhone_di" bpmnElement="Task_VerifyPhone">
+        <dc:Bounds x="740" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_UploadDocs_di" bpmnElement="Task_UploadDocs">
+        <dc:Bounds x="1180" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ValidateIdentity_di" bpmnElement="Task_ValidateIdentity">
+        <dc:Bounds x="1620" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_BankValid_di" bpmnElement="Gate_BankValid">
+        <dc:Bounds x="1840" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FixBankInfo_di" bpmnElement="Task_FixBankInfo">
+        <dc:Bounds x="2060" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OCRCheck_di" bpmnElement="Task_OCRCheck">
+        <dc:Bounds x="2500" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_DocValid_di" bpmnElement="Gate_DocValid">
+        <dc:Bounds x="2720" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FixRejection_di" bpmnElement="Task_FixRejection">
+        <dc:Bounds x="4480" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_ResubmitLimit_di" bpmnElement="Gate_ResubmitLimit">
+        <dc:Bounds x="4700" y="234" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_Task_NotifyResult_1_di" bpmnElement="Split_Task_NotifyResult_1">
+        <dc:Bounds x="4700" y="319" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ScoreRisk_di" bpmnElement="Task_ScoreRisk">
+        <dc:Bounds x="2940" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_RiskDoubt_di" bpmnElement="Gate_RiskDoubt">
+        <dc:Bounds x="3160" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_AutoApprove_di" bpmnElement="Gate_AutoApprove">
+        <dc:Bounds x="3380" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ManualReview_di" bpmnElement="Task_ManualReview">
+        <dc:Bounds x="3820" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_Approve_di" bpmnElement="Gate_Approve">
+        <dc:Bounds x="4040" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotifyResult_di" bpmnElement="Task_NotifyResult">
+        <dc:Bounds x="4480" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MonitorViolations_di" bpmnElement="Task_MonitorViolations">
+        <dc:Bounds x="4920" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_ViolationSeverity_di" bpmnElement="Gate_ViolationSeverity">
+        <dc:Bounds x="5140" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Warn_di" bpmnElement="Task_Warn">
+        <dc:Bounds x="5360" y="608" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Suspend_di" bpmnElement="Task_Suspend">
+        <dc:Bounds x="5360" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Ban_di" bpmnElement="Task_Ban">
+        <dc:Bounds x="5360" y="721" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Approved_di" bpmnElement="End_Approved">
+        <dc:Bounds x="4920" y="39" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected">
+        <dc:Bounds x="4920" y="124" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Warned_di" bpmnElement="End_Warned">
+        <dc:Bounds x="5580" y="625" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Suspended_di" bpmnElement="End_Suspended">
+        <dc:Bounds x="5580" y="682" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Banned_di" bpmnElement="End_Banned">
+        <dc:Bounds x="5580" y="738" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_UploadDocs_1_di" bpmnElement="Join_Task_UploadDocs_1">
+        <dc:Bounds x="960" y="77" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_ValidateIdentity_2_di" bpmnElement="Join_Task_ValidateIdentity_2">
+        <dc:Bounds x="1400" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_OCRCheck_3_di" bpmnElement="Join_Task_OCRCheck_3">
+        <dc:Bounds x="2280" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_FixRejection_4_di" bpmnElement="Join_Task_FixRejection_4">
+        <dc:Bounds x="4260" y="77" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_ManualReview_5_di" bpmnElement="Join_Task_ManualReview_5">
+        <dc:Bounds x="3600" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_NotifyResult_6_di" bpmnElement="Join_Task_NotifyResult_6">
+        <dc:Bounds x="4260" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Register_Submit_di" bpmnElement="Flow_Register_Submit">
+        <di:waypoint x="116" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="300" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Register_Phone_di" bpmnElement="Flow_Register_Phone">
+        <di:waypoint x="410" y="100" />
+        <di:waypoint x="445" y="100" />
+        <di:waypoint x="445" y="300" />
+        <di:waypoint x="520" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Phone_Yes_di" bpmnElement="Flow_Phone_Yes">
+        <di:waypoint x="543" y="277" />
+        <di:waypoint x="543" y="100" />
+        <di:waypoint x="960" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="549" y="181" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Phone_No_di" bpmnElement="Flow_Phone_No">
+        <di:waypoint x="566" y="300" />
+        <di:waypoint x="653" y="300" />
+        <di:waypoint x="653" y="300" />
+        <di:waypoint x="740" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="574" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Verify_Upload_di" bpmnElement="Flow_Verify_Upload">
+        <di:waypoint x="850" y="300" />
+        <di:waypoint x="885" y="300" />
+        <di:waypoint x="885" y="100" />
+        <di:waypoint x="960" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Docs_Validate_di" bpmnElement="Flow_Docs_Validate">
+        <di:waypoint x="1290" y="100" />
+        <di:waypoint x="1325" y="100" />
+        <di:waypoint x="1325" y="300" />
+        <di:waypoint x="1400" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Validate_Bank_di" bpmnElement="Flow_Validate_Bank">
+        <di:waypoint x="1730" y="300" />
+        <di:waypoint x="1765" y="300" />
+        <di:waypoint x="1765" y="300" />
+        <di:waypoint x="1840" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Bank_Yes_di" bpmnElement="Flow_Bank_Yes">
+        <di:waypoint x="1886" y="300" />
+        <di:waypoint x="2280" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2048" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Bank_No_di" bpmnElement="Flow_Bank_No">
+        <di:waypoint x="1863" y="277" />
+        <di:waypoint x="1863" y="100" />
+        <di:waypoint x="2060" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1869" y="181" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_FixBank_OCR_di" bpmnElement="Flow_FixBank_OCR">
+        <di:waypoint x="2170" y="100" />
+        <di:waypoint x="2205" y="100" />
+        <di:waypoint x="2205" y="300" />
+        <di:waypoint x="2280" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_OCR_Gate_di" bpmnElement="Flow_OCR_Gate">
+        <di:waypoint x="2610" y="300" />
+        <di:waypoint x="2645" y="300" />
+        <di:waypoint x="2645" y="300" />
+        <di:waypoint x="2720" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DocValid_Pass_di" bpmnElement="Flow_DocValid_Pass">
+        <di:waypoint x="2766" y="300" />
+        <di:waypoint x="2853" y="300" />
+        <di:waypoint x="2853" y="300" />
+        <di:waypoint x="2940" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2774" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_DocValid_Fail_di" bpmnElement="Flow_DocValid_Fail">
+        <di:waypoint x="2743" y="277" />
+        <di:waypoint x="2743" y="100" />
+        <di:waypoint x="4260" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2749" y="181" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fix_Gate_di" bpmnElement="Flow_Fix_Gate">
+        <di:waypoint x="4590" y="100" />
+        <di:waypoint x="4625" y="100" />
+        <di:waypoint x="4625" y="257" />
+        <di:waypoint x="4700" y="257" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Resubmit_OK_di" bpmnElement="Flow_Resubmit_OK">
+        <di:waypoint x="4723" y="234" />
+        <di:waypoint x="4723" y="214" />
+        <di:waypoint x="1423" y="214" />
+        <di:waypoint x="1423" y="277" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3043" y="200" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Resubmit_End_di" bpmnElement="Flow_Resubmit_End">
+        <di:waypoint x="4723" y="234" />
+        <di:waypoint x="4723" y="142" />
+        <di:waypoint x="4920" y="142" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4729" y="181" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Risk_Doubt_di" bpmnElement="Flow_Risk_Doubt">
+        <di:waypoint x="3050" y="300" />
+        <di:waypoint x="3085" y="300" />
+        <di:waypoint x="3085" y="300" />
+        <di:waypoint x="3160" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Doubt_No_di" bpmnElement="Flow_Doubt_No">
+        <di:waypoint x="3206" y="300" />
+        <di:waypoint x="3380" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3258" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Doubt_Yes_di" bpmnElement="Flow_Doubt_Yes">
+        <di:waypoint x="3183" y="323" />
+        <di:waypoint x="3183" y="500" />
+        <di:waypoint x="3600" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3189" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Auto_di" bpmnElement="Flow_Gate_Auto">
+        <di:waypoint x="3426" y="300" />
+        <di:waypoint x="4260" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3808" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Manual_di" bpmnElement="Flow_Gate_Manual">
+        <di:waypoint x="3403" y="323" />
+        <di:waypoint x="3403" y="500" />
+        <di:waypoint x="3600" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3409" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Reject_di" bpmnElement="Flow_Gate_Reject">
+        <di:waypoint x="3403" y="277" />
+        <di:waypoint x="3403" y="100" />
+        <di:waypoint x="4260" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3409" y="181" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Manual_Approve_di" bpmnElement="Flow_Manual_Approve">
+        <di:waypoint x="3930" y="500" />
+        <di:waypoint x="3965" y="500" />
+        <di:waypoint x="3965" y="500" />
+        <di:waypoint x="4040" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approve_Notify_di" bpmnElement="Flow_Approve_Notify">
+        <di:waypoint x="4063" y="477" />
+        <di:waypoint x="4063" y="300" />
+        <di:waypoint x="4260" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4069" y="381" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reject_Notify_di" bpmnElement="Flow_Reject_Notify">
+        <di:waypoint x="4063" y="477" />
+        <di:waypoint x="4063" y="300" />
+        <di:waypoint x="4260" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4069" y="381" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reject_Fix_di" bpmnElement="Flow_Reject_Fix">
+        <di:waypoint x="4063" y="477" />
+        <di:waypoint x="4063" y="100" />
+        <di:waypoint x="4260" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4069" y="281" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Notify_End_di" bpmnElement="Flow_Notify_End">
+        <di:waypoint x="4723" y="319" />
+        <di:waypoint x="4723" y="57" />
+        <di:waypoint x="4920" y="57" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Notify_Monitor_di" bpmnElement="Flow_Notify_Monitor">
+        <di:waypoint x="4723" y="365" />
+        <di:waypoint x="4723" y="700" />
+        <di:waypoint x="4920" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Monitor_Gate_di" bpmnElement="Flow_Monitor_Gate">
+        <di:waypoint x="5030" y="700" />
+        <di:waypoint x="5065" y="700" />
+        <di:waypoint x="5065" y="700" />
+        <di:waypoint x="5140" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Warn_di" bpmnElement="Flow_Gate_Warn">
+        <di:waypoint x="5163" y="677" />
+        <di:waypoint x="5163" y="643" />
+        <di:waypoint x="5360" y="643" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5169" y="653" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Suspend_di" bpmnElement="Flow_Gate_Suspend">
+        <di:waypoint x="5186" y="700" />
+        <di:waypoint x="5273" y="700" />
+        <di:waypoint x="5273" y="700" />
+        <di:waypoint x="5360" y="700" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5194" y="684" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gate_Ban_di" bpmnElement="Flow_Gate_Ban">
+        <di:waypoint x="5163" y="723" />
+        <di:waypoint x="5163" y="756" />
+        <di:waypoint x="5360" y="756" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5169" y="732" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Warn_End_di" bpmnElement="Flow_Warn_End">
+        <di:waypoint x="5470" y="643" />
+        <di:waypoint x="5505" y="643" />
+        <di:waypoint x="5505" y="643" />
+        <di:waypoint x="5580" y="643" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Suspend_End_di" bpmnElement="Flow_Suspend_End">
+        <di:waypoint x="5470" y="700" />
+        <di:waypoint x="5505" y="700" />
+        <di:waypoint x="5505" y="700" />
+        <di:waypoint x="5580" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Ban_End_di" bpmnElement="Flow_Ban_End">
+        <di:waypoint x="5470" y="756" />
+        <di:waypoint x="5505" y="756" />
+        <di:waypoint x="5505" y="756" />
+        <di:waypoint x="5580" y="756" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs_di" bpmnElement="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs">
+        <di:waypoint x="1006" y="100" />
+        <di:waypoint x="1093" y="100" />
+        <di:waypoint x="1093" y="100" />
+        <di:waypoint x="1180" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity_di" bpmnElement="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity">
+        <di:waypoint x="1446" y="300" />
+        <di:waypoint x="1533" y="300" />
+        <di:waypoint x="1533" y="300" />
+        <di:waypoint x="1620" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck_di" bpmnElement="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck">
+        <di:waypoint x="2326" y="300" />
+        <di:waypoint x="2413" y="300" />
+        <di:waypoint x="2413" y="300" />
+        <di:waypoint x="2500" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_FixRejection_4_to_Task_FixRejection_di" bpmnElement="Flow_Join_Task_FixRejection_4_to_Task_FixRejection">
+        <di:waypoint x="4306" y="100" />
+        <di:waypoint x="4393" y="100" />
+        <di:waypoint x="4393" y="100" />
+        <di:waypoint x="4480" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_ManualReview_5_to_Task_ManualReview_di" bpmnElement="Flow_Join_Task_ManualReview_5_to_Task_ManualReview">
+        <di:waypoint x="3646" y="500" />
+        <di:waypoint x="3733" y="500" />
+        <di:waypoint x="3733" y="500" />
+        <di:waypoint x="3820" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult_di" bpmnElement="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult">
+        <di:waypoint x="4306" y="300" />
+        <di:waypoint x="4393" y="300" />
+        <di:waypoint x="4393" y="300" />
+        <di:waypoint x="4480" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1_di" bpmnElement="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1">
+        <di:waypoint x="4590" y="300" />
+        <di:waypoint x="4625" y="300" />
+        <di:waypoint x="4625" y="342" />
+        <di:waypoint x="4700" y="342" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

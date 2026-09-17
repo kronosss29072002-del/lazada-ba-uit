@@ -1,0 +1,626 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_PaymentSettlementTOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_PaymentSettlementTOBE" name="Quy trình Thanh toán &amp; Đối soát TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Buyer" name="Buyer">
+        <bpmn:flowNodeRef>StartEvent_Checkout</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectPayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_PaymentType</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PayCOD</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PayOnline</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveGoods</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_CODVerify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveRefund</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_AI" name="AI Fraud Detection System">
+        <bpmn:flowNodeRef>Task_RiskScore</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_HighRisk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BlockTransaction</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ApproveAuto</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FraudAlert</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System (Escrow)">
+        <bpmn:flowNodeRef>Task_HoldEscrow</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InstantSettle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SellerTrust</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoReconcile</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ReconcileOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CalcCommission</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateWallet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendStatement</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Settled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Refunded</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_HoldEscrow_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_AutoReconcile_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_CalcCommission_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_UpdateWallet_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_SendStatement_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Seller">
+        <bpmn:flowNodeRef>Task_CheckWallet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Withdraw</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_BankOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_Withdraw_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Checkout" name="Thanh toán đơn hàng">
+      <bpmn:outgoing>Flow_S1_Select</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_SelectPayment" name="Chọn phương thức thanh toán (COD/Online/Ví)">
+      <bpmn:incoming>Flow_S1_Select</bpmn:incoming>
+      <bpmn:outgoing>Flow_Select_GateType</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_PaymentType" name="Phương thức thanh toán?">
+      <bpmn:incoming>Flow_Select_GateType</bpmn:incoming>
+      <bpmn:outgoing>Flow_TypeCOD_Pay</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TypeOnline_Pay</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_PayCOD" name="Thanh toán COD khi nhận hàng">
+      <bpmn:incoming>Flow_TypeCOD_Pay</bpmn:incoming>
+      <bpmn:outgoing>Flow_COD_Receive</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PayOnline" name="Thanh toán online qua cổng thanh toán">
+      <bpmn:incoming>Flow_TypeOnline_Pay</bpmn:incoming>
+      <bpmn:outgoing>Flow_Online_RiskScore</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReceiveGoods" name="Buyer nhận hàng &amp; xác nhận COD">
+      <bpmn:incoming>Flow_COD_Receive</bpmn:incoming>
+      <bpmn:outgoing>Flow_Receive_GateCOD</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_CODVerify" name="COD xác nhận đã thu tiền?">
+      <bpmn:incoming>Flow_Receive_GateCOD</bpmn:incoming>
+      <bpmn:outgoing>Flow_CODYes_Reconcile</bpmn:outgoing>
+      <bpmn:outgoing>Flow_CODNo_Flag</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ReceiveRefund" name="Buyer nhận hoàn tiền tự động">
+      <bpmn:incoming>Flow_RefundOK_Auto</bpmn:incoming>
+      <bpmn:outgoing>Flow_Refund_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_RiskScore" name="AI tính điểm rủi ro giao dịch real-time">
+      <bpmn:incoming>Flow_Online_RiskScore</bpmn:incoming>
+      <bpmn:outgoing>Flow_Risk_GateRisk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_HighRisk" name="Giao dịch rủi ro cao (score ≥ 80)?">
+      <bpmn:incoming>Flow_Risk_GateRisk</bpmn:incoming>
+      <bpmn:outgoing>Flow_RiskYes_Block</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RiskNo_Approve</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_BlockTransaction" name="Chặn giao dịch — yêu cầu xác minh bổ sung">
+      <bpmn:incoming>Flow_RiskYes_Block</bpmn:incoming>
+      <bpmn:outgoing>Flow_Block_FraudAlert</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ApproveAuto" name="Phê duyệt tự động (AI xác nhận an toàn)">
+      <bpmn:incoming>Flow_RiskNo_Approve</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approve_Hold</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_FraudAlert" name="Cảnh báo gian lận đến CS-terminal">
+      <bpmn:incoming>Flow_Block_FraudAlert</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fraud_Block</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_HoldEscrow" name="Giữ tiền trong Escrow Blockchain">
+      <bpmn:outgoing>Flow_Hold_GateTrust</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_HoldEscrow_1_to_Task_HoldEscrow</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_SellerTrust" name="Seller thuộc nhóm Trusted (đủ điều kiện)?">
+      <bpmn:incoming>Flow_Hold_GateTrust</bpmn:incoming>
+      <bpmn:outgoing>Flow_TrustYes_Instant</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TrustNo_Standard</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_InstantSettle" name="Giải ngân tức thì cho Seller (trusted)">
+      <bpmn:incoming>Flow_TrustYes_Instant</bpmn:incoming>
+      <bpmn:outgoing>Flow_Instant_Wallet</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AutoReconcile" name="Đối soát tự động COD/Online end-of-day">
+      <bpmn:outgoing>Flow_Reconcile_GateOK</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_AutoReconcile_1_to_Task_AutoReconcile</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_ReconcileOK" name="Đối soát khớp 100%?">
+      <bpmn:incoming>Flow_Reconcile_GateOK</bpmn:incoming>
+      <bpmn:outgoing>Flow_OK_Commission</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NotOK_Flag</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Refund_Auto</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_RefundOK" name="Hoàn tiền được chấp thuận?">
+      <bpmn:incoming>Flow_Refund_Auto</bpmn:incoming>
+      <bpmn:outgoing>Flow_RefundOK_Auto</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RefundNo_Manual</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_CalcCommission" name="Tính hoa hồng &amp; phí tự động">
+      <bpmn:outgoing>Flow_Commission_Wallet</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_CalcCommission_1_to_Task_CalcCommission</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_UpdateWallet" name="Cập nhật số dư Ví Seller + Push notification">
+      <bpmn:incoming>Flow_Commission_Wallet</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SendStatement" name="Gửi bảng đối soát điện tử tự động hàng tháng">
+      <bpmn:outgoing>Flow_Statement_End</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_SendStatement_1_to_Task_SendStatement</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Join_End_Event_Settled_1" name="Gom nhánh kết thúc">
+      <bpmn:incoming>Flow_Statement_End</bpmn:incoming>
+      <bpmn:incoming>Flow_BankYes_End</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_End_Event_Settled_1_to_EndEvent_Settled</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Settled" name="Đối soát đã hoàn tất">
+      <bpmn:incoming>Flow_Join_End_Event_Settled_1_to_EndEvent_Settled</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Refunded" name="Đã hoàn tiền tự động về Buyer">
+      <bpmn:incoming>Flow_Refund_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_CheckWallet" name="Seller nhận Push notification số dư Ví">
+      <bpmn:incoming>Flow_Wallet_Check</bpmn:incoming>
+      <bpmn:outgoing>Flow_Check_Withdraw</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Withdraw" name="Rút tiền từ Ví về tài khoản ngân hàng">
+      <bpmn:outgoing>Flow_Withdraw_GateBank</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_Withdraw_1_to_Task_Withdraw</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_BankOK" name="Chuyển khoản thành công?">
+      <bpmn:incoming>Flow_Withdraw_GateBank</bpmn:incoming>
+      <bpmn:outgoing>Flow_BankYes_End</bpmn:outgoing>
+      <bpmn:outgoing>Flow_BankNo_Retry</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_S1_Select" sourceRef="StartEvent_Checkout" targetRef="Task_SelectPayment" />
+    <bpmn:sequenceFlow id="Flow_Select_GateType" sourceRef="Task_SelectPayment" targetRef="Gate_PaymentType" />
+    <bpmn:sequenceFlow id="Flow_TypeCOD_Pay" name="COD" sourceRef="Gate_PaymentType" targetRef="Task_PayCOD" />
+    <bpmn:sequenceFlow id="Flow_TypeOnline_Pay" name="Online" sourceRef="Gate_PaymentType" targetRef="Task_PayOnline" />
+    <bpmn:sequenceFlow id="Flow_Online_RiskScore" sourceRef="Task_PayOnline" targetRef="Task_RiskScore" />
+    <bpmn:sequenceFlow id="Flow_Risk_GateRisk" sourceRef="Task_RiskScore" targetRef="Gate_HighRisk" />
+    <bpmn:sequenceFlow id="Flow_RiskYes_Block" name="Rủi ro cao" sourceRef="Gate_HighRisk" targetRef="Task_BlockTransaction" />
+    <bpmn:sequenceFlow id="Flow_RiskNo_Approve" name="An toàn" sourceRef="Gate_HighRisk" targetRef="Task_ApproveAuto" />
+    <bpmn:sequenceFlow id="Flow_Block_FraudAlert" sourceRef="Task_BlockTransaction" targetRef="Task_FraudAlert" />
+    <bpmn:sequenceFlow id="Flow_Approve_Hold" sourceRef="Task_ApproveAuto" targetRef="Join_Task_HoldEscrow_1" />
+    <bpmn:sequenceFlow id="Flow_Fraud_Block" sourceRef="Task_FraudAlert" targetRef="Join_Task_HoldEscrow_1" />
+    <bpmn:sequenceFlow id="Flow_Hold_GateTrust" sourceRef="Task_HoldEscrow" targetRef="Gate_SellerTrust" />
+    <bpmn:sequenceFlow id="Flow_TrustYes_Instant" name="Trusted seller" sourceRef="Gate_SellerTrust" targetRef="Task_InstantSettle" />
+    <bpmn:sequenceFlow id="Flow_TrustNo_Standard" name="Standard (L+2)" sourceRef="Gate_SellerTrust" targetRef="Join_Task_AutoReconcile_1" />
+    <bpmn:sequenceFlow id="Flow_Instant_Wallet" sourceRef="Task_InstantSettle" targetRef="Join_Task_CalcCommission_1" />
+    <bpmn:sequenceFlow id="Flow_COD_Receive" sourceRef="Task_PayCOD" targetRef="Task_ReceiveGoods" />
+    <bpmn:sequenceFlow id="Flow_Receive_GateCOD" sourceRef="Task_ReceiveGoods" targetRef="Gate_CODVerify" />
+    <bpmn:sequenceFlow id="Flow_CODYes_Reconcile" name="COD đã thu" sourceRef="Gate_CODVerify" targetRef="Join_Task_AutoReconcile_1" />
+    <bpmn:sequenceFlow id="Flow_CODNo_Flag" name="Chưa thu — đánh dấu" sourceRef="Gate_CODVerify" targetRef="Join_Task_AutoReconcile_1" />
+    <bpmn:sequenceFlow id="Flow_Reconcile_GateOK" sourceRef="Task_AutoReconcile" targetRef="Gate_ReconcileOK" />
+    <bpmn:sequenceFlow id="Flow_OK_Commission" name="Khớp" sourceRef="Gate_ReconcileOK" targetRef="Join_Task_CalcCommission_1" />
+    <bpmn:sequenceFlow id="Flow_NotOK_Flag" name="Lệch — đánh dấu" sourceRef="Gate_ReconcileOK" targetRef="Join_Task_CalcCommission_1" />
+    <bpmn:sequenceFlow id="Flow_Commission_Wallet" sourceRef="Task_CalcCommission" targetRef="Task_UpdateWallet" />
+    <bpmn:sequenceFlow id="Flow_Wallet_Statement" sourceRef="Split_Task_UpdateWallet_1" targetRef="Join_Task_SendStatement_1" />
+    <bpmn:sequenceFlow id="Flow_Wallet_Check" sourceRef="Split_Task_UpdateWallet_1" targetRef="Task_CheckWallet" />
+    <bpmn:sequenceFlow id="Flow_Statement_End" sourceRef="Task_SendStatement" targetRef="Join_End_Event_Settled_1" />
+    <bpmn:sequenceFlow id="Flow_Check_Withdraw" sourceRef="Task_CheckWallet" targetRef="Join_Task_Withdraw_1" />
+    <bpmn:sequenceFlow id="Flow_Withdraw_GateBank" sourceRef="Task_Withdraw" targetRef="Gate_BankOK" />
+    <bpmn:sequenceFlow id="Flow_BankYes_End" name="Thành công" sourceRef="Gate_BankOK" targetRef="Join_End_Event_Settled_1" />
+    <bpmn:sequenceFlow id="Flow_BankNo_Retry" name="Thất bại — retry" sourceRef="Gate_BankOK" targetRef="Join_Task_Withdraw_1" />
+    <bpmn:sequenceFlow id="Flow_Refund_Auto" name="Yêu cầu hoàn tiền" sourceRef="Gate_ReconcileOK" targetRef="Gate_RefundOK" />
+    <bpmn:sequenceFlow id="Flow_Refund_End" sourceRef="Task_ReceiveRefund" targetRef="EndEvent_Refunded" />
+    <bpmn:sequenceFlow id="Flow_RefundOK_Auto" name="Chấp thuận" sourceRef="Gate_RefundOK" targetRef="Task_ReceiveRefund" />
+    <bpmn:sequenceFlow id="Flow_RefundNo_Manual" name="Từ chối — xử lý thủ công" sourceRef="Gate_RefundOK" targetRef="Join_Task_SendStatement_1" />
+    <bpmn:sequenceFlow id="Flow_Join_End_Event_Settled_1_to_EndEvent_Settled" sourceRef="Join_End_Event_Settled_1" targetRef="EndEvent_Settled" name="" />
+    <bpmn:exclusiveGateway id="Join_Task_HoldEscrow_1" name="Gom luồng trước khi Giữ tiền trong Escrow Blockchain">
+      <bpmn:incoming>Flow_Approve_Hold</bpmn:incoming>
+      <bpmn:incoming>Flow_Fraud_Block</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_HoldEscrow_1_to_Task_HoldEscrow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_HoldEscrow_1_to_Task_HoldEscrow" sourceRef="Join_Task_HoldEscrow_1" targetRef="Task_HoldEscrow" />
+    <bpmn:exclusiveGateway id="Join_Task_AutoReconcile_1" name="Gom luồng trước khi Đối soát tự động COD/Online end-of-day">
+      <bpmn:incoming>Flow_TrustNo_Standard</bpmn:incoming>
+      <bpmn:incoming>Flow_CODYes_Reconcile</bpmn:incoming>
+      <bpmn:incoming>Flow_CODNo_Flag</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_AutoReconcile_1_to_Task_AutoReconcile</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_AutoReconcile_1_to_Task_AutoReconcile" sourceRef="Join_Task_AutoReconcile_1" targetRef="Task_AutoReconcile" />
+    <bpmn:exclusiveGateway id="Join_Task_CalcCommission_1" name="Gom luồng trước khi Tính hoa hồng &amp; phí tự động">
+      <bpmn:incoming>Flow_Instant_Wallet</bpmn:incoming>
+      <bpmn:incoming>Flow_OK_Commission</bpmn:incoming>
+      <bpmn:incoming>Flow_NotOK_Flag</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_CalcCommission_1_to_Task_CalcCommission</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_CalcCommission_1_to_Task_CalcCommission" sourceRef="Join_Task_CalcCommission_1" targetRef="Task_CalcCommission" />
+    <bpmn:exclusiveGateway id="Split_Task_UpdateWallet_1" name="Phân luồng sau Cập nhật số dư Ví Seller + Push notification">
+      <bpmn:incoming>Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Wallet_Statement</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Wallet_Check</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1" sourceRef="Task_UpdateWallet" targetRef="Split_Task_UpdateWallet_1" />
+    <bpmn:exclusiveGateway id="Join_Task_SendStatement_1" name="Gom luồng trước khi Gửi bảng đối soát điện tử tự động hàng tháng">
+      <bpmn:incoming>Flow_Wallet_Statement</bpmn:incoming>
+      <bpmn:incoming>Flow_RefundNo_Manual</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_SendStatement_1_to_Task_SendStatement</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_SendStatement_1_to_Task_SendStatement" sourceRef="Join_Task_SendStatement_1" targetRef="Task_SendStatement" />
+    <bpmn:exclusiveGateway id="Join_Task_Withdraw_1" name="Gom luồng trước khi Rút tiền từ Ví về tài khoản ngân hàng">
+      <bpmn:incoming>Flow_Check_Withdraw</bpmn:incoming>
+      <bpmn:incoming>Flow_BankNo_Retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_Withdraw_1_to_Task_Withdraw</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_Withdraw_1_to_Task_Withdraw" sourceRef="Join_Task_Withdraw_1" targetRef="Task_Withdraw" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_PaymentSettlementTOBE">
+      <bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer">
+        <dc:Bounds x="30" y="0" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_AI_di" bpmnElement="Lane_AI">
+        <dc:Bounds x="30" y="200" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System">
+        <dc:Bounds x="30" y="400" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller">
+        <dc:Bounds x="30" y="600" width="5206" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Checkout_di" bpmnElement="StartEvent_Checkout">
+        <dc:Bounds x="80" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectPayment_di" bpmnElement="Task_SelectPayment">
+        <dc:Bounds x="300" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_PaymentType_di" bpmnElement="Gate_PaymentType">
+        <dc:Bounds x="520" y="77" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PayCOD_di" bpmnElement="Task_PayCOD">
+        <dc:Bounds x="740" y="22" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PayOnline_di" bpmnElement="Task_PayOnline">
+        <dc:Bounds x="740" y="107" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods">
+        <dc:Bounds x="960" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_CODVerify_di" bpmnElement="Gate_CODVerify">
+        <dc:Bounds x="1180" y="77" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveRefund_di" bpmnElement="Task_ReceiveRefund">
+        <dc:Bounds x="3380" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RiskScore_di" bpmnElement="Task_RiskScore">
+        <dc:Bounds x="960" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_HighRisk_di" bpmnElement="Gate_HighRisk">
+        <dc:Bounds x="1180" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BlockTransaction_di" bpmnElement="Task_BlockTransaction">
+        <dc:Bounds x="1400" y="222" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ApproveAuto_di" bpmnElement="Task_ApproveAuto">
+        <dc:Bounds x="1400" y="307" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FraudAlert_di" bpmnElement="Task_FraudAlert">
+        <dc:Bounds x="1620" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_HoldEscrow_di" bpmnElement="Task_HoldEscrow">
+        <dc:Bounds x="2060" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_SellerTrust_di" bpmnElement="Gate_SellerTrust">
+        <dc:Bounds x="2280" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_InstantSettle_di" bpmnElement="Task_InstantSettle">
+        <dc:Bounds x="2500" y="422" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_AutoReconcile_1_di" bpmnElement="Join_Task_AutoReconcile_1">
+        <dc:Bounds x="2500" y="519" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AutoReconcile_di" bpmnElement="Task_AutoReconcile">
+        <dc:Bounds x="2720" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_ReconcileOK_di" bpmnElement="Gate_ReconcileOK">
+        <dc:Bounds x="2940" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_RefundOK_di" bpmnElement="Gate_RefundOK">
+        <dc:Bounds x="3160" y="434" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_CalcCommission_1_di" bpmnElement="Join_Task_CalcCommission_1">
+        <dc:Bounds x="3160" y="519" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CalcCommission_di" bpmnElement="Task_CalcCommission">
+        <dc:Bounds x="3380" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_UpdateWallet_di" bpmnElement="Task_UpdateWallet">
+        <dc:Bounds x="3600" y="422" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Refunded_di" bpmnElement="EndEvent_Refunded">
+        <dc:Bounds x="3600" y="524" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SendStatement_di" bpmnElement="Task_SendStatement">
+        <dc:Bounds x="4260" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_End_Event_Settled_1_di" bpmnElement="Join_End_Event_Settled_1">
+        <dc:Bounds x="4920" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Settled_di" bpmnElement="EndEvent_Settled">
+        <dc:Bounds x="5140" y="482" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CheckWallet_di" bpmnElement="Task_CheckWallet">
+        <dc:Bounds x="4040" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Withdraw_di" bpmnElement="Task_Withdraw">
+        <dc:Bounds x="4480" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gate_BankOK_di" bpmnElement="Gate_BankOK">
+        <dc:Bounds x="4700" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_HoldEscrow_1_di" bpmnElement="Join_Task_HoldEscrow_1">
+        <dc:Bounds x="1840" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_Task_UpdateWallet_1_di" bpmnElement="Split_Task_UpdateWallet_1">
+        <dc:Bounds x="3820" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_SendStatement_1_di" bpmnElement="Join_Task_SendStatement_1">
+        <dc:Bounds x="4040" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Task_Withdraw_1_di" bpmnElement="Join_Task_Withdraw_1">
+        <dc:Bounds x="4260" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_S1_Select_di" bpmnElement="Flow_S1_Select">
+        <di:waypoint x="116" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="300" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Select_GateType_di" bpmnElement="Flow_Select_GateType">
+        <di:waypoint x="410" y="100" />
+        <di:waypoint x="445" y="100" />
+        <di:waypoint x="445" y="100" />
+        <di:waypoint x="520" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TypeCOD_Pay_di" bpmnElement="Flow_TypeCOD_Pay">
+        <di:waypoint x="543" y="77" />
+        <di:waypoint x="543" y="57" />
+        <di:waypoint x="740" y="57" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="549" y="60" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TypeOnline_Pay_di" bpmnElement="Flow_TypeOnline_Pay">
+        <di:waypoint x="543" y="123" />
+        <di:waypoint x="543" y="142" />
+        <di:waypoint x="740" y="142" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="549" y="125" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Online_RiskScore_di" bpmnElement="Flow_Online_RiskScore">
+        <di:waypoint x="850" y="142" />
+        <di:waypoint x="885" y="142" />
+        <di:waypoint x="885" y="300" />
+        <di:waypoint x="960" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Risk_GateRisk_di" bpmnElement="Flow_Risk_GateRisk">
+        <di:waypoint x="1070" y="300" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1180" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RiskYes_Block_di" bpmnElement="Flow_RiskYes_Block">
+        <di:waypoint x="1203" y="277" />
+        <di:waypoint x="1203" y="257" />
+        <di:waypoint x="1400" y="257" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="260" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RiskNo_Approve_di" bpmnElement="Flow_RiskNo_Approve">
+        <di:waypoint x="1203" y="323" />
+        <di:waypoint x="1203" y="342" />
+        <di:waypoint x="1400" y="342" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="325" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Block_FraudAlert_di" bpmnElement="Flow_Block_FraudAlert">
+        <di:waypoint x="1510" y="257" />
+        <di:waypoint x="1545" y="257" />
+        <di:waypoint x="1545" y="300" />
+        <di:waypoint x="1620" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approve_Hold_di" bpmnElement="Flow_Approve_Hold">
+        <di:waypoint x="1510" y="342" />
+        <di:waypoint x="1545" y="342" />
+        <di:waypoint x="1545" y="500" />
+        <di:waypoint x="1840" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Fraud_Block_di" bpmnElement="Flow_Fraud_Block">
+        <di:waypoint x="1730" y="300" />
+        <di:waypoint x="1765" y="300" />
+        <di:waypoint x="1765" y="500" />
+        <di:waypoint x="1840" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Hold_GateTrust_di" bpmnElement="Flow_Hold_GateTrust">
+        <di:waypoint x="2170" y="500" />
+        <di:waypoint x="2205" y="500" />
+        <di:waypoint x="2205" y="500" />
+        <di:waypoint x="2280" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TrustYes_Instant_di" bpmnElement="Flow_TrustYes_Instant">
+        <di:waypoint x="2303" y="477" />
+        <di:waypoint x="2303" y="457" />
+        <di:waypoint x="2500" y="457" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2309" y="460" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TrustNo_Standard_di" bpmnElement="Flow_TrustNo_Standard">
+        <di:waypoint x="2303" y="523" />
+        <di:waypoint x="2303" y="542" />
+        <di:waypoint x="2500" y="542" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2309" y="525" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Instant_Wallet_di" bpmnElement="Flow_Instant_Wallet">
+        <di:waypoint x="2610" y="457" />
+        <di:waypoint x="2645" y="457" />
+        <di:waypoint x="2645" y="542" />
+        <di:waypoint x="3160" y="542" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_COD_Receive_di" bpmnElement="Flow_COD_Receive">
+        <di:waypoint x="850" y="57" />
+        <di:waypoint x="885" y="57" />
+        <di:waypoint x="885" y="100" />
+        <di:waypoint x="960" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Receive_GateCOD_di" bpmnElement="Flow_Receive_GateCOD">
+        <di:waypoint x="1070" y="100" />
+        <di:waypoint x="1105" y="100" />
+        <di:waypoint x="1105" y="100" />
+        <di:waypoint x="1180" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CODYes_Reconcile_di" bpmnElement="Flow_CODYes_Reconcile">
+        <di:waypoint x="1203" y="123" />
+        <di:waypoint x="1203" y="542" />
+        <di:waypoint x="2500" y="542" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="325" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CODNo_Flag_di" bpmnElement="Flow_CODNo_Flag">
+        <di:waypoint x="1203" y="123" />
+        <di:waypoint x="1203" y="542" />
+        <di:waypoint x="2500" y="542" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="325" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reconcile_GateOK_di" bpmnElement="Flow_Reconcile_GateOK">
+        <di:waypoint x="2830" y="500" />
+        <di:waypoint x="2865" y="500" />
+        <di:waypoint x="2865" y="500" />
+        <di:waypoint x="2940" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_OK_Commission_di" bpmnElement="Flow_OK_Commission">
+        <di:waypoint x="2963" y="523" />
+        <di:waypoint x="2963" y="542" />
+        <di:waypoint x="3160" y="542" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2969" y="525" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NotOK_Flag_di" bpmnElement="Flow_NotOK_Flag">
+        <di:waypoint x="2963" y="523" />
+        <di:waypoint x="2963" y="542" />
+        <di:waypoint x="3160" y="542" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2969" y="525" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Commission_Wallet_di" bpmnElement="Flow_Commission_Wallet">
+        <di:waypoint x="3490" y="500" />
+        <di:waypoint x="3525" y="500" />
+        <di:waypoint x="3525" y="457" />
+        <di:waypoint x="3600" y="457" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Wallet_Statement_di" bpmnElement="Flow_Wallet_Statement">
+        <di:waypoint x="3866" y="500" />
+        <di:waypoint x="4040" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Wallet_Check_di" bpmnElement="Flow_Wallet_Check">
+        <di:waypoint x="3843" y="523" />
+        <di:waypoint x="3843" y="700" />
+        <di:waypoint x="4040" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Statement_End_di" bpmnElement="Flow_Statement_End">
+        <di:waypoint x="4370" y="500" />
+        <di:waypoint x="4405" y="500" />
+        <di:waypoint x="4405" y="500" />
+        <di:waypoint x="4920" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Check_Withdraw_di" bpmnElement="Flow_Check_Withdraw">
+        <di:waypoint x="4150" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4260" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Withdraw_GateBank_di" bpmnElement="Flow_Withdraw_GateBank">
+        <di:waypoint x="4590" y="700" />
+        <di:waypoint x="4625" y="700" />
+        <di:waypoint x="4625" y="700" />
+        <di:waypoint x="4700" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BankYes_End_di" bpmnElement="Flow_BankYes_End">
+        <di:waypoint x="4723" y="677" />
+        <di:waypoint x="4723" y="500" />
+        <di:waypoint x="4920" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4729" y="581" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_BankNo_Retry_di" bpmnElement="Flow_BankNo_Retry">
+        <di:waypoint x="4723" y="677" />
+        <di:waypoint x="4723" y="614" />
+        <di:waypoint x="4283" y="614" />
+        <di:waypoint x="4283" y="677" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4473" y="600" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Refund_Auto_di" bpmnElement="Flow_Refund_Auto">
+        <di:waypoint x="2963" y="477" />
+        <di:waypoint x="2963" y="457" />
+        <di:waypoint x="3160" y="457" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2969" y="460" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End">
+        <di:waypoint x="3490" y="100" />
+        <di:waypoint x="3525" y="100" />
+        <di:waypoint x="3525" y="542" />
+        <di:waypoint x="3600" y="542" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RefundOK_Auto_di" bpmnElement="Flow_RefundOK_Auto">
+        <di:waypoint x="3183" y="434" />
+        <di:waypoint x="3183" y="100" />
+        <di:waypoint x="3380" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3189" y="260" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RefundNo_Manual_di" bpmnElement="Flow_RefundNo_Manual">
+        <di:waypoint x="3183" y="480" />
+        <di:waypoint x="3183" y="500" />
+        <di:waypoint x="4040" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3189" y="483" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_End_Event_Settled_1_to_EndEvent_Settled_di" bpmnElement="Flow_Join_End_Event_Settled_1_to_EndEvent_Settled">
+        <di:waypoint x="4966" y="500" />
+        <di:waypoint x="5140" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_HoldEscrow_1_to_Task_HoldEscrow_di" bpmnElement="Flow_Join_Task_HoldEscrow_1_to_Task_HoldEscrow">
+        <di:waypoint x="1886" y="500" />
+        <di:waypoint x="1973" y="500" />
+        <di:waypoint x="1973" y="500" />
+        <di:waypoint x="2060" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_AutoReconcile_1_to_Task_AutoReconcile_di" bpmnElement="Flow_Join_Task_AutoReconcile_1_to_Task_AutoReconcile">
+        <di:waypoint x="2523" y="519" />
+        <di:waypoint x="2523" y="500" />
+        <di:waypoint x="2720" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_CalcCommission_1_to_Task_CalcCommission_di" bpmnElement="Flow_Join_Task_CalcCommission_1_to_Task_CalcCommission">
+        <di:waypoint x="3183" y="519" />
+        <di:waypoint x="3183" y="500" />
+        <di:waypoint x="3380" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1_di" bpmnElement="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1">
+        <di:waypoint x="3710" y="457" />
+        <di:waypoint x="3745" y="457" />
+        <di:waypoint x="3745" y="500" />
+        <di:waypoint x="3820" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_SendStatement_1_to_Task_SendStatement_di" bpmnElement="Flow_Join_Task_SendStatement_1_to_Task_SendStatement">
+        <di:waypoint x="4086" y="500" />
+        <di:waypoint x="4173" y="500" />
+        <di:waypoint x="4173" y="500" />
+        <di:waypoint x="4260" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_Task_Withdraw_1_to_Task_Withdraw_di" bpmnElement="Flow_Join_Task_Withdraw_1_to_Task_Withdraw">
+        <di:waypoint x="4306" y="700" />
+        <di:waypoint x="4393" y="700" />
+        <di:waypoint x="4393" y="700" />
+        <di:waypoint x="4480" y="700" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

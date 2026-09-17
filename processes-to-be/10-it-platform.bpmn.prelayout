@@ -1,0 +1,690 @@
+<?xml version='1.0' encoding='utf-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:ns1="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:ns2="http://www.omg.org/spec/DD/20100524/DC" xmlns:ns3="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_ITPlatformTOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_ITPlatformTOBE" name="Quy trình Vận hành Nền tảng Công nghệ TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_PO" name="Product Owner">
+        <bpmn:flowNodeRef>StartEvent_FeatureReq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CollectReq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UserStory</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_PrioritizeOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Demo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_DemoOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_CollectReq_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_AI" name="AI DevX / Copilot">
+        <bpmn:flowNodeRef>Task_AISuggestDesign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AICodeGen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AICodeReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_AIFixOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AITestGen</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_AICodeGen_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_AISuggestDesign_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Dev" name="Dev Team">
+        <bpmn:flowNodeRef>Task_DesignReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_DesignReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UnitTest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_UnitTestPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Integrate</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_QA" name="QA / Tester">
+        <bpmn:flowNodeRef>Task_SIT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_QAPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UAT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_UATPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_UAT_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_DevOps" name="DevOps / AIOps">
+        <bpmn:flowNodeRef>Task_CICDAuto</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CanaryDeploy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_HealthOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Autoscale</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PredictIncident</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_IncidentFound</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelfHeal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_RecoverOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Rollback</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Deployed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_Rollback_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_FeatureReq" name="Yêu cầu tính năng / cải tiến mới">
+      <bpmn:outgoing>Flow_S1_Collect</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Join_Task_CollectReq_1" name="Gom luồng trước khi Thu thập &amp; phân tích yêu cầu nghiệp vụ">
+      <bpmn:incoming>Flow_S1_Collect</bpmn:incoming>
+      <bpmn:incoming>Flow_PrioNo_Backlog</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_CollectReq_1_to_Task_CollectReq</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_CollectReq" name="Thu thập &amp; phân tích yêu cầu nghiệp vụ">
+      <bpmn:incoming>Flow_Join_Task_CollectReq_1_to_Task_CollectReq</bpmn:incoming>
+      <bpmn:outgoing>Flow_Collect_Story</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_UserStory" name="Viết User Story + tiêu chí chấp nhận">
+      <bpmn:incoming>Flow_Collect_Story</bpmn:incoming>
+      <bpmn:outgoing>Flow_Story_GatePriority</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_PrioritizeOK" name="Đủ ưu tiên để phát triển?">
+      <bpmn:incoming>Flow_Story_GatePriority</bpmn:incoming>
+      <bpmn:outgoing>Flow_PrioYes_Design</bpmn:outgoing>
+      <bpmn:outgoing>Flow_PrioNo_Backlog</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Demo" name="Demo tính năng cho PO &amp; stakeholder">
+      <bpmn:incoming>Flow_UATOK_Demo</bpmn:incoming>
+      <bpmn:outgoing>Flow_Demo_GateOK</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_DemoOK" name="Demo đạt yêu cầu?">
+      <bpmn:incoming>Flow_Demo_GateOK</bpmn:incoming>
+      <bpmn:outgoing>Flow_DemoYes_Deploy</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DemoNo_UAT</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_AISuggestDesign_1" name="Gom luồng trước khi AI gợi ý thiết kế &amp; ước lượng effort">
+      <bpmn:incoming>Flow_PrioYes_Design</bpmn:incoming>
+      <bpmn:incoming>Flow_DesignNo_AISuggest</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_AISuggestDesign_1_to_Task_AISuggestDesign</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_AISuggestDesign" name="AI gợi ý thiết kế &amp; ước lượng effort">
+      <bpmn:incoming>Flow_Join_Task_AISuggestDesign_1_to_Task_AISuggestDesign</bpmn:incoming>
+      <bpmn:outgoing>Flow_AI_DesignReview</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Join_Task_AICodeGen_1" name="Gom luồng trước khi AI sinh code theo user story (Copilot)">
+      <bpmn:incoming>Flow_DesignOK_AIGen</bpmn:incoming>
+      <bpmn:incoming>Flow_AIFixNo_Regen</bpmn:incoming>
+      <bpmn:incoming>Flow_UnitFail_AIGen</bpmn:incoming>
+      <bpmn:incoming>Flow_QAFail_AIGen</bpmn:incoming>
+      <bpmn:incoming>Flow_UATFail_AIGen</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_AICodeGen_1_to_Task_AICodeGen</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_AICodeGen" name="AI sinh code theo user story (Copilot)">
+      <bpmn:incoming>Flow_Join_Task_AICodeGen_1_to_Task_AICodeGen</bpmn:incoming>
+      <bpmn:outgoing>Flow_AIGen_AICodeRev</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AICodeReview" name="AI tự động review code + phát hiện lỗi">
+      <bpmn:incoming>Flow_AIGen_AICodeRev</bpmn:incoming>
+      <bpmn:outgoing>Flow_AICodeRev_GateFix</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_AIFixOK" name="AI review pass?">
+      <bpmn:incoming>Flow_AICodeRev_GateFix</bpmn:incoming>
+      <bpmn:outgoing>Flow_AIFixOK_Test</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AIFixNo_Regen</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_AITestGen" name="AI tự sinh test case &amp; data test">
+      <bpmn:incoming>Flow_AIFixOK_Test</bpmn:incoming>
+      <bpmn:outgoing>Flow_AITest_Unit</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_DesignReview" name="Dev xác nhận thiết kế kỹ thuật">
+      <bpmn:incoming>Flow_AI_DesignReview</bpmn:incoming>
+      <bpmn:outgoing>Flow_Design_GateOK</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_DesignReview" name="Thiết kế được duyệt?">
+      <bpmn:incoming>Flow_Design_GateOK</bpmn:incoming>
+      <bpmn:outgoing>Flow_DesignOK_AIGen</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DesignNo_AISuggest</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_UnitTest" name="Chạy unit test + coverage tự động">
+      <bpmn:incoming>Flow_AITest_Unit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Unit_GatePass</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_UnitTestPass" name="Unit test pass ≥ 90%?">
+      <bpmn:incoming>Flow_Unit_GatePass</bpmn:incoming>
+      <bpmn:outgoing>Flow_UnitOK_Integrate</bpmn:outgoing>
+      <bpmn:outgoing>Flow_UnitFail_AIGen</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_UAT_1" name="Gom luồng trước khi User Acceptance Testing với nghiệp vụ">
+      <bpmn:incoming>Flow_QAPass_UAT</bpmn:incoming>
+      <bpmn:incoming>Flow_DemoNo_UAT</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_UAT_1_to_Task_UAT</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Integrate" name="Tích hợp module &amp; build tự động">
+      <bpmn:incoming>Flow_UnitOK_Integrate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Integrate_SIT</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_SIT" name="Kiểm thử tích hợp hệ thống (SIT) tự động">
+      <bpmn:incoming>Flow_Integrate_SIT</bpmn:incoming>
+      <bpmn:outgoing>Flow_SIT_GateQA</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_QAPass" name="QA pass?">
+      <bpmn:incoming>Flow_SIT_GateQA</bpmn:incoming>
+      <bpmn:outgoing>Flow_QAPass_UAT</bpmn:outgoing>
+      <bpmn:outgoing>Flow_QAFail_AIGen</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_UAT" name="User Acceptance Testing với nghiệp vụ">
+      <bpmn:incoming>Flow_Join_Task_UAT_1_to_Task_UAT</bpmn:incoming>
+      <bpmn:outgoing>Flow_UAT_GatePass</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_UATPass" name="UAT đạt?">
+      <bpmn:incoming>Flow_UAT_GatePass</bpmn:incoming>
+      <bpmn:outgoing>Flow_UATOK_Demo</bpmn:outgoing>
+      <bpmn:outgoing>Flow_UATFail_AIGen</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_CICDAuto" name="Chạy pipeline CI/CD tự động hóa">
+      <bpmn:incoming>Flow_DemoYes_Deploy</bpmn:incoming>
+      <bpmn:outgoing>Flow_CICD_Canary</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CanaryDeploy" name="Triển khai Canary 10% → 100%">
+      <bpmn:incoming>Flow_CICD_Canary</bpmn:incoming>
+      <bpmn:outgoing>Flow_Canary_GateHealth</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_HealthOK" name="Health check sau deploy ổn?">
+      <bpmn:incoming>Flow_Canary_GateHealth</bpmn:incoming>
+      <bpmn:outgoing>Flow_HealthOK_AutoScale</bpmn:outgoing>
+      <bpmn:outgoing>Flow_HealthFail_Rollback</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Autoscale" name="Tự động mở rộng tài nguyên (K8s HPA)">
+      <bpmn:incoming>Flow_HealthOK_AutoScale</bpmn:incoming>
+      <bpmn:outgoing>Flow_AutoScale_Monitor</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_PredictIncident" name="AI giám sát &amp; dự đoán sự cố (AIOps)">
+      <bpmn:incoming>Flow_AutoScale_Monitor</bpmn:incoming>
+      <bpmn:outgoing>Flow_Monitor_GateIncident</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Join_Task_Rollback_1" name="Gom luồng trước khi Rollback về version ổn định">
+      <bpmn:incoming>Flow_HealthFail_Rollback</bpmn:incoming>
+      <bpmn:incoming>Flow_RecoverFail_Rollback</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_Rollback_1_to_Task_Rollback</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_IncidentFound" name="Phát hiện bất thường?">
+      <bpmn:incoming>Flow_Monitor_GateIncident</bpmn:incoming>
+      <bpmn:outgoing>Flow_IncidentNo_End</bpmn:outgoing>
+      <bpmn:outgoing>Flow_IncidentYes_SelfHeal</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_SelfHeal" name="Tự phục hồi / khởi động lại pod tự động">
+      <bpmn:incoming>Flow_IncidentYes_SelfHeal</bpmn:incoming>
+      <bpmn:outgoing>Flow_SelfHeal_GateRecover</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_RecoverOK" name="Phục hồi thành công?">
+      <bpmn:incoming>Flow_SelfHeal_GateRecover</bpmn:incoming>
+      <bpmn:outgoing>Flow_RecoverOK_End</bpmn:outgoing>
+      <bpmn:outgoing>Flow_RecoverFail_Rollback</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Rollback" name="Rollback về version ổn định">
+      <bpmn:incoming>Flow_Join_Task_Rollback_1_to_Task_Rollback</bpmn:incoming>
+      <bpmn:outgoing>Flow_Rollback_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Join_End_Event_Deployed_1" name="Gom nhánh kết thúc">
+      <bpmn:incoming>Flow_IncidentNo_End</bpmn:incoming>
+      <bpmn:incoming>Flow_RecoverOK_End</bpmn:incoming>
+      <bpmn:incoming>Flow_Rollback_End</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_End_Event_Deployed_1_to_EndEvent_Deployed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Deployed" name="Dự án đã triển khai hoàn tất">
+      <bpmn:incoming>Flow_Join_End_Event_Deployed_1_to_EndEvent_Deployed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_S1_Collect" sourceRef="StartEvent_FeatureReq" targetRef="Join_Task_CollectReq_1" />
+    <bpmn:sequenceFlow id="Flow_Collect_Story" sourceRef="Task_CollectReq" targetRef="Task_UserStory" />
+    <bpmn:sequenceFlow id="Flow_Story_GatePriority" sourceRef="Task_UserStory" targetRef="Gate_PrioritizeOK" />
+    <bpmn:sequenceFlow id="Flow_PrioYes_Design" name="Đủ ưu tiên" sourceRef="Gate_PrioritizeOK" targetRef="Join_Task_AISuggestDesign_1" />
+    <bpmn:sequenceFlow id="Flow_PrioNo_Backlog" name="Chờ — về backlog" sourceRef="Gate_PrioritizeOK" targetRef="Join_Task_CollectReq_1" />
+    <bpmn:sequenceFlow id="Flow_AI_DesignReview" sourceRef="Task_AISuggestDesign" targetRef="Task_DesignReview" />
+    <bpmn:sequenceFlow id="Flow_Design_GateOK" sourceRef="Task_DesignReview" targetRef="Gate_DesignReview" />
+    <bpmn:sequenceFlow id="Flow_DesignOK_AIGen" name="Duyệt" sourceRef="Gate_DesignReview" targetRef="Join_Task_AICodeGen_1" />
+    <bpmn:sequenceFlow id="Flow_DesignNo_AISuggest" name="Sửa thiết kế" sourceRef="Gate_DesignReview" targetRef="Join_Task_AISuggestDesign_1" />
+    <bpmn:sequenceFlow id="Flow_AIGen_AICodeRev" sourceRef="Task_AICodeGen" targetRef="Task_AICodeReview" />
+    <bpmn:sequenceFlow id="Flow_AICodeRev_GateFix" sourceRef="Task_AICodeReview" targetRef="Gate_AIFixOK" />
+    <bpmn:sequenceFlow id="Flow_AIFixOK_Test" name="Pass" sourceRef="Gate_AIFixOK" targetRef="Task_AITestGen" />
+    <bpmn:sequenceFlow id="Flow_AIFixNo_Regen" name="Có lỗi — sinh lại code" sourceRef="Gate_AIFixOK" targetRef="Join_Task_AICodeGen_1" />
+    <bpmn:sequenceFlow id="Flow_AITest_Unit" sourceRef="Task_AITestGen" targetRef="Task_UnitTest" />
+    <bpmn:sequenceFlow id="Flow_Unit_GatePass" sourceRef="Task_UnitTest" targetRef="Gate_UnitTestPass" />
+    <bpmn:sequenceFlow id="Flow_UnitOK_Integrate" name="Pass" sourceRef="Gate_UnitTestPass" targetRef="Task_Integrate" />
+    <bpmn:sequenceFlow id="Flow_UnitFail_AIGen" name="Fail — sửa code" sourceRef="Gate_UnitTestPass" targetRef="Join_Task_AICodeGen_1" />
+    <bpmn:sequenceFlow id="Flow_Integrate_SIT" sourceRef="Task_Integrate" targetRef="Task_SIT" />
+    <bpmn:sequenceFlow id="Flow_SIT_GateQA" sourceRef="Task_SIT" targetRef="Gate_QAPass" />
+    <bpmn:sequenceFlow id="Flow_QAPass_UAT" name="Pass" sourceRef="Gate_QAPass" targetRef="Join_Task_UAT_1" />
+    <bpmn:sequenceFlow id="Flow_QAFail_AIGen" name="Fail — fix bug" sourceRef="Gate_QAPass" targetRef="Join_Task_AICodeGen_1" />
+    <bpmn:sequenceFlow id="Flow_UAT_GatePass" sourceRef="Task_UAT" targetRef="Gate_UATPass" />
+    <bpmn:sequenceFlow id="Flow_UATOK_Demo" name="Pass" sourceRef="Gate_UATPass" targetRef="Task_Demo" />
+    <bpmn:sequenceFlow id="Flow_UATFail_AIGen" name="Fail — sửa theo nghiệp vụ" sourceRef="Gate_UATPass" targetRef="Join_Task_AICodeGen_1" />
+    <bpmn:sequenceFlow id="Flow_Demo_GateOK" sourceRef="Task_Demo" targetRef="Gate_DemoOK" />
+    <bpmn:sequenceFlow id="Flow_DemoYes_Deploy" name="Đạt" sourceRef="Gate_DemoOK" targetRef="Task_CICDAuto" />
+    <bpmn:sequenceFlow id="Flow_DemoNo_UAT" name="Chưa đạt — UAT lại" sourceRef="Gate_DemoOK" targetRef="Join_Task_UAT_1" />
+    <bpmn:sequenceFlow id="Flow_CICD_Canary" sourceRef="Task_CICDAuto" targetRef="Task_CanaryDeploy" />
+    <bpmn:sequenceFlow id="Flow_Canary_GateHealth" sourceRef="Task_CanaryDeploy" targetRef="Gate_HealthOK" />
+    <bpmn:sequenceFlow id="Flow_HealthOK_AutoScale" name="Ổn định" sourceRef="Gate_HealthOK" targetRef="Task_Autoscale" />
+    <bpmn:sequenceFlow id="Flow_HealthFail_Rollback" name="Bất thường" sourceRef="Gate_HealthOK" targetRef="Join_Task_Rollback_1" />
+    <bpmn:sequenceFlow id="Flow_AutoScale_Monitor" sourceRef="Task_Autoscale" targetRef="Task_PredictIncident" />
+    <bpmn:sequenceFlow id="Flow_Monitor_GateIncident" sourceRef="Task_PredictIncident" targetRef="Gate_IncidentFound" />
+    <bpmn:sequenceFlow id="Flow_IncidentNo_End" name="Bình thường" sourceRef="Gate_IncidentFound" targetRef="Join_End_Event_Deployed_1" />
+    <bpmn:sequenceFlow id="Flow_IncidentYes_SelfHeal" name="Bất thường" sourceRef="Gate_IncidentFound" targetRef="Task_SelfHeal" />
+    <bpmn:sequenceFlow id="Flow_SelfHeal_GateRecover" sourceRef="Task_SelfHeal" targetRef="Gate_RecoverOK" />
+    <bpmn:sequenceFlow id="Flow_RecoverOK_End" name="Thành công" sourceRef="Gate_RecoverOK" targetRef="Join_End_Event_Deployed_1" />
+    <bpmn:sequenceFlow id="Flow_RecoverFail_Rollback" name="Thất bại" sourceRef="Gate_RecoverOK" targetRef="Join_Task_Rollback_1" />
+    <bpmn:sequenceFlow id="Flow_Rollback_End" sourceRef="Task_Rollback" targetRef="Join_End_Event_Deployed_1" />
+    <bpmn:sequenceFlow id="Flow_Join_End_Event_Deployed_1_to_EndEvent_Deployed" sourceRef="Join_End_Event_Deployed_1" targetRef="EndEvent_Deployed" name="" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_AICodeGen_1_to_Task_AICodeGen" sourceRef="Join_Task_AICodeGen_1" targetRef="Task_AICodeGen" name="" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_AISuggestDesign_1_to_Task_AISuggestDesign" sourceRef="Join_Task_AISuggestDesign_1" targetRef="Task_AISuggestDesign" name="" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_CollectReq_1_to_Task_CollectReq" sourceRef="Join_Task_CollectReq_1" targetRef="Task_CollectReq" name="" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_Rollback_1_to_Task_Rollback" sourceRef="Join_Task_Rollback_1" targetRef="Task_Rollback" name="" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_UAT_1_to_Task_UAT" sourceRef="Join_Task_UAT_1" targetRef="Task_UAT" name="" />
+  </bpmn:process>
+  <ns1:BPMNDiagram id="BPMNDiagram_1">
+    <ns1:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_ITPlatformTOBE">
+      <ns1:BPMNShape id="Lane_PO_di" bpmnElement="Lane_PO">
+        <ns2:Bounds x="30" y="0" width="7846" height="200" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Lane_AI_di" bpmnElement="Lane_AI">
+        <ns2:Bounds x="30" y="200" width="7846" height="200" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Lane_Dev_di" bpmnElement="Lane_Dev">
+        <ns2:Bounds x="30" y="400" width="7846" height="200" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Lane_QA_di" bpmnElement="Lane_QA">
+        <ns2:Bounds x="30" y="600" width="7846" height="200" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Lane_DevOps_di" bpmnElement="Lane_DevOps">
+        <ns2:Bounds x="30" y="800" width="7846" height="200" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="StartEvent_FeatureReq_di" bpmnElement="StartEvent_FeatureReq">
+        <ns2:Bounds x="80" y="82" width="36" height="36" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Join_Task_CollectReq_1_di" bpmnElement="Join_Task_CollectReq_1">
+        <ns2:Bounds x="300" y="77" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_CollectReq_di" bpmnElement="Task_CollectReq">
+        <ns2:Bounds x="520" y="65" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_UserStory_di" bpmnElement="Task_UserStory">
+        <ns2:Bounds x="740" y="65" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_PrioritizeOK_di" bpmnElement="Gate_PrioritizeOK">
+        <ns2:Bounds x="960" y="77" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_Demo_di" bpmnElement="Task_Demo">
+        <ns2:Bounds x="4920" y="65" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_DemoOK_di" bpmnElement="Gate_DemoOK">
+        <ns2:Bounds x="5140" y="77" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Join_Task_AISuggestDesign_1_di" bpmnElement="Join_Task_AISuggestDesign_1">
+        <ns2:Bounds x="1180" y="277" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_AISuggestDesign_di" bpmnElement="Task_AISuggestDesign">
+        <ns2:Bounds x="1400" y="265" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Join_Task_AICodeGen_1_di" bpmnElement="Join_Task_AICodeGen_1">
+        <ns2:Bounds x="2060" y="277" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_AICodeGen_di" bpmnElement="Task_AICodeGen">
+        <ns2:Bounds x="2280" y="265" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_AICodeReview_di" bpmnElement="Task_AICodeReview">
+        <ns2:Bounds x="2500" y="265" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_AIFixOK_di" bpmnElement="Gate_AIFixOK">
+        <ns2:Bounds x="2720" y="277" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_AITestGen_di" bpmnElement="Task_AITestGen">
+        <ns2:Bounds x="2940" y="265" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_DesignReview_di" bpmnElement="Task_DesignReview">
+        <ns2:Bounds x="1620" y="465" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_DesignReview_di" bpmnElement="Gate_DesignReview">
+        <ns2:Bounds x="1840" y="477" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_UnitTest_di" bpmnElement="Task_UnitTest">
+        <ns2:Bounds x="3160" y="465" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_UnitTestPass_di" bpmnElement="Gate_UnitTestPass">
+        <ns2:Bounds x="3380" y="477" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Join_Task_UAT_1_di" bpmnElement="Join_Task_UAT_1">
+        <ns2:Bounds x="4260" y="677" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_Integrate_di" bpmnElement="Task_Integrate">
+        <ns2:Bounds x="3600" y="465" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_SIT_di" bpmnElement="Task_SIT">
+        <ns2:Bounds x="3820" y="665" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_QAPass_di" bpmnElement="Gate_QAPass">
+        <ns2:Bounds x="4040" y="677" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_UAT_di" bpmnElement="Task_UAT">
+        <ns2:Bounds x="4480" y="665" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_UATPass_di" bpmnElement="Gate_UATPass">
+        <ns2:Bounds x="4700" y="677" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_CICDAuto_di" bpmnElement="Task_CICDAuto">
+        <ns2:Bounds x="5360" y="865" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_CanaryDeploy_di" bpmnElement="Task_CanaryDeploy">
+        <ns2:Bounds x="5580" y="865" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_HealthOK_di" bpmnElement="Gate_HealthOK">
+        <ns2:Bounds x="5800" y="877" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_Autoscale_di" bpmnElement="Task_Autoscale">
+        <ns2:Bounds x="6020" y="865" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_PredictIncident_di" bpmnElement="Task_PredictIncident">
+        <ns2:Bounds x="6240" y="865" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Join_Task_Rollback_1_di" bpmnElement="Join_Task_Rollback_1">
+        <ns2:Bounds x="7120" y="877" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_IncidentFound_di" bpmnElement="Gate_IncidentFound">
+        <ns2:Bounds x="6460" y="877" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_SelfHeal_di" bpmnElement="Task_SelfHeal">
+        <ns2:Bounds x="6680" y="865" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Gate_RecoverOK_di" bpmnElement="Gate_RecoverOK">
+        <ns2:Bounds x="6900" y="877" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Task_Rollback_di" bpmnElement="Task_Rollback">
+        <ns2:Bounds x="7340" y="865" width="110" height="70" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="Join_End_Event_Deployed_1_di" bpmnElement="Join_End_Event_Deployed_1">
+        <ns2:Bounds x="7560" y="877" width="46" height="46" />
+      </ns1:BPMNShape>
+      <ns1:BPMNShape id="EndEvent_Deployed_di" bpmnElement="EndEvent_Deployed">
+        <ns2:Bounds x="7780" y="882" width="36" height="36" />
+      </ns1:BPMNShape>
+      <ns1:BPMNEdge id="Flow_S1_Collect_di" bpmnElement="Flow_S1_Collect">
+        <ns3:waypoint x="116" y="100" />
+        <ns3:waypoint x="300" y="100" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Collect_Story_di" bpmnElement="Flow_Collect_Story">
+        <ns3:waypoint x="630" y="100" />
+        <ns3:waypoint x="740" y="100" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Story_GatePriority_di" bpmnElement="Flow_Story_GatePriority">
+        <ns3:waypoint x="850" y="100" />
+        <ns3:waypoint x="885" y="100" />
+        <ns3:waypoint x="885" y="100" />
+        <ns3:waypoint x="960" y="100" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_PrioYes_Design_di" bpmnElement="Flow_PrioYes_Design">
+        <ns3:waypoint x="983" y="123" />
+        <ns3:waypoint x="983" y="300" />
+        <ns3:waypoint x="1180" y="300" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="989" y="204" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_PrioNo_Backlog_di" bpmnElement="Flow_PrioNo_Backlog">
+        <ns3:waypoint x="983" y="77" />
+        <ns3:waypoint x="983" y="14" />
+        <ns3:waypoint x="323" y="14" />
+        <ns3:waypoint x="323" y="77" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="623" y="0" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AI_DesignReview_di" bpmnElement="Flow_AI_DesignReview">
+        <ns3:waypoint x="1510" y="300" />
+        <ns3:waypoint x="1545" y="300" />
+        <ns3:waypoint x="1545" y="500" />
+        <ns3:waypoint x="1620" y="500" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Design_GateOK_di" bpmnElement="Flow_Design_GateOK">
+        <ns3:waypoint x="1730" y="500" />
+        <ns3:waypoint x="1765" y="500" />
+        <ns3:waypoint x="1765" y="500" />
+        <ns3:waypoint x="1840" y="500" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_DesignOK_AIGen_di" bpmnElement="Flow_DesignOK_AIGen">
+        <ns3:waypoint x="1863" y="477" />
+        <ns3:waypoint x="1863" y="300" />
+        <ns3:waypoint x="2060" y="300" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="1869" y="381" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_DesignNo_AISuggest_di" bpmnElement="Flow_DesignNo_AISuggest">
+        <ns3:waypoint x="1863" y="477" />
+        <ns3:waypoint x="1863" y="214" />
+        <ns3:waypoint x="1203" y="214" />
+        <ns3:waypoint x="1203" y="277" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="1503" y="200" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AIGen_AICodeRev_di" bpmnElement="Flow_AIGen_AICodeRev">
+        <ns3:waypoint x="2390" y="300" />
+        <ns3:waypoint x="2500" y="300" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AICodeRev_GateFix_di" bpmnElement="Flow_AICodeRev_GateFix">
+        <ns3:waypoint x="2610" y="300" />
+        <ns3:waypoint x="2645" y="300" />
+        <ns3:waypoint x="2645" y="300" />
+        <ns3:waypoint x="2720" y="300" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AIFixOK_Test_di" bpmnElement="Flow_AIFixOK_Test">
+        <ns3:waypoint x="2766" y="300" />
+        <ns3:waypoint x="2853" y="300" />
+        <ns3:waypoint x="2853" y="300" />
+        <ns3:waypoint x="2940" y="300" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="2774" y="284" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AIFixNo_Regen_di" bpmnElement="Flow_AIFixNo_Regen">
+        <ns3:waypoint x="2743" y="277" />
+        <ns3:waypoint x="2743" y="214" />
+        <ns3:waypoint x="2083" y="214" />
+        <ns3:waypoint x="2083" y="277" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="2383" y="200" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AITest_Unit_di" bpmnElement="Flow_AITest_Unit">
+        <ns3:waypoint x="3050" y="300" />
+        <ns3:waypoint x="3085" y="300" />
+        <ns3:waypoint x="3085" y="500" />
+        <ns3:waypoint x="3160" y="500" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Unit_GatePass_di" bpmnElement="Flow_Unit_GatePass">
+        <ns3:waypoint x="3270" y="500" />
+        <ns3:waypoint x="3305" y="500" />
+        <ns3:waypoint x="3305" y="500" />
+        <ns3:waypoint x="3380" y="500" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_UnitOK_Integrate_di" bpmnElement="Flow_UnitOK_Integrate">
+        <ns3:waypoint x="3426" y="500" />
+        <ns3:waypoint x="3513" y="500" />
+        <ns3:waypoint x="3513" y="500" />
+        <ns3:waypoint x="3600" y="500" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="3434" y="484" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_UnitFail_AIGen_di" bpmnElement="Flow_UnitFail_AIGen">
+        <ns3:waypoint x="3403" y="477" />
+        <ns3:waypoint x="3403" y="214" />
+        <ns3:waypoint x="2083" y="214" />
+        <ns3:waypoint x="2083" y="277" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="2713" y="200" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Integrate_SIT_di" bpmnElement="Flow_Integrate_SIT">
+        <ns3:waypoint x="3710" y="500" />
+        <ns3:waypoint x="3745" y="500" />
+        <ns3:waypoint x="3745" y="700" />
+        <ns3:waypoint x="3820" y="700" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_SIT_GateQA_di" bpmnElement="Flow_SIT_GateQA">
+        <ns3:waypoint x="3930" y="700" />
+        <ns3:waypoint x="3965" y="700" />
+        <ns3:waypoint x="3965" y="700" />
+        <ns3:waypoint x="4040" y="700" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_QAPass_UAT_di" bpmnElement="Flow_QAPass_UAT">
+        <ns3:waypoint x="4086" y="700" />
+        <ns3:waypoint x="4260" y="700" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="4138" y="684" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_QAFail_AIGen_di" bpmnElement="Flow_QAFail_AIGen">
+        <ns3:waypoint x="4063" y="677" />
+        <ns3:waypoint x="4063" y="214" />
+        <ns3:waypoint x="2083" y="214" />
+        <ns3:waypoint x="2083" y="277" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="3043" y="200" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_UAT_GatePass_di" bpmnElement="Flow_UAT_GatePass">
+        <ns3:waypoint x="4590" y="700" />
+        <ns3:waypoint x="4625" y="700" />
+        <ns3:waypoint x="4625" y="700" />
+        <ns3:waypoint x="4700" y="700" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_UATOK_Demo_di" bpmnElement="Flow_UATOK_Demo">
+        <ns3:waypoint x="4723" y="677" />
+        <ns3:waypoint x="4723" y="100" />
+        <ns3:waypoint x="4920" y="100" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="4729" y="381" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_UATFail_AIGen_di" bpmnElement="Flow_UATFail_AIGen">
+        <ns3:waypoint x="4723" y="677" />
+        <ns3:waypoint x="4723" y="214" />
+        <ns3:waypoint x="2083" y="214" />
+        <ns3:waypoint x="2083" y="277" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="3373" y="200" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Demo_GateOK_di" bpmnElement="Flow_Demo_GateOK">
+        <ns3:waypoint x="5030" y="100" />
+        <ns3:waypoint x="5065" y="100" />
+        <ns3:waypoint x="5065" y="100" />
+        <ns3:waypoint x="5140" y="100" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_DemoYes_Deploy_di" bpmnElement="Flow_DemoYes_Deploy">
+        <ns3:waypoint x="5163" y="123" />
+        <ns3:waypoint x="5163" y="900" />
+        <ns3:waypoint x="5360" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="5169" y="504" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_DemoNo_UAT_di" bpmnElement="Flow_DemoNo_UAT">
+        <ns3:waypoint x="5163" y="77" />
+        <ns3:waypoint x="5163" y="14" />
+        <ns3:waypoint x="4283" y="14" />
+        <ns3:waypoint x="4283" y="677" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="4693" y="0" width="70" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_CICD_Canary_di" bpmnElement="Flow_CICD_Canary">
+        <ns3:waypoint x="5470" y="900" />
+        <ns3:waypoint x="5580" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Canary_GateHealth_di" bpmnElement="Flow_Canary_GateHealth">
+        <ns3:waypoint x="5690" y="900" />
+        <ns3:waypoint x="5725" y="900" />
+        <ns3:waypoint x="5725" y="900" />
+        <ns3:waypoint x="5800" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_HealthOK_AutoScale_di" bpmnElement="Flow_HealthOK_AutoScale">
+        <ns3:waypoint x="5846" y="900" />
+        <ns3:waypoint x="5933" y="900" />
+        <ns3:waypoint x="5933" y="900" />
+        <ns3:waypoint x="6020" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="5854" y="884" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_HealthFail_Rollback_di" bpmnElement="Flow_HealthFail_Rollback">
+        <ns3:waypoint x="5846" y="900" />
+        <ns3:waypoint x="7120" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="6448" y="884" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_AutoScale_Monitor_di" bpmnElement="Flow_AutoScale_Monitor">
+        <ns3:waypoint x="6130" y="900" />
+        <ns3:waypoint x="6240" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Monitor_GateIncident_di" bpmnElement="Flow_Monitor_GateIncident">
+        <ns3:waypoint x="6350" y="900" />
+        <ns3:waypoint x="6385" y="900" />
+        <ns3:waypoint x="6385" y="900" />
+        <ns3:waypoint x="6460" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_IncidentNo_End_di" bpmnElement="Flow_IncidentNo_End">
+        <ns3:waypoint x="6506" y="900" />
+        <ns3:waypoint x="7560" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="6998" y="884" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_IncidentYes_SelfHeal_di" bpmnElement="Flow_IncidentYes_SelfHeal">
+        <ns3:waypoint x="6506" y="900" />
+        <ns3:waypoint x="6593" y="900" />
+        <ns3:waypoint x="6593" y="900" />
+        <ns3:waypoint x="6680" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="6514" y="884" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_SelfHeal_GateRecover_di" bpmnElement="Flow_SelfHeal_GateRecover">
+        <ns3:waypoint x="6790" y="900" />
+        <ns3:waypoint x="6825" y="900" />
+        <ns3:waypoint x="6825" y="900" />
+        <ns3:waypoint x="6900" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_RecoverOK_End_di" bpmnElement="Flow_RecoverOK_End">
+        <ns3:waypoint x="6946" y="900" />
+        <ns3:waypoint x="7560" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="7218" y="884" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_RecoverFail_Rollback_di" bpmnElement="Flow_RecoverFail_Rollback">
+        <ns3:waypoint x="6946" y="900" />
+        <ns3:waypoint x="7120" y="900" />
+        <ns1:BPMNLabel>
+          <ns2:Bounds x="6998" y="884" width="75" height="14" />
+        </ns1:BPMNLabel>
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Rollback_End_di" bpmnElement="Flow_Rollback_End">
+        <ns3:waypoint x="7450" y="900" />
+        <ns3:waypoint x="7485" y="900" />
+        <ns3:waypoint x="7485" y="900" />
+        <ns3:waypoint x="7560" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Join_End_Event_Deployed_1_to_EndEvent_Deployed_di" bpmnElement="Flow_Join_End_Event_Deployed_1_to_EndEvent_Deployed">
+        <ns3:waypoint x="7606" y="900" />
+        <ns3:waypoint x="7780" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Join_Task_AICodeGen_1_to_Task_AICodeGen_di" bpmnElement="Flow_Join_Task_AICodeGen_1_to_Task_AICodeGen">
+        <ns3:waypoint x="2106" y="300" />
+        <ns3:waypoint x="2193" y="300" />
+        <ns3:waypoint x="2193" y="300" />
+        <ns3:waypoint x="2280" y="300" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Join_Task_AISuggestDesign_1_to_Task_AISuggestDesign_di" bpmnElement="Flow_Join_Task_AISuggestDesign_1_to_Task_AISuggestDesign">
+        <ns3:waypoint x="1226" y="300" />
+        <ns3:waypoint x="1313" y="300" />
+        <ns3:waypoint x="1313" y="300" />
+        <ns3:waypoint x="1400" y="300" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Join_Task_CollectReq_1_to_Task_CollectReq_di" bpmnElement="Flow_Join_Task_CollectReq_1_to_Task_CollectReq">
+        <ns3:waypoint x="346" y="100" />
+        <ns3:waypoint x="433" y="100" />
+        <ns3:waypoint x="433" y="100" />
+        <ns3:waypoint x="520" y="100" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Join_Task_Rollback_1_to_Task_Rollback_di" bpmnElement="Flow_Join_Task_Rollback_1_to_Task_Rollback">
+        <ns3:waypoint x="7166" y="900" />
+        <ns3:waypoint x="7253" y="900" />
+        <ns3:waypoint x="7253" y="900" />
+        <ns3:waypoint x="7340" y="900" />
+      </ns1:BPMNEdge>
+      <ns1:BPMNEdge id="Flow_Join_Task_UAT_1_to_Task_UAT_di" bpmnElement="Flow_Join_Task_UAT_1_to_Task_UAT">
+        <ns3:waypoint x="4306" y="700" />
+        <ns3:waypoint x="4393" y="700" />
+        <ns3:waypoint x="4393" y="700" />
+        <ns3:waypoint x="4480" y="700" />
+      </ns1:BPMNEdge>
+    </ns1:BPMNPlane>
+  </ns1:BPMNDiagram>
+</bpmn:definitions>

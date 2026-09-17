@@ -1,0 +1,201 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_ReturnRefund_TOBE" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_ReturnRefund_TOBE" name="Hoàn trả &amp; Refund TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Buyer" name="Buyer">
+        <bpmn:flowNodeRef>StartEvent_Request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UploadEvidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_HandoverReturn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_HandoverReturn_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
+        <bpmn:flowNodeRef>Task_CheckEligibility</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AITriage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AIEvidenceVerify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InstantRefund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DynamicPickup</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AIInspection</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ProcessRefund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyStatus</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_RefundSLA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Eligible</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_LowRisk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_AIPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ProcessRefund_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_CS" name="CS Agent">
+        <bpmn:flowNodeRef>Task_CSReview</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Warehouse" name="3PL/Warehouse">
+        <bpmn:flowNodeRef>Task_PickupReturn</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Payment" name="Payment Gateway">
+        <bpmn:flowNodeRef>Task_ExecuteRefund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ExecuteRefund_3</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Request" name="Yêu cầu hoàn trả hàng">
+      <bpmn:outgoing>Flow_Start_Submit</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_SubmitRequest" name="Submit yêu cầu + lý do">
+      <bpmn:incoming>Flow_Start_Submit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Submit_Eligibility</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_UploadEvidence" name="Upload evidence (ảnh/video)">
+      <bpmn:incoming>Flow_Eligible_Upload</bpmn:incoming>
+      <bpmn:outgoing>Flow_Upload_Triage</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_HandoverReturn" name="Bàn giao hàng trả cho LEX / 3PL">
+      <bpmn:incoming>Flow_Join_Task_HandoverReturn_1_to_Task_HandoverReturn</bpmn:incoming>
+      <bpmn:outgoing>Flow_Handover_Pickup</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CheckEligibility" name="Check eligibility tự động">
+      <bpmn:incoming>Flow_Submit_Eligibility</bpmn:incoming>
+      <bpmn:outgoing>Flow_Eligibility_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AITriage" name="AI phân loại rủi ro khiếu nại">
+      <bpmn:incoming>Flow_Upload_Triage</bpmn:incoming>
+      <bpmn:outgoing>Flow_Triage_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AIEvidenceVerify" name="AI Vision thẩm định lỗi bao bì/sản phẩm">
+      <bpmn:incoming>Flow_Gate_LowRisk</bpmn:incoming>
+      <bpmn:outgoing>Flow_AI_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_InstantRefund" name="Instant refund (return-less)">
+      <bpmn:incoming>Flow_AI_Pass</bpmn:incoming>
+      <bpmn:outgoing>Flow_Instant_Execute</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_DynamicPickup" name="Lên lịch thu hồi hàng thông minh">
+      <bpmn:incoming>Flow_Handover_Pickup</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pickup_Schedule</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AIInspection" name="AI image analysis inspection">
+      <bpmn:incoming>Flow_Pickup_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Inspection_Notify</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ProcessRefund" name="Xử lý lệnh hoàn tiền tự động">
+      <bpmn:incoming>Flow_Join_Task_ProcessRefund_2_to_Task_ProcessRefund</bpmn:incoming>
+      <bpmn:outgoing>Flow_Refund_Execute</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_NotifyStatus" name="Auto-notify từng bước">
+      <bpmn:incoming>Flow_Payout_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Timer_RefundSLA" name="Kích hoạt hoàn tiền tự động trong 24h">
+      <bpmn:timerEventDefinition id="TimerDef_24h_Refund">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT24H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+      <bpmn:incoming>Flow_Gate_Timer</bpmn:incoming>
+      <bpmn:outgoing>Flow_Timer_Refund</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="Task_CSReview" name="CS review (khi AI không chắc)">
+      <bpmn:incoming>Flow_AI_Uncertain</bpmn:incoming>
+      <bpmn:outgoing>Flow_CS_Handover</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReschedulePickup" name="Đặt lại lịch pickup">
+      <bpmn:incoming>Flow_Pickup_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Retry_Pickup</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:task id="Task_PickupReturn" name="LEX / 3PL pickup hàng trả">
+      <bpmn:incoming>Flow_Join_Task_PickupReturn_4_to_Task_PickupReturn</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pickup_Gate</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:serviceTask id="Task_ExecuteRefund" name="Cổng thanh toán giải ngân tiền hoàn">
+      <bpmn:incoming>Flow_Join_Task_ExecuteRefund_3_to_Task_ExecuteRefund</bpmn:incoming>
+      <bpmn:outgoing>Flow_Execute_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_RetryPayout" name="Thử lại giải ngân (tự động)">
+      <bpmn:incoming>Flow_Payout_Retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_Retry_Execute</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_Eligible" name="Hợp lệ?">
+      <bpmn:incoming>Flow_Eligibility_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Eligible_Upload</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Eligible_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_LowRisk" name="Đơn giá trị &lt;200k &amp; Buyer tín nhiệm cao?">
+      <bpmn:incoming>Flow_Triage_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gate_LowRisk</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Handover</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_AIPass" name="AI xác thực lỗi đạt độ tin cậy &gt;95%?">
+      <bpmn:incoming>Flow_AI_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_AI_Pass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AI_Uncertain</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Timer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_PickupRetry" name="Pickup thành công?">
+      <bpmn:incoming>Flow_Pickup_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Pickup_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Pickup_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_PayoutSuccess" name="Giải ngân thành công?">
+      <bpmn:incoming>Flow_Execute_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Payout_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Payout_Retry</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_Task_PickupReturn_4" name="Gom luồng trước khi LEX / 3PL pickup hàng trả">
+      <bpmn:incoming>Flow_Pickup_Schedule</bpmn:incoming>
+      <bpmn:incoming>Flow_Retry_Pickup</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_PickupReturn_4_to_Task_PickupReturn</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Refunded" name="Đã hoàn tiền cho Buyer">
+      <bpmn:incoming>Flow_Notify_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Rejected" name="Yêu cầu hoàn trả đã bị từ chối">
+      <bpmn:incoming>Flow_Eligible_Reject</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Submit" sourceRef="StartEvent_Request" targetRef="Task_SubmitRequest" />
+    <bpmn:sequenceFlow id="Flow_Submit_Eligibility" sourceRef="Task_SubmitRequest" targetRef="Task_CheckEligibility" />
+    <bpmn:sequenceFlow id="Flow_Eligibility_Gate" sourceRef="Task_CheckEligibility" targetRef="Gate_Eligible" />
+    <bpmn:sequenceFlow id="Flow_Eligible_Upload" sourceRef="Gate_Eligible" targetRef="Task_UploadEvidence" />
+    <bpmn:sequenceFlow id="Flow_Eligible_Reject" sourceRef="Gate_Eligible" targetRef="End_Rejected" />
+    <bpmn:sequenceFlow id="Flow_Upload_Triage" sourceRef="Task_UploadEvidence" targetRef="Task_AITriage" />
+    <bpmn:sequenceFlow id="Flow_Triage_Gate" sourceRef="Task_AITriage" targetRef="Gate_LowRisk" />
+    <bpmn:sequenceFlow id="Flow_Gate_LowRisk" sourceRef="Gate_LowRisk" targetRef="Task_AIEvidenceVerify" />
+    <bpmn:sequenceFlow id="Flow_Gate_Handover" sourceRef="Gate_LowRisk" targetRef="Join_Task_HandoverReturn_1" />
+    <bpmn:sequenceFlow id="Flow_AI_Gate" sourceRef="Task_AIEvidenceVerify" targetRef="Gate_AIPass" />
+    <bpmn:sequenceFlow id="Flow_AI_Pass" sourceRef="Gate_AIPass" targetRef="Task_InstantRefund" />
+    <bpmn:sequenceFlow id="Flow_AI_Uncertain" sourceRef="Gate_AIPass" targetRef="Task_CSReview" />
+    <bpmn:sequenceFlow id="Flow_Gate_Timer" sourceRef="Gate_AIPass" targetRef="Timer_RefundSLA" />
+    <bpmn:sequenceFlow id="Flow_Instant_Execute" sourceRef="Task_InstantRefund" targetRef="Join_Task_ExecuteRefund_3" />
+    <bpmn:sequenceFlow id="Flow_CS_Handover" sourceRef="Task_CSReview" targetRef="Join_Task_HandoverReturn_1" />
+    <bpmn:sequenceFlow id="Flow_Handover_Pickup" sourceRef="Task_HandoverReturn" targetRef="Task_DynamicPickup" />
+    <bpmn:sequenceFlow id="Flow_Pickup_Schedule" sourceRef="Task_DynamicPickup" targetRef="Join_Task_PickupReturn_4" />
+    <bpmn:sequenceFlow id="Flow_Pickup_Gate" sourceRef="Task_PickupReturn" targetRef="Gate_PickupRetry" />
+    <bpmn:sequenceFlow id="Flow_Pickup_Yes" sourceRef="Gate_PickupRetry" targetRef="Task_AIInspection" />
+    <bpmn:sequenceFlow id="Flow_Pickup_No" sourceRef="Gate_PickupRetry" targetRef="Task_ReschedulePickup" />
+    <bpmn:sequenceFlow id="Flow_Retry_Pickup" sourceRef="Task_ReschedulePickup" targetRef="Join_Task_PickupReturn_4" />
+    <bpmn:sequenceFlow id="Flow_Inspection_Notify" sourceRef="Task_AIInspection" targetRef="Join_Task_ProcessRefund_2" />
+    <bpmn:sequenceFlow id="Flow_Timer_Refund" sourceRef="Timer_RefundSLA" targetRef="Join_Task_ProcessRefund_2" />
+    <bpmn:sequenceFlow id="Flow_Refund_Execute" sourceRef="Task_ProcessRefund" targetRef="Join_Task_ExecuteRefund_3" />
+    <bpmn:sequenceFlow id="Flow_Execute_Gate" sourceRef="Task_ExecuteRefund" targetRef="Gate_PayoutSuccess" />
+    <bpmn:sequenceFlow id="Flow_Payout_Yes" sourceRef="Gate_PayoutSuccess" targetRef="Task_NotifyStatus" />
+    <bpmn:sequenceFlow id="Flow_Payout_Retry" sourceRef="Gate_PayoutSuccess" targetRef="Task_RetryPayout" />
+    <bpmn:sequenceFlow id="Flow_Retry_Execute" sourceRef="Task_RetryPayout" targetRef="Join_Task_ExecuteRefund_3" />
+    <bpmn:sequenceFlow id="Flow_Notify_End" sourceRef="Task_NotifyStatus" targetRef="End_Refunded" />
+    <bpmn:exclusiveGateway id="Join_Task_HandoverReturn_1" name="Gom luồng trước khi Bàn giao hàng trả cho LEX / 3PL">
+      <bpmn:incoming>Flow_Gate_Handover</bpmn:incoming>
+      <bpmn:incoming>Flow_CS_Handover</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_HandoverReturn_1_to_Task_HandoverReturn</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_HandoverReturn_1_to_Task_HandoverReturn" sourceRef="Join_Task_HandoverReturn_1" targetRef="Task_HandoverReturn" />
+    <bpmn:exclusiveGateway id="Join_Task_ProcessRefund_2" name="Gom luồng trước khi Xử lý lệnh hoàn tiền tự động">
+      <bpmn:incoming>Flow_Inspection_Notify</bpmn:incoming>
+      <bpmn:incoming>Flow_Timer_Refund</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ProcessRefund_2_to_Task_ProcessRefund</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ProcessRefund_2_to_Task_ProcessRefund" sourceRef="Join_Task_ProcessRefund_2" targetRef="Task_ProcessRefund" />
+    <bpmn:exclusiveGateway id="Join_Task_ExecuteRefund_3" name="Gom luồng trước khi Cổng thanh toán giải ngân tiền hoàn">
+      <bpmn:incoming>Flow_Instant_Execute</bpmn:incoming>
+      <bpmn:incoming>Flow_Refund_Execute</bpmn:incoming>
+      <bpmn:incoming>Flow_Retry_Execute</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ExecuteRefund_3_to_Task_ExecuteRefund</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ExecuteRefund_3_to_Task_ExecuteRefund" sourceRef="Join_Task_ExecuteRefund_3" targetRef="Task_ExecuteRefund" />
+    <bpmn:sequenceFlow id="Flow_Join_Task_PickupReturn_4_to_Task_PickupReturn" sourceRef="Join_Task_PickupReturn_4" targetRef="Task_PickupReturn" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_ReturnRefund_TOBE"><bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><dc:Bounds x="30" y="140" width="5900" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="392" width="5900" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_CS_di" bpmnElement="Lane_CS"><dc:Bounds x="30" y="644" width="5900" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Warehouse_di" bpmnElement="Lane_Warehouse"><dc:Bounds x="30" y="854" width="5900" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Payment_di" bpmnElement="Lane_Payment"><dc:Bounds x="30" y="1064" width="5900" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Request_di" bpmnElement="StartEvent_Request"><dc:Bounds x="212" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SubmitRequest_di" bpmnElement="Task_SubmitRequest"><dc:Bounds x="408" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_UploadEvidence_di" bpmnElement="Task_UploadEvidence"><dc:Bounds x="1128" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_HandoverReturn_di" bpmnElement="Task_HandoverReturn"><dc:Bounds x="2808" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CheckEligibility_di" bpmnElement="Task_CheckEligibility"><dc:Bounds x="648" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AITriage_di" bpmnElement="Task_AITriage"><dc:Bounds x="1368" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AIEvidenceVerify_di" bpmnElement="Task_AIEvidenceVerify"><dc:Bounds x="1848" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_InstantRefund_di" bpmnElement="Task_InstantRefund"><dc:Bounds x="2328" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_DynamicPickup_di" bpmnElement="Task_DynamicPickup"><dc:Bounds x="3048" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AIInspection_di" bpmnElement="Task_AIInspection"><dc:Bounds x="4008" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ProcessRefund_di" bpmnElement="Task_ProcessRefund"><dc:Bounds x="4488" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifyStatus_di" bpmnElement="Task_NotifyStatus"><dc:Bounds x="5448" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Timer_RefundSLA_di" bpmnElement="Timer_RefundSLA"><dc:Bounds x="2372" y="548" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CSReview_di" bpmnElement="Task_CSReview"><dc:Bounds x="2328" y="713" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReschedulePickup_di" bpmnElement="Task_ReschedulePickup"><dc:Bounds x="4008" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PickupReturn_di" bpmnElement="Task_PickupReturn"><dc:Bounds x="3528" y="923" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ExecuteRefund_di" bpmnElement="Task_ExecuteRefund"><dc:Bounds x="4968" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_RetryPayout_di" bpmnElement="Task_RetryPayout"><dc:Bounds x="5448" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Eligible_di" bpmnElement="Gate_Eligible"><dc:Bounds x="925" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_LowRisk_di" bpmnElement="Gate_LowRisk"><dc:Bounds x="1645" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_AIPass_di" bpmnElement="Gate_AIPass"><dc:Bounds x="2125" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PickupRetry_di" bpmnElement="Gate_PickupRetry"><dc:Bounds x="3805" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PayoutSuccess_di" bpmnElement="Gate_PayoutSuccess"><dc:Bounds x="5245" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_PickupReturn_4_di" bpmnElement="Join_Task_PickupReturn_4"><dc:Bounds x="3325" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Refunded_di" bpmnElement="End_Refunded"><dc:Bounds x="5732" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected"><dc:Bounds x="1172" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_HandoverReturn_1_di" bpmnElement="Join_Task_HandoverReturn_1"><dc:Bounds x="2605" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ProcessRefund_2_di" bpmnElement="Join_Task_ProcessRefund_2"><dc:Bounds x="4285" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ExecuteRefund_3_di" bpmnElement="Join_Task_ExecuteRefund_3"><dc:Bounds x="4765" y="1144" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_Start_Submit_di" bpmnElement="Flow_Start_Submit"><di:waypoint x="248" y="218" /><di:waypoint x="408" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Submit_Eligibility_di" bpmnElement="Flow_Submit_Eligibility"><di:waypoint x="532" y="218" /><di:waypoint x="550" y="218" /><di:waypoint x="550" y="392" /><di:waypoint x="550" y="470" /><di:waypoint x="648" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Eligibility_Gate_di" bpmnElement="Flow_Eligibility_Gate"><di:waypoint x="772" y="470" /><di:waypoint x="925" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Eligible_Reject_di" bpmnElement="Flow_Eligible_Reject"><di:waypoint x="975" y="470" /><di:waypoint x="1030" y="470" /><di:waypoint x="1030" y="392" /><di:waypoint x="1030" y="218" /><di:waypoint x="1172" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Eligible_Upload_di" bpmnElement="Flow_Eligible_Upload"><di:waypoint x="975" y="470" /><di:waypoint x="1030" y="470" /><di:waypoint x="1030" y="392" /><di:waypoint x="1030" y="314" /><di:waypoint x="1128" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Upload_Triage_di" bpmnElement="Flow_Upload_Triage"><di:waypoint x="1252" y="314" /><di:waypoint x="1270" y="314" /><di:waypoint x="1270" y="392" /><di:waypoint x="1270" y="470" /><di:waypoint x="1368" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Triage_Gate_di" bpmnElement="Flow_Triage_Gate"><di:waypoint x="1492" y="470" /><di:waypoint x="1645" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Handover_di" bpmnElement="Flow_Gate_Handover"><di:waypoint x="1695" y="470" /><di:waypoint x="1750" y="470" /><di:waypoint x="1750" y="392" /><di:waypoint x="2470" y="392" /><di:waypoint x="2470" y="218" /><di:waypoint x="2605" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_LowRisk_di" bpmnElement="Flow_Gate_LowRisk"><di:waypoint x="1695" y="470" /><di:waypoint x="1848" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AI_Gate_di" bpmnElement="Flow_AI_Gate"><di:waypoint x="1972" y="470" /><di:waypoint x="2125" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AI_Pass_di" bpmnElement="Flow_AI_Pass"><di:waypoint x="2175" y="470" /><di:waypoint x="2328" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AI_Uncertain_di" bpmnElement="Flow_AI_Uncertain"><di:waypoint x="2175" y="470" /><di:waypoint x="2230" y="470" /><di:waypoint x="2230" y="644" /><di:waypoint x="2230" y="749" /><di:waypoint x="2328" y="749" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Timer_di" bpmnElement="Flow_Gate_Timer"><di:waypoint x="2175" y="470" /><di:waypoint x="2230" y="470" /><di:waypoint x="2230" y="518" /><di:waypoint x="2230" y="566" /><di:waypoint x="2372" y="566" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_CS_Handover_di" bpmnElement="Flow_CS_Handover"><di:waypoint x="2452" y="749" /><di:waypoint x="2470" y="749" /><di:waypoint x="2470" y="392" /><di:waypoint x="2470" y="218" /><di:waypoint x="2605" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Instant_Execute_di" bpmnElement="Flow_Instant_Execute"><di:waypoint x="2452" y="470" /><di:waypoint x="2470" y="470" /><di:waypoint x="2470" y="644" /><di:waypoint x="4630" y="644" /><di:waypoint x="4630" y="1169" /><di:waypoint x="4765" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Timer_Refund_di" bpmnElement="Flow_Timer_Refund"><di:waypoint x="2408" y="566" /><di:waypoint x="2470" y="566" /><di:waypoint x="2470" y="518" /><di:waypoint x="4150" y="518" /><di:waypoint x="4150" y="470" /><di:waypoint x="4285" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_HandoverReturn_1_to_Task_HandoverReturn_di" bpmnElement="Flow_Join_Task_HandoverReturn_1_to_Task_HandoverReturn"><di:waypoint x="2655" y="218" /><di:waypoint x="2808" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Handover_Pickup_di" bpmnElement="Flow_Handover_Pickup"><di:waypoint x="2932" y="218" /><di:waypoint x="2950" y="218" /><di:waypoint x="2950" y="392" /><di:waypoint x="2950" y="470" /><di:waypoint x="3048" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pickup_Schedule_di" bpmnElement="Flow_Pickup_Schedule"><di:waypoint x="3172" y="470" /><di:waypoint x="3190" y="470" /><di:waypoint x="3190" y="392" /><di:waypoint x="3190" y="218" /><di:waypoint x="3325" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_PickupReturn_4_to_Task_PickupReturn_di" bpmnElement="Flow_Join_Task_PickupReturn_4_to_Task_PickupReturn"><di:waypoint x="3375" y="218" /><di:waypoint x="3430" y="218" /><di:waypoint x="3430" y="392" /><di:waypoint x="3430" y="959" /><di:waypoint x="3528" y="959" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pickup_Gate_di" bpmnElement="Flow_Pickup_Gate"><di:waypoint x="3652" y="959" /><di:waypoint x="3670" y="959" /><di:waypoint x="3670" y="392" /><di:waypoint x="3670" y="218" /><di:waypoint x="3805" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pickup_No_di" bpmnElement="Flow_Pickup_No"><di:waypoint x="3855" y="218" /><di:waypoint x="4008" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pickup_Yes_di" bpmnElement="Flow_Pickup_Yes"><di:waypoint x="3855" y="218" /><di:waypoint x="3910" y="218" /><di:waypoint x="3910" y="392" /><di:waypoint x="3910" y="470" /><di:waypoint x="4008" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Inspection_Notify_di" bpmnElement="Flow_Inspection_Notify"><di:waypoint x="4132" y="470" /><di:waypoint x="4285" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Retry_Pickup_di" bpmnElement="Flow_Retry_Pickup"><di:waypoint x="4132" y="218" /><di:waypoint x="4150" y="218" /><di:waypoint x="4150" y="1308" /><di:waypoint x="3190" y="1308" /><di:waypoint x="3190" y="218" /><di:waypoint x="3325" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ProcessRefund_2_to_Task_ProcessRefund_di" bpmnElement="Flow_Join_Task_ProcessRefund_2_to_Task_ProcessRefund"><di:waypoint x="4335" y="470" /><di:waypoint x="4488" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Refund_Execute_di" bpmnElement="Flow_Refund_Execute"><di:waypoint x="4612" y="470" /><di:waypoint x="4630" y="470" /><di:waypoint x="4630" y="644" /><di:waypoint x="4630" y="1169" /><di:waypoint x="4765" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ExecuteRefund_3_to_Task_ExecuteRefund_di" bpmnElement="Flow_Join_Task_ExecuteRefund_3_to_Task_ExecuteRefund"><di:waypoint x="4815" y="1169" /><di:waypoint x="4968" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Execute_Gate_di" bpmnElement="Flow_Execute_Gate"><di:waypoint x="5092" y="1169" /><di:waypoint x="5110" y="1169" /><di:waypoint x="5110" y="392" /><di:waypoint x="5110" y="218" /><di:waypoint x="5245" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Payout_Retry_di" bpmnElement="Flow_Payout_Retry"><di:waypoint x="5295" y="218" /><di:waypoint x="5448" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Payout_Yes_di" bpmnElement="Flow_Payout_Yes"><di:waypoint x="5295" y="218" /><di:waypoint x="5350" y="218" /><di:waypoint x="5350" y="392" /><di:waypoint x="5350" y="470" /><di:waypoint x="5448" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_End_di" bpmnElement="Flow_Notify_End"><di:waypoint x="5572" y="470" /><di:waypoint x="5590" y="470" /><di:waypoint x="5590" y="392" /><di:waypoint x="5590" y="218" /><di:waypoint x="5732" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Retry_Execute_di" bpmnElement="Flow_Retry_Execute"><di:waypoint x="5572" y="218" /><di:waypoint x="5590" y="218" /><di:waypoint x="5590" y="1436" /><di:waypoint x="4630" y="1436" /><di:waypoint x="4630" y="1169" /><di:waypoint x="4765" y="1169" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

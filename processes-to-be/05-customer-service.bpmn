@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_CustomerServiceTOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_CustomerServiceTOBE" name="Cham soc Khach hang TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Customer" name="Customer">
+        <bpmn:flowNodeRef>StartEvent_Contact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Menu</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmResolved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RateCSAT</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CustomerRespond</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ConfirmResolved_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Chatbot" name="Chatbot/AI">
+        <bpmn:flowNodeRef>Task_ClassifyIntent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SentimentAnalyze</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KBAnswer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Confident</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Tier1" name="CS Tier 1">
+        <bpmn:flowNodeRef>Task_T1Handle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_T1Resolved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_T1Handle_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Tier2" name="CS Tier 2">
+        <bpmn:flowNodeRef>Task_T2Handle</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_T2Handle_3</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="System">
+        <bpmn:flowNodeRef>Task_ProactiveOutreach</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_NeedMore</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FetchContext</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Angry</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifySupervisor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CSATAuto</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogSession</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Contact" name="Yêu cầu hỗ trợ từ khách hàng">
+      <bpmn:outgoing>Flow_Start_Contact</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Menu" name="Chọn chủ đề trợ giúp thông minh">
+      <bpmn:incoming>Flow_Split_Main</bpmn:incoming>
+      <bpmn:outgoing>Flow_Menu_Classify</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ConfirmResolved" name="Khách hàng bấm xác nhận hoàn tất hỗ trợ">
+      <bpmn:incoming>Flow_Join_Task_ConfirmResolved_1_to_Task_ConfirmResolved</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirm_CSAT</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_RateCSAT" name="Khảo sát nhanh 2 câu hỏi CSAT / CES">
+      <bpmn:incoming>Flow_CSAT_Rate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Rate_Log</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_CustomerRespond" name="Nhập nội dung cần hỗ trợ">
+      <bpmn:incoming>Flow_Outreach_Respond</bpmn:incoming>
+      <bpmn:outgoing>Flow_Respond_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_ClassifyIntent" name="AI LLM hiểu ngữ cảnh &amp; phân tích cảm xúc">
+      <bpmn:incoming>Flow_Menu_Classify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Classify_Sentiment</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_SentimentAnalyze" name="Đo lường mức độ hài lòng / bức xúc">
+      <bpmn:incoming>Flow_Classify_Sentiment</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sentiment_GateAngry</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_KBAnswer" name="GenAI trả lời tức thì từ Knowledge Base">
+      <bpmn:incoming>Flow_Confident_KB</bpmn:incoming>
+      <bpmn:outgoing>Flow_KB_Confirm</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_T1Handle" name="CS Tier 1 xử lý nhanh với gợi ý từ Copilot">
+      <bpmn:incoming>Flow_Join_Task_T1Handle_2_to_Task_T1Handle</bpmn:incoming>
+      <bpmn:outgoing>Flow_T1_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_T1Resolved" name="Kết quả xử lý của CS Tier 1?">
+      <bpmn:incoming>Flow_T1_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_T1_Timeout</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T1_Confirm</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T1_Escalate</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_T2Handle" name="CS Tier 2 xử lý nghiệp vụ phức tạp">
+      <bpmn:incoming>Flow_Join_Task_T2Handle_3_to_Task_T2Handle</bpmn:incoming>
+      <bpmn:outgoing>Flow_T2_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_T2Resolved" name="Kết quả xử lý của CS Tier 2?">
+      <bpmn:incoming>Flow_T2_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_T2_Confirm</bpmn:outgoing>
+      <bpmn:outgoing>Flow_T2_Timeout</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_ContactSource" name="Kênh tương tác?">
+      <bpmn:incoming>Flow_Start_Contact</bpmn:incoming>
+      <bpmn:outgoing>Flow_Split_Main</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Split_Proactive</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ProactiveOutreach" name="AI chủ động gửi tin nhắn hỗ trợ trước">
+      <bpmn:incoming>Flow_Split_Proactive</bpmn:incoming>
+      <bpmn:outgoing>Flow_Outreach_Respond</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_NeedMore" name="Khách cần gặp tư vấn viên?">
+      <bpmn:incoming>Flow_Respond_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_NeedMore_T1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NeedMore_End</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_FetchContext" name="Tu dong lay context don hang (khong hoi lai)">
+      <bpmn:incoming>Flow_Angry_Fetch</bpmn:incoming>
+      <bpmn:outgoing>Flow_Fetch_Confident</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_Angry" name="Khach dang tuc gian?">
+      <bpmn:incoming>Flow_Sentiment_GateAngry</bpmn:incoming>
+      <bpmn:outgoing>Flow_Angry_T2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Angry_Fetch</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_Confident" name="Chatbot AI tự tin xử lý (≥80%)?">
+      <bpmn:incoming>Flow_Fetch_Confident</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confident_KB</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Confident_T1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_NotifySupervisor" name="Cảnh báo tự động Supervisor khi trễ hạn">
+      <bpmn:incoming>Flow_T2_Timeout</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_Confirm</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CSATAuto" name="Hệ thống tự động gửi form đánh giá">
+      <bpmn:incoming>Flow_Confirm_CSAT</bpmn:incoming>
+      <bpmn:outgoing>Flow_CSAT_Rate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_LogSession" name="Lưu log &amp; tự động chấm điểm QA bằng AI">
+      <bpmn:incoming>Flow_Rate_Log</bpmn:incoming>
+      <bpmn:outgoing>Flow_Log_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Resolved" name="Phiên hỗ trợ đã kết thúc thành công">
+      <bpmn:incoming>Flow_Log_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Proactive" name="Đã chủ động thông báo kết quả cho khách hàng">
+      <bpmn:incoming>Flow_NeedMore_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Contact" sourceRef="StartEvent_Contact" targetRef="Gate_ContactSource" />
+    <bpmn:sequenceFlow id="Flow_Split_Main" sourceRef="Gate_ContactSource" targetRef="Task_Menu" name="Khách hàng chủ động chat/gọi" />
+    <bpmn:sequenceFlow id="Flow_Split_Proactive" sourceRef="Gate_ContactSource" targetRef="Task_ProactiveOutreach" name="Hệ thống AI chủ động rà soát đơn rủi ro" />
+    <bpmn:sequenceFlow id="Flow_Menu_Classify" sourceRef="Task_Menu" targetRef="Task_ClassifyIntent" />
+    <bpmn:sequenceFlow id="Flow_Classify_Sentiment" sourceRef="Task_ClassifyIntent" targetRef="Task_SentimentAnalyze" />
+    <bpmn:sequenceFlow id="Flow_Sentiment_GateAngry" sourceRef="Task_SentimentAnalyze" targetRef="Gate_Angry" />
+    <bpmn:sequenceFlow id="Flow_Angry_T2" sourceRef="Gate_Angry" targetRef="Join_Task_T2Handle_3" name="Tuc gian → Tier 2 uu tien" />
+    <bpmn:sequenceFlow id="Flow_Angry_Fetch" sourceRef="Gate_Angry" targetRef="Task_FetchContext" name="Trạng thái cảm xúc bình thường" />
+    <bpmn:sequenceFlow id="Flow_Fetch_Confident" sourceRef="Task_FetchContext" targetRef="Gate_Confident" />
+    <bpmn:sequenceFlow id="Flow_Confident_KB" sourceRef="Gate_Confident" targetRef="Task_KBAnswer" name="80% Chatbot tu xu ly" />
+    <bpmn:sequenceFlow id="Flow_Confident_T1" sourceRef="Gate_Confident" targetRef="Join_Task_T1Handle_2" name="Chuyển tư vấn viên khi vượt khả năng AI" />
+    <bpmn:sequenceFlow id="Flow_KB_Confirm" sourceRef="Task_KBAnswer" targetRef="Join_Task_ConfirmResolved_1" />
+    <bpmn:sequenceFlow id="Flow_T1_Gate" sourceRef="Task_T1Handle" targetRef="Gate_T1Resolved" />
+    <bpmn:sequenceFlow id="Flow_T1_Timeout" sourceRef="Gate_T1Resolved" targetRef="Join_Task_T2Handle_3" name="Vuot SLA Tier 1 (15p)" />
+    <bpmn:sequenceFlow id="Flow_T1_Confirm" sourceRef="Gate_T1Resolved" targetRef="Join_Task_ConfirmResolved_1" name="Da giai quyet" />
+    <bpmn:sequenceFlow id="Flow_T1_Escalate" sourceRef="Gate_T1Resolved" targetRef="Join_Task_T2Handle_3" name="Chuyen Tier 2" />
+    <bpmn:sequenceFlow id="Flow_T2_Gate" sourceRef="Task_T2Handle" targetRef="Gate_T2Resolved" />
+    <bpmn:sequenceFlow id="Flow_T2_Confirm" sourceRef="Gate_T2Resolved" targetRef="Join_Task_ConfirmResolved_1" name="Da giai quyet" />
+    <bpmn:sequenceFlow id="Flow_T2_Timeout" sourceRef="Gate_T2Resolved" targetRef="Task_NotifySupervisor" name="Vuot SLA Tier 2 (30p)" />
+    <bpmn:sequenceFlow id="Flow_Notify_Confirm" sourceRef="Task_NotifySupervisor" targetRef="Join_Task_ConfirmResolved_1" />
+    <bpmn:sequenceFlow id="Flow_Confirm_CSAT" sourceRef="Task_ConfirmResolved" targetRef="Task_CSATAuto" />
+    <bpmn:sequenceFlow id="Flow_CSAT_Rate" sourceRef="Task_CSATAuto" targetRef="Task_RateCSAT" />
+    <bpmn:sequenceFlow id="Flow_Rate_Log" sourceRef="Task_RateCSAT" targetRef="Task_LogSession" />
+    <bpmn:sequenceFlow id="Flow_Log_End" sourceRef="Task_LogSession" targetRef="End_Resolved" />
+    <bpmn:sequenceFlow id="Flow_Outreach_Respond" sourceRef="Task_ProactiveOutreach" targetRef="Task_CustomerRespond" />
+    <bpmn:sequenceFlow id="Flow_Respond_Gate" sourceRef="Task_CustomerRespond" targetRef="Gate_NeedMore" />
+    <bpmn:sequenceFlow id="Flow_NeedMore_T1" sourceRef="Gate_NeedMore" targetRef="Join_Task_T1Handle_2" name="Yêu cầu chuyển gặp chuyên viên" />
+    <bpmn:sequenceFlow id="Flow_NeedMore_End" sourceRef="Gate_NeedMore" targetRef="End_Proactive" name="Het van de" />
+    <bpmn:exclusiveGateway id="Join_Task_ConfirmResolved_1" name="Gom luồng trước khi Khách hàng bấm xác nhận hoàn tất hỗ trợ">
+      <bpmn:incoming>Flow_KB_Confirm</bpmn:incoming>
+      <bpmn:incoming>Flow_T1_Confirm</bpmn:incoming>
+      <bpmn:incoming>Flow_T2_Confirm</bpmn:incoming>
+      <bpmn:incoming>Flow_Notify_Confirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ConfirmResolved_1_to_Task_ConfirmResolved</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ConfirmResolved_1_to_Task_ConfirmResolved" sourceRef="Join_Task_ConfirmResolved_1" targetRef="Task_ConfirmResolved" />
+    <bpmn:exclusiveGateway id="Join_Task_T1Handle_2" name="Gom luồng trước khi CS Tier 1 xử lý nhanh với gợi ý từ Copilot">
+      <bpmn:incoming>Flow_Confident_T1</bpmn:incoming>
+      <bpmn:incoming>Flow_NeedMore_T1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_T1Handle_2_to_Task_T1Handle</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_T1Handle_2_to_Task_T1Handle" sourceRef="Join_Task_T1Handle_2" targetRef="Task_T1Handle" />
+    <bpmn:exclusiveGateway id="Join_Task_T2Handle_3" name="Gom luồng trước khi CS Tier 2 xử lý nghiệp vụ phức tạp">
+      <bpmn:incoming>Flow_Angry_T2</bpmn:incoming>
+      <bpmn:incoming>Flow_T1_Timeout</bpmn:incoming>
+      <bpmn:incoming>Flow_T1_Escalate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_T2Handle_3_to_Task_T2Handle</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_T2Handle_3_to_Task_T2Handle" sourceRef="Join_Task_T2Handle_3" targetRef="Task_T2Handle" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_CustomerServiceTOBE"><bpmndi:BPMNShape id="Lane_Customer_di" bpmnElement="Lane_Customer"><dc:Bounds x="30" y="140" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Chatbot_di" bpmnElement="Lane_Chatbot"><dc:Bounds x="30" y="350" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Tier1_di" bpmnElement="Lane_Tier1"><dc:Bounds x="30" y="560" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Tier2_di" bpmnElement="Lane_Tier2"><dc:Bounds x="30" y="770" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="980" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Contact_di" bpmnElement="StartEvent_Contact"><dc:Bounds x="212" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Menu_di" bpmnElement="Task_Menu"><dc:Bounds x="648" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfirmResolved_di" bpmnElement="Task_ConfirmResolved"><dc:Bounds x="4008" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_RateCSAT_di" bpmnElement="Task_RateCSAT"><dc:Bounds x="4488" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CustomerRespond_di" bpmnElement="Task_CustomerRespond"><dc:Bounds x="888" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ClassifyIntent_di" bpmnElement="Task_ClassifyIntent"><dc:Bounds x="888" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SentimentAnalyze_di" bpmnElement="Task_SentimentAnalyze"><dc:Bounds x="1128" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_KBAnswer_di" bpmnElement="Task_KBAnswer"><dc:Bounds x="2088" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_T1Handle_di" bpmnElement="Task_T1Handle"><dc:Bounds x="2328" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_T1Resolved_di" bpmnElement="Gate_T1Resolved"><dc:Bounds x="2605" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_T2Handle_di" bpmnElement="Task_T2Handle"><dc:Bounds x="3048" y="839" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_T2Resolved_di" bpmnElement="Gate_T2Resolved"><dc:Bounds x="3325" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ContactSource_di" bpmnElement="Gate_ContactSource"><dc:Bounds x="445" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ProactiveOutreach_di" bpmnElement="Task_ProactiveOutreach"><dc:Bounds x="648" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_NeedMore_di" bpmnElement="Gate_NeedMore"><dc:Bounds x="1165" y="1060" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_FetchContext_di" bpmnElement="Task_FetchContext"><dc:Bounds x="1608" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Angry_di" bpmnElement="Gate_Angry"><dc:Bounds x="1405" y="1060" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Confident_di" bpmnElement="Gate_Confident"><dc:Bounds x="1885" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifySupervisor_di" bpmnElement="Task_NotifySupervisor"><dc:Bounds x="3528" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CSATAuto_di" bpmnElement="Task_CSATAuto"><dc:Bounds x="4248" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_LogSession_di" bpmnElement="Task_LogSession"><dc:Bounds x="4728" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Resolved_di" bpmnElement="End_Resolved"><dc:Bounds x="5012" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Proactive_di" bpmnElement="End_Proactive"><dc:Bounds x="1412" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ConfirmResolved_1_di" bpmnElement="Join_Task_ConfirmResolved_1"><dc:Bounds x="3805" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_T1Handle_2_di" bpmnElement="Join_Task_T1Handle_2"><dc:Bounds x="2125" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_T2Handle_3_di" bpmnElement="Join_Task_T2Handle_3"><dc:Bounds x="2845" y="850" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_Start_Contact_di" bpmnElement="Flow_Start_Contact"><di:waypoint x="248" y="245" /><di:waypoint x="445" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Split_Main_di" bpmnElement="Flow_Split_Main"><di:waypoint x="495" y="245" /><di:waypoint x="648" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="221" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Split_Proactive_di" bpmnElement="Flow_Split_Proactive"><di:waypoint x="495" y="245" /><di:waypoint x="550" y="245" /><di:waypoint x="550" y="350" /><di:waypoint x="550" y="1085" /><di:waypoint x="648" y="1085" /><bpmndi:BPMNLabel><dc:Bounds x="560" y="710" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Menu_Classify_di" bpmnElement="Flow_Menu_Classify"><di:waypoint x="772" y="245" /><di:waypoint x="790" y="245" /><di:waypoint x="790" y="350" /><di:waypoint x="790" y="455" /><di:waypoint x="888" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Outreach_Respond_di" bpmnElement="Flow_Outreach_Respond"><di:waypoint x="772" y="1085" /><di:waypoint x="790" y="1085" /><di:waypoint x="790" y="350" /><di:waypoint x="790" y="245" /><di:waypoint x="888" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Classify_Sentiment_di" bpmnElement="Flow_Classify_Sentiment"><di:waypoint x="1012" y="455" /><di:waypoint x="1128" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Respond_Gate_di" bpmnElement="Flow_Respond_Gate"><di:waypoint x="1012" y="245" /><di:waypoint x="1030" y="245" /><di:waypoint x="1030" y="350" /><di:waypoint x="1030" y="1085" /><di:waypoint x="1165" y="1085" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_NeedMore_End_di" bpmnElement="Flow_NeedMore_End"><di:waypoint x="1215" y="1085" /><di:waypoint x="1270" y="1085" /><di:waypoint x="1270" y="350" /><di:waypoint x="1270" y="245" /><di:waypoint x="1412" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="1280" y="710" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_NeedMore_T1_di" bpmnElement="Flow_NeedMore_T1"><di:waypoint x="1215" y="1085" /><di:waypoint x="1270" y="1085" /><di:waypoint x="1270" y="770" /><di:waypoint x="1990" y="770" /><di:waypoint x="1990" y="665" /><di:waypoint x="2125" y="665" /><bpmndi:BPMNLabel><dc:Bounds x="1595" y="746" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Sentiment_GateAngry_di" bpmnElement="Flow_Sentiment_GateAngry"><di:waypoint x="1252" y="455" /><di:waypoint x="1270" y="455" /><di:waypoint x="1270" y="560" /><di:waypoint x="1270" y="1085" /><di:waypoint x="1405" y="1085" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Angry_Fetch_di" bpmnElement="Flow_Angry_Fetch"><di:waypoint x="1455" y="1085" /><di:waypoint x="1608" y="1085" /><bpmndi:BPMNLabel><dc:Bounds x="1496" y="1061" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Angry_T2_di" bpmnElement="Flow_Angry_T2"><di:waypoint x="1455" y="1085" /><di:waypoint x="1510" y="1085" /><di:waypoint x="1510" y="980" /><di:waypoint x="2710" y="980" /><di:waypoint x="2710" y="875" /><di:waypoint x="2845" y="875" /><bpmndi:BPMNLabel><dc:Bounds x="2075" y="956" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Fetch_Confident_di" bpmnElement="Flow_Fetch_Confident"><di:waypoint x="1732" y="1085" /><di:waypoint x="1750" y="1085" /><di:waypoint x="1750" y="560" /><di:waypoint x="1750" y="455" /><di:waypoint x="1885" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confident_KB_di" bpmnElement="Flow_Confident_KB"><di:waypoint x="1935" y="455" /><di:waypoint x="2088" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="1976" y="431" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confident_T1_di" bpmnElement="Flow_Confident_T1"><di:waypoint x="1935" y="455" /><di:waypoint x="1990" y="455" /><di:waypoint x="1990" y="560" /><di:waypoint x="1990" y="665" /><di:waypoint x="2125" y="665" /><bpmndi:BPMNLabel><dc:Bounds x="2022" y="641" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_T1Handle_2_to_Task_T1Handle_di" bpmnElement="Flow_Join_Task_T1Handle_2_to_Task_T1Handle"><di:waypoint x="2175" y="665" /><di:waypoint x="2328" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_KB_Confirm_di" bpmnElement="Flow_KB_Confirm"><di:waypoint x="2212" y="455" /><di:waypoint x="2230" y="455" /><di:waypoint x="2230" y="350" /><di:waypoint x="3670" y="350" /><di:waypoint x="3670" y="245" /><di:waypoint x="3805" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T1_Gate_di" bpmnElement="Flow_T1_Gate"><di:waypoint x="2452" y="665" /><di:waypoint x="2605" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T1_Confirm_di" bpmnElement="Flow_T1_Confirm"><di:waypoint x="2655" y="665" /><di:waypoint x="2710" y="665" /><di:waypoint x="2710" y="350" /><di:waypoint x="3670" y="350" /><di:waypoint x="3670" y="245" /><di:waypoint x="3805" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="3155" y="326" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T1_Escalate_di" bpmnElement="Flow_T1_Escalate"><di:waypoint x="2655" y="665" /><di:waypoint x="2710" y="665" /><di:waypoint x="2710" y="770" /><di:waypoint x="2710" y="875" /><di:waypoint x="2845" y="875" /><bpmndi:BPMNLabel><dc:Bounds x="2742" y="851" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T1_Timeout_di" bpmnElement="Flow_T1_Timeout"><di:waypoint x="2655" y="665" /><di:waypoint x="2710" y="665" /><di:waypoint x="2710" y="770" /><di:waypoint x="2710" y="875" /><di:waypoint x="2845" y="875" /><bpmndi:BPMNLabel><dc:Bounds x="2742" y="851" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_T2Handle_3_to_Task_T2Handle_di" bpmnElement="Flow_Join_Task_T2Handle_3_to_Task_T2Handle"><di:waypoint x="2895" y="875" /><di:waypoint x="3048" y="875" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T2_Gate_di" bpmnElement="Flow_T2_Gate"><di:waypoint x="3172" y="875" /><di:waypoint x="3190" y="875" /><di:waypoint x="3190" y="350" /><di:waypoint x="3190" y="245" /><di:waypoint x="3325" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T2_Confirm_di" bpmnElement="Flow_T2_Confirm"><di:waypoint x="3375" y="245" /><di:waypoint x="3805" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="3555" y="221" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_T2_Timeout_di" bpmnElement="Flow_T2_Timeout"><di:waypoint x="3375" y="245" /><di:waypoint x="3430" y="245" /><di:waypoint x="3430" y="350" /><di:waypoint x="3430" y="1085" /><di:waypoint x="3528" y="1085" /><bpmndi:BPMNLabel><dc:Bounds x="3440" y="710" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_Confirm_di" bpmnElement="Flow_Notify_Confirm"><di:waypoint x="3652" y="1085" /><di:waypoint x="3670" y="1085" /><di:waypoint x="3670" y="350" /><di:waypoint x="3670" y="245" /><di:waypoint x="3805" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ConfirmResolved_1_to_Task_ConfirmResolved_di" bpmnElement="Flow_Join_Task_ConfirmResolved_1_to_Task_ConfirmResolved"><di:waypoint x="3855" y="245" /><di:waypoint x="4008" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_CSAT_di" bpmnElement="Flow_Confirm_CSAT"><di:waypoint x="4132" y="245" /><di:waypoint x="4150" y="245" /><di:waypoint x="4150" y="350" /><di:waypoint x="4150" y="1085" /><di:waypoint x="4248" y="1085" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_CSAT_Rate_di" bpmnElement="Flow_CSAT_Rate"><di:waypoint x="4372" y="1085" /><di:waypoint x="4390" y="1085" /><di:waypoint x="4390" y="350" /><di:waypoint x="4390" y="245" /><di:waypoint x="4488" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Rate_Log_di" bpmnElement="Flow_Rate_Log"><di:waypoint x="4612" y="245" /><di:waypoint x="4630" y="245" /><di:waypoint x="4630" y="350" /><di:waypoint x="4630" y="1085" /><di:waypoint x="4728" y="1085" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Log_End_di" bpmnElement="Flow_Log_End"><di:waypoint x="4852" y="1085" /><di:waypoint x="4870" y="1085" /><di:waypoint x="4870" y="350" /><di:waypoint x="4870" y="245" /><di:waypoint x="5012" y="245" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

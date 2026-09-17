@@ -1,0 +1,274 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_HRTraining_TOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_HRTraining" name="Quy trình Quản lý Nhân sự &amp; Đào tạo TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_HR" name="HR Team">
+        <bpmn:flowNodeRef>StartEvent_NewQuarter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SkillAnalysis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PlanTraining</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewPlan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_PlanApproved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LogViolation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Evaluate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Complete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_PlanTraining_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_LogViolation_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_University" name="Lazada University (AI)">
+        <bpmn:flowNodeRef>Task_BuildContent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AISuggestCourse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewContent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ContentApproved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PublishCourse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_EnrollmentOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_PrereqMet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Register</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IssueCert</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckCertValidity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_CertValid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateCert</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Gamification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_UpdateCert_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_BuildContent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_PublishCourse_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Seller / Nhân viên">
+        <bpmn:flowNodeRef>Task_Study</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Exam</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ExamPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_Study_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Compliance" name="Compliance (Hệ thống)">
+        <bpmn:flowNodeRef>Task_MonitorCompliance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ComplianceOK</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ViolationDetected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SeverityHigh</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EnforceAction</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SuspendSeller</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Violation</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Finance" name="Finance">
+        <bpmn:flowNodeRef>Task_FinanceReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_BudgetOK</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_NewQuarter" name="Nhu cầu đào tạo đầu quý">
+      <bpmn:outgoing>Flow_Start_SkillAnalysis</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_SkillAnalysis" name="Phân tích khoảng cách kỹ năng bằng AI">
+      <bpmn:incoming>Flow_Start_SkillAnalysis</bpmn:incoming>
+      <bpmn:outgoing>Flow_SkillAnalysis_Plan</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_PlanTraining" name="Tạo kế hoạch đào tạo cá nhân hóa">
+      <bpmn:outgoing>Flow_Plan_Review</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_PlanTraining_1_to_Task_PlanTraining</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReviewPlan" name="Phê duyệt kế hoạch đào tạo">
+      <bpmn:incoming>Flow_Plan_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_GatePlan</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_PlanApproved" name="Kế hoạch đào tạo được phê duyệt?">
+      <bpmn:incoming>Flow_Review_GatePlan</bpmn:incoming>
+      <bpmn:outgoing>Flow_PlanYes_Finance</bpmn:outgoing>
+      <bpmn:outgoing>Flow_PlanNo_Rewrite</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_LogViolation" name="Ghi nhận nhật ký vi phạm chính sách đào tạo">
+      <bpmn:outgoing>Flow_Log_EndViolation</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_LogViolation_1_to_Task_LogViolation</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Evaluate" name="Đánh giá hiệu quả đào tạo sau khóa học">
+      <bpmn:incoming>Flow_Update_Evaluate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Eval_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Complete" name="Chương trình đào tạo đã hoàn tất">
+      <bpmn:incoming>Flow_Eval_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_FinanceReview" name="Duyệt ngân sách đào tạo">
+      <bpmn:incoming>Flow_PlanYes_Finance</bpmn:incoming>
+      <bpmn:outgoing>Flow_Finance_GateBudget</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_BudgetOK" name="Ngân sách đào tạo được duyệt?">
+      <bpmn:incoming>Flow_Finance_GateBudget</bpmn:incoming>
+      <bpmn:outgoing>Flow_BudgetYes_Check</bpmn:outgoing>
+      <bpmn:outgoing>Flow_BudgetNo_Revise</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_CheckCertValidity" name="Kiểm tra chứng chỉ còn hiệu lực">
+      <bpmn:incoming>Flow_BudgetYes_Check</bpmn:incoming>
+      <bpmn:outgoing>Flow_Check_GateCert</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_CertValid" name="Chứng chỉ hiện tại còn hiệu lực?">
+      <bpmn:incoming>Flow_Check_GateCert</bpmn:incoming>
+      <bpmn:outgoing>Flow_CertYes_Update</bpmn:outgoing>
+      <bpmn:outgoing>Flow_CertNo_Build</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_UpdateCert" name="Cập nhật chứng chỉ đào tạo cho nhân viên/Seller">
+      <bpmn:outgoing>Flow_Update_Evaluate</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_UpdateCert_1_to_Task_UpdateCert</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_BuildContent" name="Tạo nội dung khóa học cá nhân hóa bằng AI">
+      <bpmn:outgoing>Flow_Build_Suggest</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_BuildContent_1_to_Task_BuildContent</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AISuggestCourse" name="Đề xuất khóa học phù hợp theo seller">
+      <bpmn:incoming>Flow_Build_Suggest</bpmn:incoming>
+      <bpmn:outgoing>Flow_Suggest_Review</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_ReviewContent" name="Phê duyệt nội dung khóa học">
+      <bpmn:incoming>Flow_Suggest_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_GateContent</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_ContentApproved" name="Nội dung khóa học đạt chuẩn?">
+      <bpmn:incoming>Flow_Review_GateContent</bpmn:incoming>
+      <bpmn:outgoing>Flow_ContentYes_Publish</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ContentNo_Revise</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_PublishCourse" name="Publish khóa học lên Lazada University">
+      <bpmn:outgoing>Flow_Publish_Monitor</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_PublishCourse_1_to_Task_PublishCourse</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_MonitorCompliance" name="Giám sát tuân thủ chính sách đào tạo thời gian thực">
+      <bpmn:incoming>Flow_Publish_Monitor</bpmn:incoming>
+      <bpmn:outgoing>Flow_Monitor_GateCompliance</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_ComplianceOK" name="Tuân thủ chính sách đào tạo?">
+      <bpmn:incoming>Flow_Monitor_GateCompliance</bpmn:incoming>
+      <bpmn:outgoing>Flow_ComplianceYes_Enroll</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ComplianceNo_Violation</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ViolationDetected" name="Phát hiện vi phạm chính sách tự động">
+      <bpmn:incoming>Flow_ComplianceNo_Violation</bpmn:incoming>
+      <bpmn:outgoing>Flow_Violation_GateSeverity</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_SeverityHigh" name="Mức độ vi phạm nghiêm trọng?">
+      <bpmn:incoming>Flow_Violation_GateSeverity</bpmn:incoming>
+      <bpmn:outgoing>Flow_SeverityHigh_Suspend</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SeverityLow_Enforce</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_EnforceAction" name="Áp dụng biện pháp xử lý cảnh cáo">
+      <bpmn:incoming>Flow_SeverityLow_Enforce</bpmn:incoming>
+      <bpmn:outgoing>Flow_Enforce_Log</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SuspendSeller" name="Đình chỉ quyền truy cập Seller vi phạm nghiêm trọng">
+      <bpmn:incoming>Flow_SeverityHigh_Suspend</bpmn:incoming>
+      <bpmn:outgoing>Flow_Suspend_Log</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Violation" name="Vi phạm chính sách đã được xử lý">
+      <bpmn:incoming>Flow_Log_EndViolation</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gate_EnrollmentOK" name="Đủ số lượng người đăng ký tham gia?">
+      <bpmn:incoming>Flow_ComplianceYes_Enroll</bpmn:incoming>
+      <bpmn:outgoing>Flow_EnrollYes_Prereq</bpmn:outgoing>
+      <bpmn:outgoing>Flow_EnrollNo_Wait</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_PrereqMet" name="Đủ điều kiện tiên quyết?">
+      <bpmn:incoming>Flow_EnrollYes_Prereq</bpmn:incoming>
+      <bpmn:outgoing>Flow_PrereqYes_Reg</bpmn:outgoing>
+      <bpmn:outgoing>Flow_PrereqNo_Study</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Register" name="Đăng ký tham gia khóa học">
+      <bpmn:incoming>Flow_PrereqYes_Reg</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reg_Study</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Study" name="Hoàn thành các module học tập trên LMS">
+      <bpmn:outgoing>Flow_Study_Exam</bpmn:outgoing>
+      <bpmn:incoming>Flow_Join_Task_Study_1_to_Task_Study</bpmn:incoming>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Exam" name="Thi đánh giá kiến thức với tự động giám sát">
+      <bpmn:incoming>Flow_Study_Exam</bpmn:incoming>
+      <bpmn:outgoing>Flow_Exam_GatePass</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_ExamPass" name="Đạt điểm yêu cầu (≥70%)?">
+      <bpmn:incoming>Flow_Exam_GatePass</bpmn:incoming>
+      <bpmn:outgoing>Flow_ExamYes_Cert</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ExamNo_Retake</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_IssueCert" name="Cấp chứng chỉ hoàn thành khóa học">
+      <bpmn:incoming>Flow_ExamYes_Cert</bpmn:incoming>
+      <bpmn:outgoing>Flow_IssueCert_Gamification</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Gamification" name="Trao huy hiệu &amp; cập nhật bảng xếp hạng">
+      <bpmn:incoming>Flow_IssueCert_Gamification</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gamification_Update</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_Start_SkillAnalysis" sourceRef="StartEvent_NewQuarter" targetRef="Task_SkillAnalysis" />
+    <bpmn:sequenceFlow id="Flow_SkillAnalysis_Plan" sourceRef="Task_SkillAnalysis" targetRef="Join_Task_PlanTraining_1" />
+    <bpmn:sequenceFlow id="Flow_Plan_Review" sourceRef="Task_PlanTraining" targetRef="Task_ReviewPlan" />
+    <bpmn:sequenceFlow id="Flow_Review_GatePlan" sourceRef="Task_ReviewPlan" targetRef="Gate_PlanApproved" />
+    <bpmn:sequenceFlow id="Flow_PlanYes_Finance" name="Phê duyệt" sourceRef="Gate_PlanApproved" targetRef="Task_FinanceReview" />
+    <bpmn:sequenceFlow id="Flow_PlanNo_Rewrite" name="Yêu cầu chỉnh sửa" sourceRef="Gate_PlanApproved" targetRef="Join_Task_PlanTraining_1" />
+    <bpmn:sequenceFlow id="Flow_Finance_GateBudget" sourceRef="Task_FinanceReview" targetRef="Gate_BudgetOK" />
+    <bpmn:sequenceFlow id="Flow_BudgetYes_Check" name="Duyệt ngân sách" sourceRef="Gate_BudgetOK" targetRef="Task_CheckCertValidity" />
+    <bpmn:sequenceFlow id="Flow_BudgetNo_Revise" name="Từ chối — chỉnh sửa kế hoạch" sourceRef="Gate_BudgetOK" targetRef="Join_Task_PlanTraining_1" />
+    <bpmn:sequenceFlow id="Flow_Check_GateCert" sourceRef="Task_CheckCertValidity" targetRef="Gate_CertValid" />
+    <bpmn:sequenceFlow id="Flow_CertYes_Update" name="Còn hiệu lực — bỏ qua" sourceRef="Gate_CertValid" targetRef="Join_Task_UpdateCert_1" />
+    <bpmn:sequenceFlow id="Flow_CertNo_Build" name="Hết hạn — đào tạo mới" sourceRef="Gate_CertValid" targetRef="Join_Task_BuildContent_1" />
+    <bpmn:sequenceFlow id="Flow_Build_Suggest" sourceRef="Task_BuildContent" targetRef="Task_AISuggestCourse" />
+    <bpmn:sequenceFlow id="Flow_Suggest_Review" sourceRef="Task_AISuggestCourse" targetRef="Task_ReviewContent" />
+    <bpmn:sequenceFlow id="Flow_Review_GateContent" sourceRef="Task_ReviewContent" targetRef="Gate_ContentApproved" />
+    <bpmn:sequenceFlow id="Flow_ContentYes_Publish" name="Đạt chuẩn" sourceRef="Gate_ContentApproved" targetRef="Join_Task_PublishCourse_1" />
+    <bpmn:sequenceFlow id="Flow_ContentNo_Revise" name="Cần chỉnh sửa" sourceRef="Gate_ContentApproved" targetRef="Join_Task_BuildContent_1" />
+    <bpmn:sequenceFlow id="Flow_Publish_Monitor" sourceRef="Task_PublishCourse" targetRef="Task_MonitorCompliance" />
+    <bpmn:sequenceFlow id="Flow_Monitor_GateCompliance" sourceRef="Task_MonitorCompliance" targetRef="Gate_ComplianceOK" />
+    <bpmn:sequenceFlow id="Flow_ComplianceYes_Enroll" name="Tuân thủ" sourceRef="Gate_ComplianceOK" targetRef="Gate_EnrollmentOK" />
+    <bpmn:sequenceFlow id="Flow_ComplianceNo_Violation" name="Phát hiện vi phạm" sourceRef="Gate_ComplianceOK" targetRef="Task_ViolationDetected" />
+    <bpmn:sequenceFlow id="Flow_Violation_GateSeverity" sourceRef="Task_ViolationDetected" targetRef="Gate_SeverityHigh" />
+    <bpmn:sequenceFlow id="Flow_SeverityHigh_Suspend" name="Nghiêm trọng" sourceRef="Gate_SeverityHigh" targetRef="Task_SuspendSeller" />
+    <bpmn:sequenceFlow id="Flow_SeverityLow_Enforce" name="Nhẹ — cảnh cáo" sourceRef="Gate_SeverityHigh" targetRef="Task_EnforceAction" />
+    <bpmn:sequenceFlow id="Flow_Enforce_Log" sourceRef="Task_EnforceAction" targetRef="Join_Task_LogViolation_1" />
+    <bpmn:sequenceFlow id="Flow_Suspend_Log" sourceRef="Task_SuspendSeller" targetRef="Join_Task_LogViolation_1" />
+    <bpmn:sequenceFlow id="Flow_Log_EndViolation" sourceRef="Task_LogViolation" targetRef="EndEvent_Violation" />
+    <bpmn:sequenceFlow id="Flow_EnrollYes_Prereq" name="Đủ đăng ký" sourceRef="Gate_EnrollmentOK" targetRef="Gate_PrereqMet" />
+    <bpmn:sequenceFlow id="Flow_EnrollNo_Wait" name="Chưa đủ — chờ thêm" sourceRef="Gate_EnrollmentOK" targetRef="Join_Task_PublishCourse_1" />
+    <bpmn:sequenceFlow id="Flow_PrereqYes_Reg" name="Đủ điều kiện" sourceRef="Gate_PrereqMet" targetRef="Task_Register" />
+    <bpmn:sequenceFlow id="Flow_PrereqNo_Study" name="Chưa đủ — học bổ sung" sourceRef="Gate_PrereqMet" targetRef="Join_Task_Study_1" />
+    <bpmn:sequenceFlow id="Flow_Reg_Study" sourceRef="Task_Register" targetRef="Join_Task_Study_1" />
+    <bpmn:sequenceFlow id="Flow_Study_Exam" sourceRef="Task_Study" targetRef="Task_Exam" />
+    <bpmn:sequenceFlow id="Flow_Exam_GatePass" sourceRef="Task_Exam" targetRef="Gate_ExamPass" />
+    <bpmn:sequenceFlow id="Flow_ExamYes_Cert" name="Đạt" sourceRef="Gate_ExamPass" targetRef="Task_IssueCert" />
+    <bpmn:sequenceFlow id="Flow_ExamNo_Retake" name="Không đạt — học lại" sourceRef="Gate_ExamPass" targetRef="Join_Task_Study_1" />
+    <bpmn:sequenceFlow id="Flow_IssueCert_Gamification" sourceRef="Task_IssueCert" targetRef="Task_Gamification" />
+    <bpmn:sequenceFlow id="Flow_Gamification_Update" sourceRef="Task_Gamification" targetRef="Join_Task_UpdateCert_1" />
+    <bpmn:sequenceFlow id="Flow_Update_Evaluate" sourceRef="Task_UpdateCert" targetRef="Task_Evaluate" />
+    <bpmn:sequenceFlow id="Flow_Eval_End" sourceRef="Task_Evaluate" targetRef="EndEvent_Complete" />
+    <bpmn:exclusiveGateway id="Join_Task_PlanTraining_1" name="Gom luồng trước khi Tạo kế hoạch đào tạo cá nhân hóa">
+      <bpmn:incoming>Flow_SkillAnalysis_Plan</bpmn:incoming>
+      <bpmn:incoming>Flow_PlanNo_Rewrite</bpmn:incoming>
+      <bpmn:incoming>Flow_BudgetNo_Revise</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_PlanTraining_1_to_Task_PlanTraining</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_PlanTraining_1_to_Task_PlanTraining" sourceRef="Join_Task_PlanTraining_1" targetRef="Task_PlanTraining" />
+    <bpmn:exclusiveGateway id="Join_Task_LogViolation_1" name="Gom luồng trước khi Ghi nhận nhật ký vi phạm chính sách đào tạo">
+      <bpmn:incoming>Flow_Enforce_Log</bpmn:incoming>
+      <bpmn:incoming>Flow_Suspend_Log</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_LogViolation_1_to_Task_LogViolation</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_LogViolation_1_to_Task_LogViolation" sourceRef="Join_Task_LogViolation_1" targetRef="Task_LogViolation" />
+    <bpmn:exclusiveGateway id="Join_Task_UpdateCert_1" name="Gom luồng trước khi Cập nhật chứng chỉ đào tạo cho nhân viên/Seller">
+      <bpmn:incoming>Flow_Gamification_Update</bpmn:incoming>
+      <bpmn:incoming>Flow_CertYes_Update</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_UpdateCert_1_to_Task_UpdateCert</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_UpdateCert_1_to_Task_UpdateCert" sourceRef="Join_Task_UpdateCert_1" targetRef="Task_UpdateCert" />
+    <bpmn:exclusiveGateway id="Join_Task_BuildContent_1" name="Gom luồng trước khi Tạo nội dung khóa học cá nhân hóa bằng AI">
+      <bpmn:incoming>Flow_CertNo_Build</bpmn:incoming>
+      <bpmn:incoming>Flow_ContentNo_Revise</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_BuildContent_1_to_Task_BuildContent</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_BuildContent_1_to_Task_BuildContent" sourceRef="Join_Task_BuildContent_1" targetRef="Task_BuildContent" />
+    <bpmn:exclusiveGateway id="Join_Task_PublishCourse_1" name="Gom luồng trước khi Publish khóa học lên Lazada University">
+      <bpmn:incoming>Flow_ContentYes_Publish</bpmn:incoming>
+      <bpmn:incoming>Flow_EnrollNo_Wait</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_PublishCourse_1_to_Task_PublishCourse</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_PublishCourse_1_to_Task_PublishCourse" sourceRef="Join_Task_PublishCourse_1" targetRef="Task_PublishCourse" />
+    <bpmn:exclusiveGateway id="Join_Task_Study_1" name="Gom luồng trước khi Hoàn thành các module học tập trên LMS">
+      <bpmn:incoming>Flow_Reg_Study</bpmn:incoming>
+      <bpmn:incoming>Flow_PrereqNo_Study</bpmn:incoming>
+      <bpmn:incoming>Flow_ExamNo_Retake</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_Study_1_to_Task_Study</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_Study_1_to_Task_Study" sourceRef="Join_Task_Study_1" targetRef="Task_Study" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_HRTraining"><bpmndi:BPMNShape id="Lane_HR_di" bpmnElement="Lane_HR"><dc:Bounds x="30" y="140" width="6140" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_University_di" bpmnElement="Lane_University"><dc:Bounds x="30" y="350" width="6140" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="560" width="6140" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Compliance_di" bpmnElement="Lane_Compliance"><dc:Bounds x="30" y="770" width="6140" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Finance_di" bpmnElement="Lane_Finance"><dc:Bounds x="30" y="1022" width="6140" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_NewQuarter_di" bpmnElement="StartEvent_NewQuarter"><dc:Bounds x="212" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SkillAnalysis_di" bpmnElement="Task_SkillAnalysis"><dc:Bounds x="408" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PlanTraining_di" bpmnElement="Task_PlanTraining"><dc:Bounds x="888" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReviewPlan_di" bpmnElement="Task_ReviewPlan"><dc:Bounds x="1128" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PlanApproved_di" bpmnElement="Gate_PlanApproved"><dc:Bounds x="1405" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_LogViolation_di" bpmnElement="Task_LogViolation"><dc:Bounds x="4008" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Evaluate_di" bpmnElement="Task_Evaluate"><dc:Bounds x="5688" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Complete_di" bpmnElement="EndEvent_Complete"><dc:Bounds x="5972" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_FinanceReview_di" bpmnElement="Task_FinanceReview"><dc:Bounds x="1608" y="1091" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_BudgetOK_di" bpmnElement="Gate_BudgetOK"><dc:Bounds x="205" y="1102" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CheckCertValidity_di" bpmnElement="Task_CheckCertValidity"><dc:Bounds x="408" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_CertValid_di" bpmnElement="Gate_CertValid"><dc:Bounds x="685" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_UpdateCert_di" bpmnElement="Task_UpdateCert"><dc:Bounds x="5448" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_BuildContent_di" bpmnElement="Task_BuildContent"><dc:Bounds x="1128" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AISuggestCourse_di" bpmnElement="Task_AISuggestCourse"><dc:Bounds x="1368" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReviewContent_di" bpmnElement="Task_ReviewContent"><dc:Bounds x="1608" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ContentApproved_di" bpmnElement="Gate_ContentApproved"><dc:Bounds x="1885" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PublishCourse_di" bpmnElement="Task_PublishCourse"><dc:Bounds x="2328" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_MonitorCompliance_di" bpmnElement="Task_MonitorCompliance"><dc:Bounds x="2568" y="812" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ComplianceOK_di" bpmnElement="Gate_ComplianceOK"><dc:Bounds x="2845" y="823" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ViolationDetected_di" bpmnElement="Task_ViolationDetected"><dc:Bounds x="3048" y="812" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SeverityHigh_di" bpmnElement="Gate_SeverityHigh"><dc:Bounds x="3325" y="823" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_EnforceAction_di" bpmnElement="Task_EnforceAction"><dc:Bounds x="3528" y="812" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SuspendSeller_di" bpmnElement="Task_SuspendSeller"><dc:Bounds x="3528" y="908" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Violation_di" bpmnElement="EndEvent_Violation"><dc:Bounds x="4292" y="830" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_EnrollmentOK_di" bpmnElement="Gate_EnrollmentOK"><dc:Bounds x="3085" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PrereqMet_di" bpmnElement="Gate_PrereqMet"><dc:Bounds x="3325" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Register_di" bpmnElement="Task_Register"><dc:Bounds x="3528" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Study_di" bpmnElement="Task_Study"><dc:Bounds x="4008" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Exam_di" bpmnElement="Task_Exam"><dc:Bounds x="4248" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ExamPass_di" bpmnElement="Gate_ExamPass"><dc:Bounds x="4525" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_IssueCert_di" bpmnElement="Task_IssueCert"><dc:Bounds x="4728" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Gamification_di" bpmnElement="Task_Gamification"><dc:Bounds x="4968" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_PlanTraining_1_di" bpmnElement="Join_Task_PlanTraining_1"><dc:Bounds x="685" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_LogViolation_1_di" bpmnElement="Join_Task_LogViolation_1"><dc:Bounds x="3805" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_UpdateCert_1_di" bpmnElement="Join_Task_UpdateCert_1"><dc:Bounds x="5245" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_BuildContent_1_di" bpmnElement="Join_Task_BuildContent_1"><dc:Bounds x="925" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_PublishCourse_1_di" bpmnElement="Join_Task_PublishCourse_1"><dc:Bounds x="2125" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_Study_1_di" bpmnElement="Join_Task_Study_1"><dc:Bounds x="3805" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_BudgetNo_Revise_di" bpmnElement="Flow_BudgetNo_Revise"><di:waypoint x="255" y="1127" /><di:waypoint x="310" y="1127" /><di:waypoint x="310" y="350" /><di:waypoint x="550" y="350" /><di:waypoint x="550" y="245" /><di:waypoint x="685" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="320" y="732" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_BudgetYes_Check_di" bpmnElement="Flow_BudgetYes_Check"><di:waypoint x="255" y="1127" /><di:waypoint x="310" y="1127" /><di:waypoint x="310" y="560" /><di:waypoint x="310" y="455" /><di:waypoint x="408" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="320" y="836" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Start_SkillAnalysis_di" bpmnElement="Flow_Start_SkillAnalysis"><di:waypoint x="248" y="245" /><di:waypoint x="408" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Check_GateCert_di" bpmnElement="Flow_Check_GateCert"><di:waypoint x="532" y="455" /><di:waypoint x="685" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SkillAnalysis_Plan_di" bpmnElement="Flow_SkillAnalysis_Plan"><di:waypoint x="532" y="245" /><di:waypoint x="685" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_CertNo_Build_di" bpmnElement="Flow_CertNo_Build"><di:waypoint x="735" y="455" /><di:waypoint x="925" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="795" y="431" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_CertYes_Update_di" bpmnElement="Flow_CertYes_Update"><di:waypoint x="735" y="455" /><di:waypoint x="790" y="455" /><di:waypoint x="790" y="407" /><di:waypoint x="5110" y="407" /><di:waypoint x="5110" y="455" /><di:waypoint x="5245" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="2915" y="383" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_PlanTraining_1_to_Task_PlanTraining_di" bpmnElement="Flow_Join_Task_PlanTraining_1_to_Task_PlanTraining"><di:waypoint x="735" y="245" /><di:waypoint x="888" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_BuildContent_1_to_Task_BuildContent_di" bpmnElement="Flow_Join_Task_BuildContent_1_to_Task_BuildContent"><di:waypoint x="975" y="455" /><di:waypoint x="1128" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Plan_Review_di" bpmnElement="Flow_Plan_Review"><di:waypoint x="1012" y="245" /><di:waypoint x="1128" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Build_Suggest_di" bpmnElement="Flow_Build_Suggest"><di:waypoint x="1252" y="455" /><di:waypoint x="1368" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Review_GatePlan_di" bpmnElement="Flow_Review_GatePlan"><di:waypoint x="1252" y="245" /><di:waypoint x="1405" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PlanNo_Rewrite_di" bpmnElement="Flow_PlanNo_Rewrite"><di:waypoint x="1455" y="245" /><di:waypoint x="1510" y="245" /><di:waypoint x="1510" y="1266" /><di:waypoint x="550" y="1266" /><di:waypoint x="550" y="245" /><di:waypoint x="685" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="1520" y="748" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PlanYes_Finance_di" bpmnElement="Flow_PlanYes_Finance"><di:waypoint x="1455" y="245" /><di:waypoint x="1510" y="245" /><di:waypoint x="1510" y="350" /><di:waypoint x="1510" y="1127" /><di:waypoint x="1608" y="1127" /><bpmndi:BPMNLabel><dc:Bounds x="1520" y="732" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Suggest_Review_di" bpmnElement="Flow_Suggest_Review"><di:waypoint x="1492" y="455" /><di:waypoint x="1608" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Finance_GateBudget_di" bpmnElement="Flow_Finance_GateBudget"><di:waypoint x="1732" y="1127" /><di:waypoint x="1750" y="1127" /><di:waypoint x="1750" y="1314" /><di:waypoint x="70" y="1314" /><di:waypoint x="70" y="1127" /><di:waypoint x="205" y="1127" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Review_GateContent_di" bpmnElement="Flow_Review_GateContent"><di:waypoint x="1732" y="455" /><di:waypoint x="1885" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ContentNo_Revise_di" bpmnElement="Flow_ContentNo_Revise"><di:waypoint x="1935" y="455" /><di:waypoint x="1990" y="455" /><di:waypoint x="1990" y="1346" /><di:waypoint x="790" y="1346" /><di:waypoint x="790" y="455" /><di:waypoint x="925" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="1355" y="1322" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ContentYes_Publish_di" bpmnElement="Flow_ContentYes_Publish"><di:waypoint x="1935" y="455" /><di:waypoint x="2125" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="1995" y="431" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_PublishCourse_1_to_Task_PublishCourse_di" bpmnElement="Flow_Join_Task_PublishCourse_1_to_Task_PublishCourse"><di:waypoint x="2175" y="455" /><di:waypoint x="2328" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Publish_Monitor_di" bpmnElement="Flow_Publish_Monitor"><di:waypoint x="2452" y="455" /><di:waypoint x="2470" y="455" /><di:waypoint x="2470" y="560" /><di:waypoint x="2470" y="848" /><di:waypoint x="2568" y="848" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Monitor_GateCompliance_di" bpmnElement="Flow_Monitor_GateCompliance"><di:waypoint x="2692" y="848" /><di:waypoint x="2845" y="848" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ComplianceNo_Violation_di" bpmnElement="Flow_ComplianceNo_Violation"><di:waypoint x="2895" y="848" /><di:waypoint x="3048" y="848" /><bpmndi:BPMNLabel><dc:Bounds x="2936" y="824" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ComplianceYes_Enroll_di" bpmnElement="Flow_ComplianceYes_Enroll"><di:waypoint x="2895" y="848" /><di:waypoint x="2950" y="848" /><di:waypoint x="2950" y="560" /><di:waypoint x="2950" y="455" /><di:waypoint x="3085" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="2960" y="697" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_EnrollNo_Wait_di" bpmnElement="Flow_EnrollNo_Wait"><di:waypoint x="3135" y="455" /><di:waypoint x="3190" y="455" /><di:waypoint x="3190" y="1266" /><di:waypoint x="1990" y="1266" /><di:waypoint x="1990" y="455" /><di:waypoint x="2125" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="2555" y="1242" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_EnrollYes_Prereq_di" bpmnElement="Flow_EnrollYes_Prereq"><di:waypoint x="3135" y="455" /><di:waypoint x="3325" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="3195" y="431" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Violation_GateSeverity_di" bpmnElement="Flow_Violation_GateSeverity"><di:waypoint x="3172" y="848" /><di:waypoint x="3325" y="848" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PrereqNo_Study_di" bpmnElement="Flow_PrereqNo_Study"><di:waypoint x="3375" y="455" /><di:waypoint x="3430" y="455" /><di:waypoint x="3430" y="560" /><di:waypoint x="3670" y="560" /><di:waypoint x="3670" y="665" /><di:waypoint x="3805" y="665" /><bpmndi:BPMNLabel><dc:Bounds x="3515" y="536" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PrereqYes_Reg_di" bpmnElement="Flow_PrereqYes_Reg"><di:waypoint x="3375" y="455" /><di:waypoint x="3528" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="3416" y="431" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SeverityHigh_Suspend_di" bpmnElement="Flow_SeverityHigh_Suspend"><di:waypoint x="3375" y="848" /><di:waypoint x="3430" y="848" /><di:waypoint x="3430" y="896" /><di:waypoint x="3430" y="944" /><di:waypoint x="3528" y="944" /><bpmndi:BPMNLabel><dc:Bounds x="3444" y="920" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SeverityLow_Enforce_di" bpmnElement="Flow_SeverityLow_Enforce"><di:waypoint x="3375" y="848" /><di:waypoint x="3528" y="848" /><bpmndi:BPMNLabel><dc:Bounds x="3416" y="824" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Enforce_Log_di" bpmnElement="Flow_Enforce_Log"><di:waypoint x="3652" y="848" /><di:waypoint x="3670" y="848" /><di:waypoint x="3670" y="350" /><di:waypoint x="3670" y="245" /><di:waypoint x="3805" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Reg_Study_di" bpmnElement="Flow_Reg_Study"><di:waypoint x="3652" y="455" /><di:waypoint x="3670" y="455" /><di:waypoint x="3670" y="560" /><di:waypoint x="3670" y="665" /><di:waypoint x="3805" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Suspend_Log_di" bpmnElement="Flow_Suspend_Log"><di:waypoint x="3652" y="944" /><di:waypoint x="3670" y="944" /><di:waypoint x="3670" y="350" /><di:waypoint x="3670" y="245" /><di:waypoint x="3805" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_LogViolation_1_to_Task_LogViolation_di" bpmnElement="Flow_Join_Task_LogViolation_1_to_Task_LogViolation"><di:waypoint x="3855" y="245" /><di:waypoint x="4008" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_Study_1_to_Task_Study_di" bpmnElement="Flow_Join_Task_Study_1_to_Task_Study"><di:waypoint x="3855" y="665" /><di:waypoint x="4008" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Log_EndViolation_di" bpmnElement="Flow_Log_EndViolation"><di:waypoint x="4132" y="245" /><di:waypoint x="4150" y="245" /><di:waypoint x="4150" y="350" /><di:waypoint x="4150" y="848" /><di:waypoint x="4292" y="848" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Study_Exam_di" bpmnElement="Flow_Study_Exam"><di:waypoint x="4132" y="665" /><di:waypoint x="4248" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Exam_GatePass_di" bpmnElement="Flow_Exam_GatePass"><di:waypoint x="4372" y="665" /><di:waypoint x="4525" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ExamNo_Retake_di" bpmnElement="Flow_ExamNo_Retake"><di:waypoint x="4575" y="665" /><di:waypoint x="4630" y="665" /><di:waypoint x="4630" y="1314" /><di:waypoint x="3670" y="1314" /><di:waypoint x="3670" y="665" /><di:waypoint x="3805" y="665" /><bpmndi:BPMNLabel><dc:Bounds x="4115" y="1290" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ExamYes_Cert_di" bpmnElement="Flow_ExamYes_Cert"><di:waypoint x="4575" y="665" /><di:waypoint x="4630" y="665" /><di:waypoint x="4630" y="560" /><di:waypoint x="4630" y="455" /><di:waypoint x="4728" y="455" /><bpmndi:BPMNLabel><dc:Bounds x="4640" y="606" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_IssueCert_Gamification_di" bpmnElement="Flow_IssueCert_Gamification"><di:waypoint x="4852" y="455" /><di:waypoint x="4968" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gamification_Update_di" bpmnElement="Flow_Gamification_Update"><di:waypoint x="5092" y="455" /><di:waypoint x="5245" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_UpdateCert_1_to_Task_UpdateCert_di" bpmnElement="Flow_Join_Task_UpdateCert_1_to_Task_UpdateCert"><di:waypoint x="5295" y="455" /><di:waypoint x="5448" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Update_Evaluate_di" bpmnElement="Flow_Update_Evaluate"><di:waypoint x="5572" y="455" /><di:waypoint x="5590" y="455" /><di:waypoint x="5590" y="350" /><di:waypoint x="5590" y="245" /><di:waypoint x="5688" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Eval_End_di" bpmnElement="Flow_Eval_End"><di:waypoint x="5812" y="245" /><di:waypoint x="5972" y="245" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

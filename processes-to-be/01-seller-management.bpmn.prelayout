@@ -1,0 +1,474 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_SellerMgmt_TOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_SellerMgmt_TOBE" name="Quản lý Nhà bán hàng TO-BE" isExecutable="true">
+    <bpmn:laneSet id="LS1">
+      <bpmn:lane id="L_Seller" name="Seller">
+        <bpmn:flowNodeRef>SE_Reg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Reg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Upload</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EE_Appr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EE_DocReject</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="L_Sys" name="Lazada System (AI &amp; Automation)">
+        <bpmn:flowNodeRef>T_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_AI_Doc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_KYC</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Risk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_Risk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_AutoAppr</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Notify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Monitor</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_T_Notify_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_T_Notify_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_DocVerify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_KYC_Pass</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="L_Comp" name="Compliance Team">
+        <bpmn:flowNodeRef>Timer_SLA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Manual</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_T_Manual_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="L_Legal" name="Legal / Giám sát Chế tài">
+        <bpmn:flowNodeRef>G_Viol</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Warn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Suspend</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Ban</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EE_Warn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EE_Susp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EE_Ban</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="SE_Reg" name="Yêu cầu đăng ký gian hàng">
+      <bpmn:outgoing>F1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="T_Reg" name="Điền thông tin định danh Seller">
+      <bpmn:incoming>F1</bpmn:incoming>
+      <bpmn:outgoing>F2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_Upload" name="Upload CCCD &amp; GPKD (Smart Scan)">
+      <bpmn:incoming>F2</bpmn:incoming>
+      <bpmn:outgoing>F3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="T_Validate" name="Validate tự động qua API">
+      <bpmn:incoming>F3</bpmn:incoming>
+      <bpmn:outgoing>F4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="T_AI_Doc" name="AI OCR &amp; Chống giấy tờ giả">
+      <bpmn:incoming>F4</bpmn:incoming>
+      <bpmn:outgoing>F23</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="T_KYC" name="Real-time eKYC sinh trắc học">
+      <bpmn:incoming>F_DocVerify_Pass</bpmn:incoming>
+      <bpmn:outgoing>F24</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="T_Risk" name="AI Risk Scoring tự động">
+      <bpmn:incoming>F_KYC_Pass_OK</bpmn:incoming>
+      <bpmn:outgoing>F7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="G_Risk" name="Mức độ rủi ro?">
+      <bpmn:incoming>F7</bpmn:incoming>
+      <bpmn:outgoing>F8</bpmn:outgoing>
+      <bpmn:outgoing>F9</bpmn:outgoing>
+      <bpmn:outgoing>F10</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="T_AutoAppr" name="Tự động kích hoạt (Low-risk 3s)">
+      <bpmn:incoming>F8</bpmn:incoming>
+      <bpmn:outgoing>F11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Timer_SLA" name="Hạn chót SLA 24h">
+      <bpmn:timerEventDefinition id="TD1">
+        <bpmn:timeDuration>PT24H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+      <bpmn:incoming>F10</bpmn:incoming>
+      <bpmn:outgoing>F12</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="T_Manual" name="Compliance review hồ sơ nghi vấn">
+      <bpmn:incoming>Flow_Join_T_Manual_1_to_T_Manual</bpmn:incoming>
+      <bpmn:outgoing>F13</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="T_Notify" name="Thông báo kết quả tức thì">
+      <bpmn:incoming>Flow_Join_T_Notify_2_to_T_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_T_Notify_to_Split_T_Notify_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="T_Monitor" name="Giám sát vi phạm AI realtime">
+      <bpmn:incoming>F14</bpmn:incoming>
+      <bpmn:outgoing>F15</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="G_Viol" name="Mức độ vi phạm?">
+      <bpmn:incoming>F15</bpmn:incoming>
+      <bpmn:outgoing>F16</bpmn:outgoing>
+      <bpmn:outgoing>F17</bpmn:outgoing>
+      <bpmn:outgoing>F18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="T_Warn" name="Gửi cảnh cáo &amp; trừ điểm sao">
+      <bpmn:incoming>F16</bpmn:incoming>
+      <bpmn:outgoing>F19</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_Suspend" name="Tạm khóa gian hàng (7 ngày)">
+      <bpmn:incoming>F17</bpmn:incoming>
+      <bpmn:outgoing>F20</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="T_Ban" name="Khóa vĩnh viễn gian hàng">
+      <bpmn:incoming>F18</bpmn:incoming>
+      <bpmn:outgoing>F21</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EE_Appr" name="Gian hàng Lazada đã được kích hoạt">
+      <bpmn:incoming>F22</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EE_Warn" name="Gian hàng đã bị cảnh cáo">
+      <bpmn:incoming>F19</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EE_Susp" name="Gian hàng đã bị tạm khóa">
+      <bpmn:incoming>F20</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EE_Ban" name="Gian hàng đã bị khóa vĩnh viễn">
+      <bpmn:incoming>F21</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F1" sourceRef="SE_Reg" targetRef="T_Reg" />
+    <bpmn:sequenceFlow id="F2" sourceRef="T_Reg" targetRef="T_Upload" />
+    <bpmn:sequenceFlow id="F3" sourceRef="T_Upload" targetRef="T_Validate" />
+    <bpmn:sequenceFlow id="F4" sourceRef="T_Validate" targetRef="T_AI_Doc" />
+    <bpmn:sequenceFlow id="F23" sourceRef="T_AI_Doc" targetRef="G_DocVerify" />
+    <bpmn:sequenceFlow id="F24" sourceRef="T_KYC" targetRef="G_KYC_Pass" />
+    <bpmn:sequenceFlow id="F_DocVerify_Pass" name="Giấy tờ hợp lệ" sourceRef="G_DocVerify" targetRef="T_KYC" />
+    <bpmn:sequenceFlow id="F_DocVerify_Fail" name="Giấy tờ nghi vấn" sourceRef="G_DocVerify" targetRef="EE_DocReject" />
+    <bpmn:sequenceFlow id="F_KYC_Pass_Fail" name="eKYC thất bại" sourceRef="G_KYC_Pass" targetRef="Join_T_Manual_1" />
+    <bpmn:sequenceFlow id="F7" sourceRef="T_Risk" targetRef="G_Risk" />
+    <bpmn:sequenceFlow id="F8" name="Low-risk (&gt;90%)" sourceRef="G_Risk" targetRef="T_AutoAppr" />
+    <bpmn:sequenceFlow id="F9" name="Nghi vấn (&lt;10%)" sourceRef="G_Risk" targetRef="Join_T_Manual_1" />
+    <bpmn:sequenceFlow id="F10" name="Timeout" sourceRef="G_Risk" targetRef="Timer_SLA" />
+    <bpmn:sequenceFlow id="F11" sourceRef="T_AutoAppr" targetRef="Join_T_Notify_2" />
+    <bpmn:sequenceFlow id="F12" sourceRef="Timer_SLA" targetRef="Join_T_Manual_1" />
+    <bpmn:sequenceFlow id="F13" sourceRef="T_Manual" targetRef="Join_T_Notify_2" />
+    <bpmn:sequenceFlow id="F14" sourceRef="Split_T_Notify_1" targetRef="T_Monitor" />
+    <bpmn:sequenceFlow id="F15" sourceRef="T_Monitor" targetRef="G_Viol" />
+    <bpmn:sequenceFlow id="F16" name="Nhẹ" sourceRef="G_Viol" targetRef="T_Warn" />
+    <bpmn:sequenceFlow id="F17" name="Trung bình" sourceRef="G_Viol" targetRef="T_Suspend" />
+    <bpmn:sequenceFlow id="F18" name="Nặng" sourceRef="G_Viol" targetRef="T_Ban" />
+    <bpmn:sequenceFlow id="F19" sourceRef="T_Warn" targetRef="EE_Warn" />
+    <bpmn:sequenceFlow id="F20" sourceRef="T_Suspend" targetRef="EE_Susp" />
+    <bpmn:sequenceFlow id="F21" sourceRef="T_Ban" targetRef="EE_Ban" />
+    <bpmn:sequenceFlow id="F22" sourceRef="Split_T_Notify_1" targetRef="EE_Appr" />
+    <bpmn:exclusiveGateway id="Join_T_Manual_1" name="Gom luồng trước khi Compliance review hồ sơ nghi vấn">
+      <bpmn:incoming>F_KYC_Pass_Fail</bpmn:incoming>
+      <bpmn:incoming>F9</bpmn:incoming>
+      <bpmn:incoming>F12</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_T_Manual_1_to_T_Manual</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_T_Manual_1_to_T_Manual" sourceRef="Join_T_Manual_1" targetRef="T_Manual" />
+    <bpmn:exclusiveGateway id="Join_T_Notify_2" name="Gom luồng trước khi Thông báo kết quả tức thì">
+      <bpmn:incoming>F11</bpmn:incoming>
+      <bpmn:incoming>F13</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_T_Notify_2_to_T_Notify</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_T_Notify_2_to_T_Notify" sourceRef="Join_T_Notify_2" targetRef="T_Notify" />
+    <bpmn:exclusiveGateway id="Split_T_Notify_1" name="Phân luồng sau Thông báo kết quả tức thì">
+      <bpmn:incoming>Flow_T_Notify_to_Split_T_Notify_1</bpmn:incoming>
+      <bpmn:outgoing>F14</bpmn:outgoing>
+      <bpmn:outgoing>F22</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_T_Notify_to_Split_T_Notify_1" sourceRef="T_Notify" targetRef="Split_T_Notify_1" />
+    <bpmn:exclusiveGateway id="G_DocVerify" name="Giấy tờ hợp lệ?">
+      <bpmn:incoming>F23</bpmn:incoming>
+      <bpmn:outgoing>F_DocVerify_Pass</bpmn:outgoing>
+      <bpmn:outgoing>F_DocVerify_Fail</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="G_KYC_Pass" name="eKYC sinh trắc học thành công?">
+      <bpmn:incoming>F24</bpmn:incoming>
+      <bpmn:outgoing>F_KYC_Pass_Fail</bpmn:outgoing>
+      <bpmn:outgoing>F_KYC_Pass_OK</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EE_DocReject" name="Hồ sơ đã bị từ chối do giấy tờ nghi vấn">
+      <bpmn:incoming>F_DocVerify_Fail</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F_KYC_Pass_OK" name="eKYC thành công" sourceRef="G_KYC_Pass" targetRef="T_Risk" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_SellerMgmt_TOBE">
+      <bpmndi:BPMNShape id="L_Seller_di" bpmnElement="L_Seller">
+        <dc:Bounds x="30" y="0" width="4326" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="L_Sys_di" bpmnElement="L_Sys">
+        <dc:Bounds x="30" y="200" width="4326" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="L_Comp_di" bpmnElement="L_Comp">
+        <dc:Bounds x="30" y="400" width="4326" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="L_Legal_di" bpmnElement="L_Legal">
+        <dc:Bounds x="30" y="600" width="4326" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SE_Reg_di" bpmnElement="SE_Reg">
+        <dc:Bounds x="80" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Reg_di" bpmnElement="T_Reg">
+        <dc:Bounds x="300" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Upload_di" bpmnElement="T_Upload">
+        <dc:Bounds x="520" y="65" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Validate_di" bpmnElement="T_Validate">
+        <dc:Bounds x="740" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_AI_Doc_di" bpmnElement="T_AI_Doc">
+        <dc:Bounds x="960" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_KYC_di" bpmnElement="T_KYC">
+        <dc:Bounds x="1400" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Risk_di" bpmnElement="T_Risk">
+        <dc:Bounds x="1840" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_Risk_di" bpmnElement="G_Risk">
+        <dc:Bounds x="2060" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_AutoAppr_di" bpmnElement="T_AutoAppr">
+        <dc:Bounds x="2280" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_SLA_di" bpmnElement="Timer_SLA">
+        <dc:Bounds x="2280" y="482" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Manual_di" bpmnElement="T_Manual">
+        <dc:Bounds x="2720" y="465" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Notify_di" bpmnElement="T_Notify">
+        <dc:Bounds x="3160" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Monitor_di" bpmnElement="T_Monitor">
+        <dc:Bounds x="3600" y="265" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_Viol_di" bpmnElement="G_Viol">
+        <dc:Bounds x="3820" y="677" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Warn_di" bpmnElement="T_Warn">
+        <dc:Bounds x="4040" y="608" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Suspend_di" bpmnElement="T_Suspend">
+        <dc:Bounds x="4040" y="665" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Ban_di" bpmnElement="T_Ban">
+        <dc:Bounds x="4040" y="721" width="110" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EE_Appr_di" bpmnElement="EE_Appr">
+        <dc:Bounds x="3600" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EE_Warn_di" bpmnElement="EE_Warn">
+        <dc:Bounds x="4260" y="625" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EE_Susp_di" bpmnElement="EE_Susp">
+        <dc:Bounds x="4260" y="682" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EE_Ban_di" bpmnElement="EE_Ban">
+        <dc:Bounds x="4260" y="738" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_T_Manual_1_di" bpmnElement="Join_T_Manual_1">
+        <dc:Bounds x="2500" y="477" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_T_Notify_2_di" bpmnElement="Join_T_Notify_2">
+        <dc:Bounds x="2940" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_T_Notify_1_di" bpmnElement="Split_T_Notify_1">
+        <dc:Bounds x="3380" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_DocVerify_di" bpmnElement="G_DocVerify">
+        <dc:Bounds x="1180" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_KYC_Pass_di" bpmnElement="G_KYC_Pass">
+        <dc:Bounds x="1620" y="277" width="46" height="46" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EE_DocReject_di" bpmnElement="EE_DocReject">
+        <dc:Bounds x="1400" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F1_di" bpmnElement="F1">
+        <di:waypoint x="116" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="151" y="100" />
+        <di:waypoint x="300" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F2_di" bpmnElement="F2">
+        <di:waypoint x="410" y="100" />
+        <di:waypoint x="520" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F3_di" bpmnElement="F3">
+        <di:waypoint x="630" y="100" />
+        <di:waypoint x="665" y="100" />
+        <di:waypoint x="665" y="300" />
+        <di:waypoint x="740" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F4_di" bpmnElement="F4">
+        <di:waypoint x="850" y="300" />
+        <di:waypoint x="960" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F23_di" bpmnElement="F23">
+        <di:waypoint x="1070" y="300" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1105" y="300" />
+        <di:waypoint x="1180" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F24_di" bpmnElement="F24">
+        <di:waypoint x="1510" y="300" />
+        <di:waypoint x="1545" y="300" />
+        <di:waypoint x="1545" y="300" />
+        <di:waypoint x="1620" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_DocVerify_Pass_di" bpmnElement="F_DocVerify_Pass">
+        <di:waypoint x="1226" y="300" />
+        <di:waypoint x="1313" y="300" />
+        <di:waypoint x="1313" y="300" />
+        <di:waypoint x="1400" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1234" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_DocVerify_Fail_di" bpmnElement="F_DocVerify_Fail">
+        <di:waypoint x="1203" y="277" />
+        <di:waypoint x="1203" y="100" />
+        <di:waypoint x="1400" y="100" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1209" y="181" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_KYC_Pass_Fail_di" bpmnElement="F_KYC_Pass_Fail">
+        <di:waypoint x="1643" y="323" />
+        <di:waypoint x="1643" y="500" />
+        <di:waypoint x="2500" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1649" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F7_di" bpmnElement="F7">
+        <di:waypoint x="1950" y="300" />
+        <di:waypoint x="1985" y="300" />
+        <di:waypoint x="1985" y="300" />
+        <di:waypoint x="2060" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F8_di" bpmnElement="F8">
+        <di:waypoint x="2106" y="300" />
+        <di:waypoint x="2193" y="300" />
+        <di:waypoint x="2193" y="300" />
+        <di:waypoint x="2280" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2114" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F9_di" bpmnElement="F9">
+        <di:waypoint x="2083" y="323" />
+        <di:waypoint x="2083" y="500" />
+        <di:waypoint x="2500" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2089" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F10_di" bpmnElement="F10">
+        <di:waypoint x="2083" y="323" />
+        <di:waypoint x="2083" y="500" />
+        <di:waypoint x="2280" y="500" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2089" y="404" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F11_di" bpmnElement="F11">
+        <di:waypoint x="2390" y="300" />
+        <di:waypoint x="2425" y="300" />
+        <di:waypoint x="2425" y="300" />
+        <di:waypoint x="2940" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F12_di" bpmnElement="F12">
+        <di:waypoint x="2316" y="500" />
+        <di:waypoint x="2500" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F13_di" bpmnElement="F13">
+        <di:waypoint x="2830" y="500" />
+        <di:waypoint x="2865" y="500" />
+        <di:waypoint x="2865" y="300" />
+        <di:waypoint x="2940" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F14_di" bpmnElement="F14">
+        <di:waypoint x="3426" y="300" />
+        <di:waypoint x="3513" y="300" />
+        <di:waypoint x="3513" y="300" />
+        <di:waypoint x="3600" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F15_di" bpmnElement="F15">
+        <di:waypoint x="3710" y="300" />
+        <di:waypoint x="3745" y="300" />
+        <di:waypoint x="3745" y="700" />
+        <di:waypoint x="3820" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F16_di" bpmnElement="F16">
+        <di:waypoint x="3843" y="677" />
+        <di:waypoint x="3843" y="643" />
+        <di:waypoint x="4040" y="643" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3849" y="653" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F17_di" bpmnElement="F17">
+        <di:waypoint x="3866" y="700" />
+        <di:waypoint x="3953" y="700" />
+        <di:waypoint x="3953" y="700" />
+        <di:waypoint x="4040" y="700" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3874" y="684" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F18_di" bpmnElement="F18">
+        <di:waypoint x="3843" y="723" />
+        <di:waypoint x="3843" y="756" />
+        <di:waypoint x="4040" y="756" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3849" y="732" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F19_di" bpmnElement="F19">
+        <di:waypoint x="4150" y="643" />
+        <di:waypoint x="4185" y="643" />
+        <di:waypoint x="4185" y="643" />
+        <di:waypoint x="4260" y="643" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F20_di" bpmnElement="F20">
+        <di:waypoint x="4150" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4185" y="700" />
+        <di:waypoint x="4260" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F21_di" bpmnElement="F21">
+        <di:waypoint x="4150" y="756" />
+        <di:waypoint x="4185" y="756" />
+        <di:waypoint x="4185" y="756" />
+        <di:waypoint x="4260" y="756" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F22_di" bpmnElement="F22">
+        <di:waypoint x="3403" y="277" />
+        <di:waypoint x="3403" y="100" />
+        <di:waypoint x="3600" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_T_Manual_1_to_T_Manual_di" bpmnElement="Flow_Join_T_Manual_1_to_T_Manual">
+        <di:waypoint x="2546" y="500" />
+        <di:waypoint x="2633" y="500" />
+        <di:waypoint x="2633" y="500" />
+        <di:waypoint x="2720" y="500" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Join_T_Notify_2_to_T_Notify_di" bpmnElement="Flow_Join_T_Notify_2_to_T_Notify">
+        <di:waypoint x="2986" y="300" />
+        <di:waypoint x="3073" y="300" />
+        <di:waypoint x="3073" y="300" />
+        <di:waypoint x="3160" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_T_Notify_to_Split_T_Notify_1_di" bpmnElement="Flow_T_Notify_to_Split_T_Notify_1">
+        <di:waypoint x="3270" y="300" />
+        <di:waypoint x="3305" y="300" />
+        <di:waypoint x="3305" y="300" />
+        <di:waypoint x="3380" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_KYC_Pass_OK_di" bpmnElement="F_KYC_Pass_OK">
+        <di:waypoint x="1666" y="300" />
+        <di:waypoint x="1753" y="300" />
+        <di:waypoint x="1753" y="300" />
+        <di:waypoint x="1840" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1674" y="284" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

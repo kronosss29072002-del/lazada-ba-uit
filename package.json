@@ -1,0 +1,16 @@
+{
+  "name": "lazada-ba-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lazada VN Business Process Analysis - IE203 UIT (BPMN, screenshots, viewer)",
+  "scripts": {
+    "screenshots": "node scripts/generate-screenshots.js",
+    "copy-libs": "node viewer/copy-libs.js"
+  },
+  "dependencies": {
+    "bpmn-js": "^17.11.1"
+  },
+  "devDependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

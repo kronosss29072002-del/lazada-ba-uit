@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPM Metrics Dashboard — Lazada BA Project</title>
+<style>
+:root {
+  --bg: #0f1117; --card: #1a1d27; --border: #2a2e3d;
+  --accent: #3b82f6; --accent2: #6366f1;
+  --green: #22c55e; --red: #ef4444;
+  --text: #e5e7eb; --muted: #9ca3af;
+  --purple: #764ba2;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:24px; }
+.container { max-width:1200px; margin:0 auto; }
+header {
+  background:linear-gradient(135deg,#3b82f6 0%,#6366f1 50%,#764ba2 100%);
+  border-radius:16px; padding:32px; margin-bottom:24px;
+  box-shadow:0 10px 40px rgba(59,130,246,.25);
+}
+header h1 { font-size:28px; margin-bottom:8px; }
+header p { opacity:.92; font-size:15px; }
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:24px; }
+.kpi-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; transition:.2s; }
+.kpi-card:hover { transform:translateY(-2px); border-color:var(--accent); }
+.kpi-label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.kpi-value { font-size:28px; font-weight:700; }
+.kpi-value.green { color:var(--green); } .kpi-value.orange { color:var(--accent); }
+.kpi-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:24px; }
+.card h2 { font-size:18px; margin-bottom:20px; }
+.bar-group { margin-bottom:18px; }
+.bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.bar-label .name { font-weight:600; }
+.bar-label .vals { color:var(--muted); }
+.bar-track { background:#0b0d12; border-radius:6px; height:28px; position:relative; overflow:hidden; }
+.bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; padding-left:10px; font-size:12px; font-weight:700; color:white; transition:width .8s ease; }
+.bar-fill.as-is { background:linear-gradient(90deg,#3b82f6,#6366f1); }
+.bar-fill.to-be { background:linear-gradient(90deg,#22c55e,#16a34a); }
+.bar-fill.half { position:absolute; top:0; bottom:0; background:rgba(34,197,94,.5); }
+table { width:100%; border-collapse:collapse; }
+th,td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--border); font-size:14px; }
+th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+tr:hover td { background:var(--card-hover); }
+.badge { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
+.badge.good { background:rgba(34,197,94,.15); color:var(--green); }
+.badge.bad { background:rgba(239,68,68,.15); color:var(--red); }
+.note { color:var(--muted); font-size:12px; margin-top:24px; text-align:center; line-height:1.6; }
+.name-chip { display:inline-block; width:24px; height:24px; border-radius:6px; background:var(--accent); color:#fff; font-weight:700; font-size:12px; text-align:center; line-height:24px; margin-right:8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📊 BPM Metrics Dashboard — Lazada Vietnam</h1>
+    <p>So sánh hiệu quả quy trình AS-IS vs TO-BE (10 quy trình nghiệp vụ)</p>
+  </header>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <h2>📈 Cycle Time theo quy trình (ngày)</h2>
+    <div id="cycleChart"></div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Bảng Metrics chi tiết</h2>
+    <div style="overflow-x:auto;">
+      <table id="metricTable"></table>
+    </div>
+  </div>
+
+  <div class="note">
+    💡 Dữ liệu nhúng inline từ <code>metrics/data.json</code> — số liệu ước tính từ phân tích định lượng (10 quy trình)<br>
+    Tasks &amp; gateways khớp với đếm thực tế từ file BPMN (namespace-aware); cycle time dùng thang log để hiển thị đủ CS (~0,05 ngày) và HR (54 ngày)
+  </div>
+</div>
+
+<script>
+const DATA = {
+  "project": "Lazada Vietnam BPMS — AS-IS vs TO-BE Metrics",
+  "updated": "2026-09-14",
+  "processes": {
+    "01-seller-management": {
+      "name": "Quản lý Nhà bán hàng",
+      "cycle_time": {"as_is": 5.0, "to_be": 0.083, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 24500, "to_be": 12000, "currency": "VND"},
+      "error_rate": {"as_is": 9.0, "to_be": 3.8, "unit": "%"},
+      "satisfaction": {"as_is": 68, "to_be": 84, "unit": "/100"},
+      "tasks_count": {"as_is": 14, "to_be": 13},
+      "gateways_count": {"as_is": 15, "to_be": 7},
+      "nva_ratio": {"as_is": 0, "to_be": 0, "unit": "%"}
+    },
+    "02-dispute-management": {
+      "name": "Quản lý Tranh chấp",
+      "cycle_time": {"as_is": 5.2, "to_be": 2.8, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 68000, "to_be": 19000, "currency": "VND"},
+      "error_rate": {"as_is": 13.0, "to_be": 6.0, "unit": "%"},
+      "satisfaction": {"as_is": 64, "to_be": 86, "unit": "/100"},
+      "tasks_count": {"as_is": 12, "to_be": 13},
+      "gateways_count": {"as_is": 16, "to_be": 9},
+      "nva_ratio": {"as_is": 0, "to_be": 0, "unit": "%"}
+    },
+    "03-order-processing": {
+      "name": "Xử lý Đơn hàng Online",
+      "cycle_time": {"as_is": 4.31, "to_be": 3.2, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 38900, "to_be": 19000, "currency": "VND"},
+      "error_rate": {"as_is": 13.0, "to_be": 5.5, "unit": "%"},
+      "satisfaction": {"as_is": 70, "to_be": 88, "unit": "/100"},
+      "tasks_count": {"as_is": 26, "to_be": 22},
+      "gateways_count": {"as_is": 17, "to_be": 9},
+      "nva_ratio": {"as_is": 0, "to_be": 0, "unit": "%"},
+      "efficiency": {"as_is": 1.77, "to_be": 15.0, "unit": "%"}
+    },
+    "04-return-refund": {
+      "name": "Hoàn trả & Refund",
+      "cycle_time": {"as_is": 8.5, "to_be": 1.8, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 109000, "to_be": 45000, "currency": "VND"},
+      "error_rate": {"as_is": 16.0, "to_be": 5.0, "unit": "%"},
+      "satisfaction": {"as_is": 64, "to_be": 90, "unit": "/100"},
+      "tasks_count": {"as_is": 13, "to_be": 16},
+      "gateways_count": {"as_is": 18, "to_be": 9},
+      "nva_ratio": {"as_is": 15, "to_be": 0, "unit": "%"}
+    },
+    "05-customer-service": {
+      "name": "Chăm sóc Khách hàng",
+      "cycle_time": {"as_is": 0.054, "to_be": 0.01, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 52600, "to_be": 30000, "currency": "VND"},
+      "error_rate": {"as_is": 9.0, "to_be": 3.0, "unit": "%"},
+      "satisfaction": {"as_is": 64, "to_be": 80, "unit": "/100"},
+      "tasks_count": {"as_is": 18, "to_be": 14},
+      "gateways_count": {"as_is": 11, "to_be": 9},
+      "nva_ratio": {"as_is": 0, "to_be": 0, "unit": "%"}
+    },
+    "06-marketing": {
+      "name": "Marketing & Khuyến mãi",
+      "cycle_time": {"as_is": 21.1, "to_be": 7.0, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 62000000, "to_be": 30000000, "currency": "VND"},
+      "error_rate": {"as_is": 8.0, "to_be": 3.8, "unit": "%"},
+      "satisfaction": {"as_is": 66, "to_be": 82, "unit": "/100"},
+      "tasks_count": {"as_is": 21, "to_be": 16},
+      "gateways_count": {"as_is": 15, "to_be": 8},
+      "nva_ratio": {"as_is": 10, "to_be": 0, "unit": "%"}
+    },
+    "07-hr-training": {
+      "name": "HR & Đào tạo",
+      "cycle_time": {"as_is": 54, "to_be": 17, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 4000000, "to_be": 1800000, "currency": "VND"},
+      "error_rate": {"as_is": 40, "to_be": 10, "unit": "%"},
+      "satisfaction": {"as_is": 65, "to_be": 80, "unit": "/100"},
+      "tasks_count": {"as_is": 17, "to_be": 21},
+      "gateways_count": {"as_is": 15, "to_be": 15},
+      "nva_ratio": {"as_is": 0, "to_be": 0, "unit": "%"}
+    },
+    "08-payment-settlement": {
+      "name": "Thanh toán & Đối soát",
+      "cycle_time": {"as_is": 2.9, "to_be": 1.5, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 2750, "to_be": 1200, "currency": "VND"},
+      "error_rate": {"as_is": 2.5, "to_be": 0.5, "unit": "%"},
+      "satisfaction": {"as_is": 72, "to_be": 88, "unit": "/100"},
+      "tasks_count": {"as_is": 22, "to_be": 17},
+      "gateways_count": {"as_is": 16, "to_be": 14},
+      "nva_ratio": {"as_is": 9, "to_be": 3, "unit": "%"}
+    },
+    "09-logistics-delivery": {
+      "name": "Giao nhận & Vận chuyển",
+      "cycle_time": {"as_is": 4.0, "to_be": 1.5, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 23450, "to_be": 18000, "currency": "VND"},
+      "error_rate": {"as_is": 22.5, "to_be": 8, "unit": "%"},
+      "satisfaction": {"as_is": 70, "to_be": 88, "unit": "/100"},
+      "tasks_count": {"as_is": 20, "to_be": 17},
+      "gateways_count": {"as_is": 13, "to_be": 19},
+      "nva_ratio": {"as_is": 30, "to_be": 15, "unit": "%"}
+    },
+    "10-it-platform": {
+      "name": "Vận hành CNTT",
+      "cycle_time": {"as_is": 6.9, "to_be": 2.0, "unit": "ngày"},
+      "cost_per_unit": {"as_is": 3900000000, "to_be": 900000000, "currency": "VND"},
+      "error_rate": {"as_is": 15, "to_be": 3, "unit": "%"},
+      "satisfaction": {"as_is": 65, "to_be": 85, "unit": "/100"},
+      "tasks_count": {"as_is": 18, "to_be": 18},
+      "gateways_count": {"as_is": 16, "to_be": 16},
+      "nva_ratio": {"as_is": 11, "to_be": 10, "unit": "%"}
+    }
+  }
+};
+
+(function() {
+  const procs = Object.entries(DATA.processes);
+  renderKPI(procs);
+  renderChart(procs);
+  renderTable(procs);
+
+  function renderKPI(procs) {
+    const pcts = procs.map(([,p]) => (p.cycle_time.as_is - p.cycle_time.to_be) / p.cycle_time.as_is * 100);
+    const avgPct = pcts.reduce((a, b) => a + b, 0) / procs.length;
+    const ctRed = procs.reduce((s, [,p]) => s + (p.cycle_time.as_is - p.cycle_time.to_be), 0);
+    const html = `
+      <div class="kpi-card"><div class="kpi-label">Cycle time giảm trung bình</div>
+        <div class="kpi-value green">-${avgPct.toFixed(0)}%</div>
+        <div class="kpi-sub">trên ${procs.length} quy trình (AS-IS → TO-BE)</div></div>
+      <div class="kpi-card"><div class="kpi-label">Chi phí giảm trung bình</div>
+        <div class="kpi-value orange">-${(procs.reduce((s, [,p]) => s + (p.cost_per_unit.as_is - p.cost_per_unit.to_be) / p.cost_per_unit.as_is, 0) / procs.length * 100).toFixed(0)}%</div>
+        <div class="kpi-sub">cost/đơn vị, bình quân theo quy trình</div></div>
+      <div class="kpi-card"><div class="kpi-label">Error rate giảm trung bình</div>
+        <div class="kpi-value">-${(procs.reduce((s, [,p]) => s + (p.error_rate.as_is - p.error_rate.to_be), 0) / procs.length).toFixed(1)}pp</div>
+        <div class="kpi-sub">điểm phần trăm (pp)</div></div>
+      <div class="kpi-card"><div class="kpi-label">Quy trình mô hình hóa</div>
+        <div class="kpi-value">${procs.length}</div>
+        <div class="kpi-sub">AS-IS + TO-BE BPMN 2.0</div></div>`;
+    document.getElementById('kpiRow').innerHTML = html;
+  }
+
+  function fmtCT(d) {
+    return d >= 1 ? d : Math.round(d * 10000) / 10000;
+  }
+  function fmtCTd(v) { return fmtCT(v); }
+  function renderChart(procs) {
+    // Log scale: cover 0.054 (CS) -> 54 (HR) without crushing small values
+    const L = v => Math.log10(v + 1);
+    const max = Math.max(...procs.map(([,p]) => L(p.cycle_time.as_is)));
+    let html = '';
+    procs.forEach(([k, p]) => {
+      const wAs = Math.max(L(p.cycle_time.as_is) / max * 100, 1.5);
+      const wTo = Math.max(L(p.cycle_time.to_be) / max * 100, 1.5);
+      html += `
+        <div class="bar-group">
+          <div class="bar-label">
+            <span class="name"><span class="name-chip">${k.slice(0,2)}</span>${p.name}</span>
+            <span class="vals">AS-IS ${fmtCT(p.cycle_time.as_is)}d → TO-BE ${fmtCT(p.cycle_time.to_be)}d</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill as-is" style="width:${wAs}%">${fmtCT(p.cycle_time.as_is)}</div>
+          </div>
+          <div class="bar-track" style="margin-top:4px;">
+            <div class="bar-fill to-be" style="width:${wTo}%">${fmtCT(p.cycle_time.to_be)}</div>
+          </div>
+        </div>`;
+    });
+    document.getElementById('cycleChart').innerHTML = html;
+  }
+
+  function fmtCost(v) {
+    if (v >= 1e9) return (v/1e9).toFixed(1) + ' tỷ';
+    if (v >= 1e6) return (v/1e6).toFixed(0) + 'M';
+    if (v >= 1e3) return (v/1e3).toFixed(1) + 'K';
+    return v.toLocaleString('vi-VN');
+  }
+  function renderTable(procs) {
+    let rows = '';
+    procs.forEach(([k, p]) => {
+      const imp = (a, b) => a > b ? 'good' : 'bad';
+      rows += `<tr>
+        <td><span class="name-chip">${k.slice(0,2)}</span><strong>${p.name}</strong></td>
+        <td>${p.tasks_count.as_is} → ${p.tasks_count.to_be}</td>
+        <td>${p.gateways_count.as_is} → <strong>${p.gateways_count.to_be}</strong>
+          <span class="badge ${imp(p.gateways_count.as_is, p.gateways_count.to_be)}">${p.gateways_count.to_be > p.gateways_count.as_is ? '+' : '-'}${Math.round(Math.abs((p.gateways_count.as_is-p.gateways_count.to_be))/p.gateways_count.as_is*100)}%</span></td>
+        <td>${fmtCT(p.cycle_time.as_is)}d → <strong>${fmtCT(p.cycle_time.to_be)}d</strong>
+          <span class="badge ${imp(p.cycle_time.as_is, p.cycle_time.to_be)}">-${Math.round((p.cycle_time.as_is-p.cycle_time.to_be)/p.cycle_time.as_is*100)}%</span></td>
+        <td>${fmtCost(p.cost_per_unit.as_is)} → <strong>${fmtCost(p.cost_per_unit.to_be)}₫</strong>
+          <span class="badge ${imp(p.cost_per_unit.as_is, p.cost_per_unit.to_be)}">-${Math.round((p.cost_per_unit.as_is-p.cost_per_unit.to_be)/p.cost_per_unit.as_is*100)}%</span></td>
+        <td>${p.error_rate.as_is}% → <strong>${p.error_rate.to_be}%</strong>
+          <span class="badge ${imp(p.error_rate.as_is, p.error_rate.to_be)}">${imp(p.error_rate.as_is, p.error_rate.to_be)==='good'?'-':'+'}${Math.round(Math.abs((p.error_rate.as_is-p.error_rate.to_be)))}pp</span></td>
+        <td>${p.satisfaction.as_is} → <strong>${p.satisfaction.to_be}</strong>
+          <span class="badge ${imp(p.satisfaction.to_be, p.satisfaction.as_is)}">+${p.satisfaction.to_be - p.satisfaction.as_is}pt</span></td>
+        <td>${p.efficiency ? `${p.efficiency.as_is}% → <strong>${p.efficiency.to_be}%</strong>` : '—'}</td>
+      </tr>`;
+    });
+    document.getElementById('metricTable').innerHTML = `
+      <tr><th>Quy trình</th><th>Tasks</th><th>Gateways</th><th>Cycle time</th><th>Chi phí/đơn vị</th><th>Error rate</th><th>CSAT/100</th><th>PTE (nếu có)</th></tr>${rows}`;
+  }
+})();
+</script>
+</body>
+</html>

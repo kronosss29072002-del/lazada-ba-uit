@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lazada Việt Nam — Đồ án IE203 • Phân tích Hệ thống Quy trình Nghiệp vụ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lz:#F57224; --lz2:#D65E12; --gold:#FFD200;
+    --head:#141A26; --ink:#222833; --sub:#5E6673;
+    --line:#E3E7ED; --bg:#F6F7F9; --card:#FFFFFF;
+    --green:#15803D; --red:#B42318; --amber:#B45309;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Be Vietnam Pro','Segoe UI',Roboto,system-ui,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45;overflow:hidden}
+  .deck{position:absolute;inset:0;overflow-y:auto;scroll-behavior:smooth;scroll-snap-type:y mandatory}
+  .slide{width:100%;min-height:100%;scroll-snap-align:start;position:relative;
+    display:flex;flex-direction:column;justify-content:center;gap:10px;
+    padding:clamp(20px,4vh,44px) clamp(22px,5vw,88px)}
+  .wrap{max-width:1240px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:10px}
+  .overline{font-size:11.5px;letter-spacing:.14em;font-weight:700;color:var(--lz);text-transform:uppercase}
+  h1{font-size:clamp(26px,3.2vw,46px);color:var(--head);font-weight:800;line-height:1.15}
+  h2{font-size:clamp(20px,2.2vw,30px);color:var(--head);font-weight:800;display:flex;align-items:center;gap:10px}
+  h2::before{content:'';width:5px;height:1.2em;border-radius:2px;background:var(--lz);flex:none}
+  h3{font-size:clamp(15px,1.55vw,20px);color:var(--head);font-weight:800;margin-top:4px}
+  p,li{font-size:clamp(13.5px,1.4vw,18px)}
+  ul,ol{padding-left:1.35em} li{margin:.22em 0}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:clamp(12px,1.25vw,16px);
+    background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th{background:var(--head);color:#fff;text-align:left;
+    padding:.5em .7em;font-weight:600;white-space:nowrap}
+  td{padding:.45em .7em;border-top:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#F7F9FC}
+  pre,.flow{border-radius:10px;padding:12px 16px;overflow-x:auto;line-height:1.5;white-space:pre}
+  pre{background:#10151F;color:#DCE3EC;font-family:'Cascadia Code',Consolas,'SF Mono',ui-monospace,monospace;font-size:clamp(12px,1.3vw,17px)}
+  .flow{font-family:'Cascadia Code',Consolas,'SF Mono',ui-monospace,monospace;background:#10151F;color:#8FC5F0;font-size:clamp(12px,1.3vw,17px)}
+  .flow .root{color:var(--lz);font-weight:700}
+  .green{color:var(--green);font-weight:800}.red{color:var(--red);font-weight:800}.orange{color:var(--lz2);font-weight:800}
+  blockquote{border-left:4px solid var(--lz);background:#FDF3EC;padding:.6em 1em;border-radius:8px;font-size:clamp(13px,1.35vw,17.5px)}
+  blockquote.ok{border-color:var(--green);background:#F0F7F1}
+  .tag{display:inline-block;background:#FDF3EC;color:#B04A0F;border:1px solid #F2D6C0;
+    border-radius:999px;padding:.16em .7em;font-weight:700;font-size:.85em}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 15px;
+    box-shadow:0 1px 2px rgba(20,26,38,.04)}
+  .card h3{margin-top:0}
+  .kpi-row{display:flex;gap:10px;flex-wrap:wrap}
+  .kpi{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-top:3px solid var(--lz);
+    border-radius:10px;padding:9px 13px}
+  .kpi.drk{border-top-color:var(--head)} .kpi.gld{border-top-color:var(--gold)}
+  .kpi .v{font-size:clamp(19px,2.3vw,32px);font-weight:800;color:var(--head)}
+  .kpi .v.gr{color:var(--green)} .kpi .v.rd{color:var(--red)}
+  .kpi .l{font-size:clamp(11px,1.05vw,13.5px);color:var(--sub)}
+  /* cover */
+  .cover{background:radial-gradient(900px 420px at 82% -12%,rgba(245,114,36,.32),transparent 62%),
+    linear-gradient(155deg,#0F1722 0%,#1A2B44 62%,#31200E 165%);color:#fff;text-align:center;align-items:center}
+  .cover h1{color:#fff;font-size:clamp(28px,3.8vw,54px)}
+  .cover .brand{font-size:clamp(30px,4vw,56px);font-weight:800;letter-spacing:.5px;color:#fff}
+  .cover .brand span{color:var(--gold)}
+  .cover p{color:#C7D2E0}
+  .cover .sub{display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);
+    padding:.38em 1.2em;border-radius:999px;font-weight:700}
+  .cover .overline{color:var(--gold)}
+  .team{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .member{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);
+    border-radius:14px;padding:13px 20px;min-width:270px;text-align:left;display:flex;gap:12px;align-items:center}
+  .avatar{width:50px;height:50px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:20px;color:#fff;background:var(--lz)}
+  .avatar.b{background:#24406B}
+  .member .n{font-weight:800;font-size:16.5px;color:#fff}
+  .member .m{font-size:13px;color:#C7D2E0}
+  .cover .meta{font-size:13px;color:#9AA8BC}
+  /* section divider */
+  .section{background:#141A26;color:#fff;text-align:center;align-items:center}
+  .section h1{color:#fff}
+  .section .num{display:inline-flex;width:2.3em;height:2.3em;border-radius:50%;border:2px solid var(--lz);
+    color:var(--lz);font-weight:800;font-size:clamp(15px,1.6vw,21px);align-items:center;justify-content:center}
+  .section p{color:#9AA8BC}
+  /* figures */
+  .fig{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 3px rgba(20,26,38,.05);margin-top:4px}
+  .fig-bar{display:flex;align-items:center;gap:8px;padding:7px 11px;background:#FAFBFC;
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .fig-bar .t{font-weight:700;color:var(--head);font-size:12.5px;margin-right:auto}
+  .seg{display:flex;background:#ECEEF2;border-radius:999px;padding:2px}
+  .seg button{border:none;background:transparent;padding:.26em 1em;border-radius:999px;font-weight:700;
+    font-size:12px;color:var(--head);cursor:pointer}
+  .seg button.on{background:var(--lz);color:#fff}
+  .zset{display:flex;align-items:center;gap:4px}
+  .zset button{border:1px solid var(--line);background:#fff;border-radius:7px;min-width:29px;height:27px;
+    font-weight:700;font-size:13px;color:var(--head);cursor:pointer;padding:0 8px}
+  .zset button:hover{background:#FDF3EC;border-color:var(--lz)}
+  .zset .zv{font-size:12px;font-weight:700;color:var(--sub);min-width:44px;text-align:center}
+  .fig-view{overflow:auto;max-height:36vh;background:#fff;
+    background-image:radial-gradient(#E3E7ED 1px,transparent 1px);background-size:18px 18px}
+  .fig-view img{display:block;height:300px;width:auto;max-width:none;background:#fff}
+  .fig-cap{font-size:12.5px;color:var(--sub);padding:6px 11px;border-top:1px solid var(--line)}
+  .fig-cap strong{color:var(--head)}
+  .ab{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .thumb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .thumb-grid button{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;cursor:zoom-in;padding:0;text-align:center}
+  .thumb-grid img{width:100%;height:92px;object-fit:cover;object-position:left top;display:block;background:#fff}
+  .thumb-grid span{display:block;font-size:11px;font-weight:700;padding:4px 6px;color:var(--head)}
+  .thumb-grid button:hover{border-color:var(--lz);box-shadow:0 2px 8px rgba(245,114,36,.22)}
+  .pareto-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pareto-grid figure{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .pareto-grid img{width:100%;height:240px;object-fit:contain;background:#fff;cursor:zoom-in;display:block}
+  .pareto-grid figcaption{font-size:12px;font-weight:700;padding:5px 9px;color:var(--head);border-top:1px solid var(--line)}
+  .mini-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+  .mini-grid button{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;cursor:zoom-in;padding:0}
+  .mini-grid img{width:100%;height:78px;object-fit:contain;background:#fff;display:block}
+  /* roadmap */
+  .timeline{display:flex;gap:10px}
+  .ph{flex:1;border-radius:10px;padding:9px 14px;color:#fff;display:flex;flex-direction:column;gap:2px;text-align:left}
+  .ph .b{font-size:15px;font-weight:800}
+  .ph .w{font-size:12px;opacity:.85}
+  .ph .c{font-size:12px;opacity:.9}
+  .ph.f1{background:var(--lz)} .ph.f2{background:#1B2A44} .ph.f3{background:var(--card);border:2px solid var(--head);color:var(--head)}
+  .ph.f3 .w{color:var(--sub)}
+  /* chrome */
+  .progress{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,var(--lz),var(--gold));z-index:40;transition:width .3s}
+  .counter{position:fixed;bottom:12px;left:22px;font-size:12.5px;font-weight:700;color:var(--sub);
+    background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:999px;padding:.22em .85em;z-index:40}
+  .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);font-size:11.5px;color:#94A3B8;
+    background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:999px;padding:.22em 1em;z-index:40;white-space:nowrap}
+  .hint kbd{background:var(--head);color:#fff;border-radius:5px;padding:.04em .5em;font-family:inherit;font-size:11px}
+  .nav{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:40}
+  .nav button{width:11px;height:11px;border-radius:50%;background:#CBD5E1;opacity:.65;border:none;cursor:pointer;padding:0}
+  .nav button:hover{opacity:1;background:var(--head)}
+  .nav button.active{background:var(--lz);opacity:1;transform:scale(1.3)}
+  /* lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(4,7,12,.94);display:none;z-index:80;flex-direction:column}
+  .lightbox.open{display:flex}
+  .lightbox .bar{display:flex;align-items:center;gap:8px;padding:10px 16px;color:#E2E8F0;font-size:14px;flex-wrap:wrap}
+  .lightbox .bar strong{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:200px}
+  .lightbox .bar button{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;
+    border-radius:8px;padding:.32em .9em;font-weight:700;cursor:pointer;font-size:13px}
+  .lightbox .bar button:hover{background:rgba(255,255,255,.25)}
+  .lightbox .bar .zv{color:#fff;font-weight:700;min-width:50px;text-align:center}
+  .lightbox .view{flex:1;overflow:auto;padding:14px;cursor:grab;
+    background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 1px);background-size:22px 22px}
+  .lightbox .view img{background:#fff;border-radius:10px;max-width:none;display:block;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+  .foot{font-size:12px;color:#94A3B8}
+  @media(max-width:950px){.grid2,.grid3,.ab,.pareto-grid{grid-template-columns:1fr}.thumb-grid,.mini-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:700px){.hint{display:none}.thumb-grid,.mini-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(min-aspect-ratio:4/3){.slide .wrap{transform:scale(.94);transform-origin:center}}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 1</div>
+<div class="hint"><kbd>Space</kbd> / <kbd>←</kbd><kbd>→</kbd> chuyển slide &nbsp;•&nbsp; bấm sơ đồ để phóng to &nbsp;•&nbsp; <kbd>F</kbd> toàn màn hình</div>
+<div class="nav" id="navdots" role="navigation" aria-label="Slide navigation"></div>
+
+<div class="deck" id="deck">
+
+<!-- ================= 1. BÌA ================= -->
+<section class="slide cover" id="s1"><div class="wrap" style="align-items:center;text-align:center">
+  <p class="overline">IE203 — Hệ thống Quản trị Quy trình Nghiệp vụ • Đồ án cuối kỳ</p>
+  <h1>Phân tích Hệ thống<br>Quy trình Nghiệp vụ</h1>
+  <p class="brand">Lazada <span>Việt Nam</span></p>
+  <p>BPMN 2.0 — 10 quy trình AS-IS &amp; TO-BE • Kiểm chứng Petri Net • VA/BVA/NVA • Pareto 80/20</p>
+  <div class="team">
+    <div class="member"><div class="avatar">K</div><div><div class="n">Trần Quốc Khánh</div><div class="m">MSSV: 24730254</div></div></div>
+    <div class="member"><div class="avatar b">M</div><div><div class="n">Nguyễn Lưu Nhật Minh</div><div class="m">MSSV: 23730190</div></div></div>
+  </div>
+  <p class="meta">Giảng viên: ThS. Hà Lê Hoài Trung &nbsp;•&nbsp; Năm học 2025–2026</p>
+  <p class="meta">Bấm <b style="color:#fff">Space</b> để bắt đầu</p>
+</div></section>
+
+<!-- ================= 2. AGENDA ================= -->
+<section class="slide" id="s2"><div class="wrap">
+  <p class="overline">Nội dung trình bày</p>
+  <h2>Agenda</h2>
+  <div class="grid2">
+    <div class="card"><ol>
+      <li>Giới thiệu Lazada VN &amp; mô hình kinh doanh</li>
+      <li>Kiến trúc quy trình nghiệp vụ (10 quy trình, 3 tầng)</li>
+      <li>Phương pháp nghiên cứu</li>
+      <li>Phân tích 4 quy trình trọng điểm — AS-IS (BPMN) + VA/BVA/NVA + Cycle Time + Root Cause</li>
+    </ol></div>
+    <div class="card"><ol start="5">
+      <li>Đề xuất cải tiến TO-BE &amp; so sánh AS-IS / TO-BE</li>
+      <li>Kiểm chứng Petri Net (10/10 SOUND) + Pareto 80/20</li>
+      <li>Kết luận, hạn chế &amp; hướng phát triển + Phụ lục toàn bộ sơ đồ BPMN</li>
+    </ol></div>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="v">10 + 10</div><div class="l">Mô hình BPMN AS-IS + TO-BE</div></div>
+    <div class="kpi drk"><div class="v">181 / 152</div><div class="l">Tasks / Gateways AS-IS</div></div>
+    <div class="kpi gld"><div class="v gr">10/10</div><div class="l">SOUND (Petri Net)</div></div>
+    <div class="kpi"><div class="v rd">≈ 590 tỷ</div><div class="l">Chi phí lãng phí định vị mỗi tháng (Pareto)</div></div>
+  </div>
+</div></section>
+
+<!-- ================= 3. TỔNG QUAN ================= -->
+<section class="slide" id="s3"><div class="wrap">
+  <p class="overline">Phần 1 — Giới thiệu</p>
+  <h2>1. Lazada Việt Nam — Tổng quan</h2>
+  <ul>
+    <li><strong>Thành lập:</strong> 2012 (Singapore, Rocket Internet) — Alibaba mua lại 2016, tổng vốn rót ~$4,2 tỷ (2016–2022)</li>
+    <li><strong>Mô hình:</strong> Marketplace + <span class="orange">LazMall</span> (gian hàng chính hãng 100%) — “Thương mại niềm tin”</li>
+    <li><strong>Đơn vị VN:</strong> Công ty TNHH Recess — Top 3 TMĐT, thị phần ~10–12%</li>
+  </ul>
+  <div class="grid2">
+    <div class="card"><h3>Hệ sinh thái</h3>
+      <table><thead><tr><th>Nền tảng</th><th>Vai trò</th></tr></thead><tbody>
+        <tr><td>Lazada.vn</td><td>Sàn TMĐT chính</td></tr>
+        <tr><td><strong>LazMall</strong></td><td>Gian hàng chính hãng, bảo hành 15 ngày</td></tr>
+        <tr><td>Lazada Express (LEX)</td><td>Logistics nội bộ</td></tr>
+        <tr><td>Lazada Wallet</td><td>Ví điện tử</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><h3>Đặc điểm kinh doanh</h3>
+      <div class="kpi-row">
+        <div class="kpi"><div class="v rd">40–45%</div><div class="l">COD / giao dịch</div></div>
+        <div class="kpi drk"><div class="v">200–350K</div><div class="l">AOV (VNĐ)</div></div>
+        <div class="kpi"><div class="v rd">20–25%</div><div class="l">Delivery failure (COD)</div></div>
+        <div class="kpi gld"><div class="v">8–12%</div><div class="l">Return rate</div></div>
+      </div>
+      <blockquote style="margin-top:10px">Thách thức: COD áp đảo, thị phần 22% → 10–12%, cạnh tranh Shopee (~65–70%) &amp; TikTok Shop (~20%)</blockquote>
+    </div>
+  </div>
+</div></section>
+
+<!-- ================= 4. KIẾN TRÚC ================= -->
+<section class="slide" id="s4"><div class="wrap">
+  <p class="overline">Phần 2 — Kiến trúc quy trình</p>
+  <h2>2. Kiến trúc quy trình — 3 tầng, 10 quy trình</h2>
+  <pre>┌────────────────────────────────────────────────────────────┐
+│  QUẢN LÝ (3):  Nhà bán hàng (01) • Tranh chấp (02) • Nhân sự &amp; ĐT (07) │
+├────────────────────────────────────────────────────────────┤
+│  CỐT LÕI (4):  Đơn hàng ★ (03) • Thanh toán (08) • Giao hàng (09)   │
+│                Hoàn trả ★ (04)                                 │
+├────────────────────────────────────────────────────────────┤
+│  HỖ TRỢ (3):   CSKH (05) • Marketing (06) • Vận hành CNTT (10)      │
+└────────────────────────────────────────────────────────────┘</pre>
+  <table><thead><tr><th>#</th><th>Quy trình</th><th>Tầng</th><th>Tasks</th><th>GW</th><th>Sound</th></tr></thead><tbody>
+    <tr><td>01</td><td>Quản lý Nhà bán hàng</td><td>Mgmt</td><td>14</td><td>15</td><td class="green">SOUND</td></tr>
+    <tr><td>02</td><td>Quản lý Tranh chấp</td><td>Mgmt</td><td>12</td><td>16</td><td class="green">SOUND</td></tr>
+    <tr><td>03</td><td><strong>Xử lý Đơn hàng ★</strong></td><td>Core</td><td>26</td><td>17</td><td class="green">SOUND</td></tr>
+    <tr><td>04</td><td><strong>Hoàn trả &amp; Hoàn tiền ★</strong></td><td>Core</td><td>13</td><td>18</td><td class="green">SOUND</td></tr>
+    <tr><td>05</td><td>Chăm sóc Khách hàng</td><td>Support</td><td>18</td><td>11</td><td class="green">SOUND</td></tr>
+    <tr><td>06</td><td>Marketing &amp; Khuyến mãi</td><td>Support</td><td>21</td><td>15</td><td class="green">SOUND</td></tr>
+    <tr><td>07</td><td>Nhân sự &amp; Đào tạo</td><td>Mgmt</td><td>17</td><td>15</td><td class="green">SOUND</td></tr>
+    <tr><td>08</td><td>Thanh toán &amp; Đối soát</td><td>Core</td><td>22</td><td>16</td><td class="green">SOUND</td></tr>
+    <tr><td>09</td><td>Logistics &amp; Giao nhận</td><td>Core</td><td>20</td><td>13</td><td class="green">SOUND</td></tr>
+    <tr><td>10</td><td>Vận hành Nền tảng CNTT</td><td>Support</td><td>18</td><td>16</td><td class="green">SOUND</td></tr>
+  </tbody></table>
+  <p><span class="tag">AS-IS: 181 tasks • 152 gateways — mỗi activity 1-in-1-out, parity AS-IS ↔ TO-BE</span></p>
+</div></section>
+
+<!-- ================= 5. TƯƠNG TÁC ================= -->
+<section class="slide" id="s5"><div class="wrap">
+  <p class="overline">Phần 2 — Kiến trúc quy trình</p>
+  <h2>2.1 Ma trận tương tác quy trình</h2>
+  <table><thead><tr><th>Trigger</th><th>Gốc → Kích hoạt</th><th>Loại</th></tr></thead><tbody>
+    <tr><td>Buyer đặt hàng</td><td>Đơn hàng → Thanh toán → Giao hàng</td><td>Song song</td></tr>
+    <tr><td>Giao thất bại</td><td>Giao hàng → Đơn hàng (retry / hủy)</td><td>Quay lại</td></tr>
+    <tr><td>Khiếu nại</td><td>Đơn hàng → Tranh chấp</td><td>Rẽ nhánh</td></tr>
+    <tr><td>Tranh chấp thắng</td><td>Tranh chấp → Hoàn trả</td><td>Kế tiếp</td></tr>
+    <tr><td>Campaign launch</td><td>Marketing → Đơn hàng (spike đơn)</td><td>Song song</td></tr>
+    <tr><td>Vi phạm seller</td><td>Seller Mgmt → Tranh chấp</td><td>Đính kèm</td></tr>
+  </tbody></table>
+  <blockquote>Nhận xét: <strong>Xử lý Đơn hàng là quy trình trung tâm</strong> — kích hoạt &amp; bị kích hoạt bởi hầu hết quy trình còn lại.</blockquote>
+  <blockquote class="ok">Chuẩn mô hình: mỗi activity <strong>1-in-1-out</strong> (check 20/20), loop qua gateway join, đồng bộ ref/lane AS-IS ↔ TO-BE.</blockquote>
+</div></section>
+
+<!-- ================= 6. PHƯƠNG PHÁP ================= -->
+<section class="slide" id="s6"><div class="wrap">
+  <p class="overline">Phần 3 — Phương pháp</p>
+  <h2>3. Phương pháp nghiên cứu</h2>
+  <table><thead><tr><th>Phương pháp</th><th>Phạm vi</th><th>Kết quả</th></tr></thead><tbody>
+    <tr><td><strong>Desk Research</strong></td><td>Seller Center, Help Center, Lazada University, CafeF, industry reports</td><td>Nguồn dữ liệu chính</td></tr>
+    <tr><td><strong>Process Mapping</strong></td><td>BPMN 2.0 (10 AS-IS + 10 TO-BE)</td><td>20 file .bpmn + 20 PNG</td></tr>
+    <tr><td><strong>VA / BVA / NVA</strong></td><td>Phân loại 181 tasks theo giá trị</td><td>Định vị lãng phí</td></tr>
+    <tr><td><strong>Root Cause</strong></td><td>Fishbone + 5-Why cho pain point chính</td><td>COD failure, Refund delay</td></tr>
+    <tr><td><strong>Interview (virtual)</strong></td><td>Seller forum, buyer review, analyst report</td><td>Validate pain point</td></tr>
+    <tr><td><strong>Benchmarking</strong></td><td>Shopee, TikTok Shop, Tiki, chuẩn quốc tế</td><td>Đặt mục tiêu TO-BE</td></tr>
+  </tbody></table>
+  <blockquote><strong>Hạn chế:</strong> Không có internal access — phân tích từ external observation; số liệu là <strong>ước tính</strong> từ phỏng vấn mẫu &amp; báo cáo công khai.</blockquote>
+</div></section>
+
+<!-- ================= 6b. CÂU HỎI NGHIÊN CỨU ================= -->
+<section class="slide" id="s6b"><div class="wrap">
+  <p class="overline">Phần 3 — Phương pháp</p>
+  <h2>3.1 Câu hỏi nghiên cứu</h2>
+  <div class="grid2">
+    <div class="card"><h3>Câu hỏi định tính</h3>
+      <table><thead><tr><th>#</th><th>Câu hỏi</th><th>Phương pháp trả lời</th></tr></thead><tbody>
+        <tr><td>Q1</td><td>Các nút thắt chính trong quy trình xử lý đơn hàng Lazada là gì?</td><td>Process Mapping + Interview</td></tr>
+        <tr><td>Q2</td><td>Nguyên nhân gốc rễ của tỷ lệ giao hàng thất bại COD 20–25% là gì?</td><td>Fishbone + 5-Why</td></tr>
+        <tr><td>Q3</td><td>Trải nghiệm người bán khi xử lý tranh chấp &amp; hoàn trả như thế nào?</td><td>Interview (seller forum, review)</td></tr>
+        <tr><td>Q4</td><td>Đâu là các bước thủ công (NVA/BVA) có thể tự động hóa?</td><td>VA / BVA / NVA Analysis</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><h3>Câu hỏi định lượng</h3>
+      <table><thead><tr><th>#</th><th>Câu hỏi</th><th>Chỉ tiêu đo lường</th></tr></thead><tbody>
+        <tr><td>Q5</td><td>Cycle time trung bình quy trình đơn hàng là bao lâu?</td><td>AS-IS: 103,41h → TO-BE: 18h</td></tr>
+        <tr><td>Q6</td><td>Tỷ lệ tasks giá trị (VA) so với lãng phí (NVA) là bao nhiêu?</td><td>VA 46% / BVA 39% / NVA 15%</td></tr>
+        <tr><td>Q7</td><td>Chi phí lãng phí ước tính hàng tháng là bao nhiêu?</td><td>Pareto: ~590 tỷ/tháng</td></tr>
+        <tr><td>Q8</td><td>Quy trình TO-BE có đảm bảo soundness theo Petri Net?</td><td>100% bounded, Option to Complete</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <blockquote>Mỗi câu hỏi được trả lời bằng ít nhất một phương pháp nghiên cứu; kết quả tổng hợp trong phần phân tích chi tiết (Phần 4) và so sánh AS-IS/TO-BE (Phần 5).</blockquote>
+</div></section>
+
+<!-- ================= 7. SECTION 4 ================= -->
+<section class="slide section" id="s7"><div class="wrap" style="align-items:center;text-align:center">
+  <span class="num">4</span>
+  <h1>Phân tích chi tiết<br>4 quy trình trọng điểm</h1>
+  <p>AS-IS (BPMN 2.0) • VA/BVA/NVA • Cycle Time • Fishbone / 5-Why — kèm sơ đồ phóng to được</p>
+</div></section>
+
+<!-- ================= 8. ĐƠN HÀNG AS-IS ================= -->
+<section class="slide" id="s8"><div class="wrap">
+  <p class="overline">Phần 4 — Phân tích chi tiết</p>
+  <h2>4.1 Xử lý Đơn hàng Online — AS-IS</h2>
+  <p><strong>Phạm vi:</strong> Giỏ hàng → Checkout → Fulfillment → Giao hàng → Settlement &nbsp;•&nbsp; <span class="tag">26 Tasks • 17 Gateways • 5 Lanes</span></p>
+  <div class="grid2">
+    <div class="card"><h3>Root Cause — COD Failure 20–25%</h3>
+      <div class="flow">Buyer vắng nhà khi shipper đến
+→ Không báo trước giờ giao → Shipper không gọi trước
+  → 3PL không bắt buộc pre-contact → KPI chỉ đo speed
+<span class="root">═══ ROOT CAUSE: KPI lệch + thiếu pre-delivery ═══</span></div>
+    </div>
+    <div class="card"><h3>Bottleneck &amp; Cycle Time</h3>
+      <table><thead><tr><th>Bước</th><th>Hold</th><th>Fix TO-BE</th></tr></thead><tbody>
+        <tr><td>Seller confirm</td><td>24–48h</td><td>Auto-accept 2h + SLA</td></tr>
+        <tr><td>3PL pickup</td><td>4–12h</td><td>Slot theo giờ</td></tr>
+        <tr><td>COD fail</td><td>+1–2 ngày</td><td>Gọi trước 30' + slot</td></tr>
+        <tr><td>Settlement L+2</td><td>2 ngày</td><td>Instant seller ưu tú</td></tr>
+      </tbody></table>
+      <p style="margin-top:6px">Cycle Time <strong>103,41h (~4,31 ngày)</strong> — PTE chỉ <span class="red">1,77%</span></p>
+    </div>
+  </div>
+  <div class="fig" data-fig data-h="300">
+    <div class="fig-bar"><span class="t">Hình 4.1 — BPMN Xử lý Đơn hàng (kéo để xem, bấm ảnh để phóng lớn)</span>
+      <span class="seg"><button type="button" class="on" data-t="asis">AS-IS</button><button type="button" data-t="tobe">TO-BE</button></span>
+      <span class="zset"><button type="button" data-z="out">−</button><span class="zv">100%</span><button type="button" data-z="in">+</button><button type="button" data-z="fit">Vừa</button><button type="button" data-z="full">⛶</button></span>
+    </div>
+    <div class="fig-view"><img data-asis="../docs/screenshots/03-order-processing-asis.png" data-tobe="../docs/screenshots/03-order-processing-tobe.png" src="../docs/screenshots/03-order-processing-asis.png" alt="BPMN 03 Xử lý Đơn hàng AS-IS" loading="lazy"></div>
+    <div class="fig-cap"><strong>Đọc sơ đồ:</strong> Buyer → System → Seller → 3PL → Payment Gateway. Tab <b>TO-BE</b> để đối chiếu cải tiến ngay trên slide.</div>
+  </div>
+</div></section>
+
+<!-- ================= 9. ĐƠN HÀNG TO-BE ================= -->
+<section class="slide" id="s9"><div class="wrap">
+  <p class="overline">Phần 4 — Phân tích chi tiết</p>
+  <h2>4.1 Xử lý Đơn hàng — TO-BE</h2>
+  <div class="grid2">
+    <div><table><thead><tr><th>Metric</th><th>AS-IS</th><th>TO-BE</th><th>Δ</th></tr></thead><tbody>
+      <tr><td>Cycle time</td><td>103,41h (~4,3 ngày)</td><td>~3,2 ngày</td><td class="green">−26%</td></tr>
+      <tr><td>Failed delivery</td><td>20–25%</td><td>8%</td><td class="green">−64%</td></tr>
+      <tr><td>Seller confirm</td><td>24–48h</td><td>2h (auto)</td><td class="green">−92%</td></tr>
+      <tr><td>First-attempt</td><td>75–80%</td><td>92%</td><td class="green">+12pp</td></tr>
+      <tr><td>COD refusal</td><td>15–20%</td><td>8%</td><td class="green">−12pp</td></tr>
+    </tbody></table></div>
+    <div class="card"><h3>5 cải tiến chính</h3><ol>
+      <li>Auto-accept sau 2h + penalty SLA</li>
+      <li>API auto-sync tracking (bỏ nhập tay)</li>
+      <li>Shipping label QR thay giấy</li>
+      <li>Pre-delivery contact + time slot bắt buộc</li>
+      <li>Smart notification (Push trước, SMS chỉ COD)</li>
+    </ol></div>
+  </div>
+  <div class="fig" data-fig data-h="280">
+    <div class="fig-bar"><span class="t">Hình 4.2 — BPMN TO-BE Xử lý Đơn hàng (22 Tasks • 9 GW)</span>
+      <span class="zset"><button type="button" data-z="out">−</button><span class="zv">100%</span><button type="button" data-z="in">+</button><button type="button" data-z="fit">Vừa</button><button type="button" data-z="full">⛶</button></span>
+    </div>
+    <div class="fig-view"><img src="../docs/screenshots/03-order-processing-tobe.png" alt="BPMN 03 Xử lý Đơn hàng TO-BE" loading="lazy"></div>
+  </div>
+</div></section>
+
+<!-- ================= 10. HOÀN TRẢ AS-IS ================= -->
+<section class="slide" id="s10"><div class="wrap">
+  <p class="overline">Phần 4 — Phân tích chi tiết</p>
+  <h2>4.2 Hoàn trả &amp; Hoàn tiền — AS-IS</h2>
+  <p><strong>Phạm vi:</strong> Yêu cầu → Duyệt → Thu hồi → Kiểm tra → Hoàn tiền &nbsp;•&nbsp; <span class="tag">13 Tasks • 18 Gateways • 5 Lanes</span></p>
+  <div class="flow">Buyer mở yêu cầu (7–15 ngày) → Full Return / Partial Refund / Only Refund
+→ Upload bằng chứng → Auto-approve / Manual review → Seller phản hồi (48h)
+  ├─ Đồng ý → Pickup → Inspection (3–7 ngày) → Pass: Refund (Wallet 24h / Card 5–15 ngày) / Fail: Reject
+  └─ Từ chối → chuyển Dispute</div>
+  <table><thead><tr><th>Loại</th><th>SL</th><th>Tỷ lệ</th><th>Tiêu biểu</th></tr></thead><tbody>
+    <tr><td class="green">VA</td><td>6</td><td>46%</td><td>Gửi yêu cầu, upload bằng chứng, đặt lịch pickup, LEX pickup</td></tr>
+    <tr><td class="orange">BVA</td><td>5</td><td>39%</td><td>CS thẩm định, kiểm tra hợp lệ, AI phân loại, đặt lại lịch</td></tr>
+    <tr><td class="red">NVA</td><td>2</td><td>15%</td><td>Kiểm định kho tay, kích hoạt hoàn tiền tay → TO-BE ≈ 0%</td></tr>
+  </tbody></table>
+  <div class="fig" data-fig data-h="260">
+    <div class="fig-bar"><span class="t">Hình 4.3 — BPMN Hoàn trả &amp; Hoàn tiền</span>
+      <span class="seg"><button type="button" class="on" data-t="asis">AS-IS</button><button type="button" data-t="tobe">TO-BE</button></span>
+      <span class="zset"><button type="button" data-z="out">−</button><span class="zv">100%</span><button type="button" data-z="in">+</button><button type="button" data-z="fit">Vừa</button><button type="button" data-z="full">⛶</button></span>
+    </div>
+    <div class="fig-view"><img data-asis="../docs/screenshots/04-return-refund-asis.png" data-tobe="../docs/screenshots/04-return-refund-tobe.png" src="../docs/screenshots/04-return-refund-asis.png" alt="BPMN 04 Hoàn trả AS-IS" loading="lazy"></div>
+  </div>
+</div></section>
+
+<!-- ================= 11. HOÀN TRẢ ROOT CAUSE ================= -->
+<section class="slide" id="s11"><div class="wrap">
+  <p class="overline">Phần 4 — Phân tích chi tiết</p>
+  <h2>4.2 Hoàn trả — Root Cause &amp; Chi phí</h2>
+  <h3>5-Why: Vì sao hoàn tiền mất 8,5 ngày?</h3>
+  <div class="flow">Chờ pickup + vận chuyển ngược + kiểm định kho + kích hoạt lệnh thủ công
+→ Kiểm định tay 4–12h + CS review phi cấu trúc → pickup fail +1–2 ngày, reverse 1–2 ngày
+→ Kích hoạt lệnh tay 1–6h; bank clearing 5–15 ngày
+<span class="root">═══ ROOT CAUSE: phụ thuộc tuyến tính reverse-logistics + thiếu Instant Refund &amp; AI ═══</span></div>
+  <div class="grid2">
+    <div class="card"><h3>Unit economics / return</h3>
+      <table><tbody>
+        <tr><td>CS Staff handling / ca</td><td><strong class="red">52.000 VNĐ</strong></td></tr>
+        <tr><td>Reverse logistics + kho + phí</td><td>57.000 VNĐ</td></tr>
+        <tr><td><strong>Tổng / return</strong></td><td><strong class="red">109.000 VNĐ</strong></td></tr>
+        <tr><td>Volume</td><td>~1,1 triệu return/tháng (~120 tỷ/tháng)</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card"><h3>Bottleneck</h3><ul>
+      <li>Inspection <strong>3–7 ngày</strong> — buyer chờ lâu nhất</li>
+      <li>COD refund chỉ về Wallet, không tiền mặt</li>
+      <li>Return abuse (đặt nhiều size, trả phần lớn)</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<!-- ================= 12. HOÀN TRẢ TO-BE ================= -->
+<section class="slide" id="s12"><div class="wrap">
+  <p class="overline">Phần 4 — Phân tích chi tiết</p>
+  <h2>4.2 Hoàn trả — TO-BE</h2>
+  <div class="grid2">
+    <div><table><thead><tr><th>Metric</th><th>AS-IS</th><th>TO-BE</th><th>Δ</th></tr></thead><tbody>
+      <tr><td>Thời gian hoàn tiền</td><td>8,5 ngày</td><td>1,8 ngày</td><td class="green">−78,8%</td></tr>
+      <tr><td>Kiểm định kho</td><td>8h (tay)</td><td>2h (AI)</td><td class="green">−75%</td></tr>
+      <tr><td>CS Staff / ca</td><td>52.000đ</td><td>18.000đ</td><td class="green">−65,4%</td></tr>
+      <tr><td>Escalation</td><td>20%</td><td>5–8%</td><td class="green">−60–75%</td></tr>
+      <tr><td>CSAT</td><td>3,2/5</td><td>4,5/5</td><td class="green">+40,6%</td></tr>
+      <tr><td>BPMN</td><td>13T • 18GW</td><td>16T • 9GW</td><td class="green">Auto 2 NVA</td></tr>
+    </tbody></table></div>
+    <div class="card"><h3>4 cải tiến chính</h3><ol>
+      <li><strong>Instant Refund:</strong> đơn &lt;200K + shop uy tín → refund ngay</li>
+      <li><strong>AI evidence triage:</strong> −70% manual review</li>
+      <li><strong>SLA:</strong> inspection 12h→2h, refund ≤24h</li>
+      <li><strong>Self-service label</strong> + scheduled pickup (retry)</li>
+    </ol></div>
+  </div>
+  <div class="fig" data-fig data-h="260">
+    <div class="fig-bar"><span class="t">Hình 4.4 — BPMN TO-BE Hoàn trả (16 Tasks • 9 GW)</span>
+      <span class="zset"><button type="button" data-z="out">−</button><span class="zv">100%</span><button type="button" data-z="in">+</button><button type="button" data-z="fit">Vừa</button><button type="button" data-z="full">⛶</button></span>
+    </div>
+    <div class="fig-view"><img src="../docs/screenshots/04-return-refund-tobe.png" alt="BPMN 04 Hoàn trả TO-BE" loading="lazy"></div>
+  </div>
+</div></section>
+
+<!-- ================= 13. SELLER + DISPUTE ================= -->
+<section class="slide" id="s13"><div class="wrap">
+  <p class="overline">Phần 4 — Phân tích chi tiết</p>
+  <h2>4.3 Quản lý Seller &amp; Tranh chấp</h2>
+  <div class="grid2">
+    <div class="card"><h3>4.3.1 Seller (14T • 15GW)</h3>
+      <table><thead><tr><th>Metric</th><th>AS-IS</th><th>TO-BE</th><th>Δ</th></tr></thead><tbody>
+        <tr><td>Onboarding</td><td>~40h</td><td>~2h</td><td class="green">−95%</td></tr>
+        <tr><td>KYC (auto)</td><td>0%</td><td>~90%</td><td class="green">+90pp</td></tr>
+        <tr><td>Compliance</td><td>24–48h</td><td>≤24h</td><td class="green">−95%</td></tr>
+      </tbody></table>
+      <p><strong>Fix:</strong> eKYC + OCR, onboarding wizard, dashboard realtime.</p>
+    </div>
+    <div class="card"><h3>4.3.2 Dispute (12T • 16GW)</h3>
+      <table><thead><tr><th>Metric</th><th>AS-IS</th><th>TO-BE</th><th>Δ</th></tr></thead><tbody>
+        <tr><td>Resolution</td><td>5,2 ngày</td><td>2,8 ngày</td><td class="green">−46%</td></tr>
+        <tr><td>Auto-resolve</td><td>5%</td><td>40–50%</td><td class="green">+35–45pp</td></tr>
+        <tr><td>FCR</td><td>45%</td><td>80–85%</td><td class="green">+35–40pp</td></tr>
+      </tbody></table>
+      <p><strong>Fix:</strong> form chuẩn + AI Image Verification + auto-escalation.</p>
+    </div>
+  </div>
+  <div class="ab">
+    <div class="fig" data-fig data-h="200">
+      <div class="fig-bar"><span class="t">Hình 4.5 — Seller</span>
+        <span class="seg"><button type="button" class="on" data-t="asis">AS-IS</button><button type="button" data-t="tobe">TO-BE</button></span>
+        <span class="zset"><button type="button" data-z="out">−</button><span class="zv">100%</span><button type="button" data-z="in">+</button><button type="button" data-z="fit">Vừa</button><button type="button" data-z="full">⛶</button></span>
+      </div>
+      <div class="fig-view"><img data-asis="../docs/screenshots/01-seller-management-asis.png" data-tobe="../docs/screenshots/01-seller-management-tobe.png" src="../docs/screenshots/01-seller-management-asis.png" alt="BPMN 01 Seller AS-IS" loading="lazy"></div>
+    </div>
+    <div class="fig" data-fig data-h="200">
+      <div class="fig-bar"><span class="t">Hình 4.6 — Dispute</span>
+        <span class="seg"><button type="button" class="on" data-t="asis">AS-IS</button><button type="button" data-t="tobe">TO-BE</button></span>
+        <span class="zset"><button type="button" data-z="out">−</button><span class="zv">100%</span><button type="button" data-z="in">+</button><button type="button" data-z="fit">Vừa</button><button type="button" data-z="full">⛶</button></span>
+      </div>
+      <div class="fig-view"><img data-asis="../docs/screenshots/02-dispute-management-asis.png" data-tobe="../docs/screenshots/02-dispute-management-tobe.png" src="../docs/screenshots/02-dispute-management-asis.png" alt="BPMN 02 Dispute AS-IS" loading="lazy"></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ================= 14. SO SÁNH ================= -->
+<section class="slide" id="s14"><div class="wrap">
+  <p class="overline">Phần 5 — Đề xuất &amp; so sánh</p>
+  <h2>5.1 So sánh AS-IS / TO-BE — 10 quy trình</h2>
+  <table><thead><tr><th>#</th><th>Quy trình</th><th>Metric</th><th>AS-IS</th><th>TO-BE</th><th>Δ</th></tr></thead><tbody>
+    <tr><td>P1</td><td><strong>Đơn hàng ★</strong></td><td>Giao 1st thành công</td><td>75–80%</td><td>92%</td><td class="green">+12pp</td></tr>
+    <tr><td>P2</td><td><strong>Hoàn trả ★</strong></td><td>Refund time</td><td>8,5 ngày</td><td>1,8 ngày</td><td class="green">−78,8%</td></tr>
+    <tr><td>P3</td><td>Seller Mgmt</td><td>Duyệt Seller</td><td>40h</td><td>2h</td><td class="green">−95%</td></tr>
+    <tr><td>P4</td><td>Tranh chấp</td><td>Escalation</td><td>20%</td><td>5–8%</td><td class="green">−60–75%</td></tr>
+    <tr><td>P5</td><td>CSKH</td><td>AHT trực tiếp</td><td>79 phút</td><td>~14 phút</td><td class="green">−82%</td></tr>
+    <tr><td>P6</td><td>Marketing</td><td>Time-to-Market</td><td>3–4 tuần</td><td>1 tuần</td><td class="green">−67%</td></tr>
+    <tr><td>P7</td><td>Nhân sự &amp; ĐT</td><td>Hoàn thành khóa</td><td>60%</td><td>90%</td><td class="green">+50%</td></tr>
+    <tr><td>P8</td><td>Thanh toán</td><td>COD discrepancy</td><td>2–3%</td><td>0,5%</td><td class="green">−75–83%</td></tr>
+    <tr><td>P9</td><td>Logistics</td><td>First-attempt</td><td>75–80%</td><td>92%</td><td class="green">+12pp</td></tr>
+    <tr><td>P10</td><td>Vận hành CNTT</td><td>Deploy failure</td><td>15%</td><td>&lt;3%</td><td class="green">−80%+</td></tr>
+  </tbody></table>
+</div></section>
+
+<!-- ================= 15. GALLERY TO-BE ================= -->
+<section class="slide" id="s15"><div class="wrap">
+  <p class="overline">Phần 5 — Đề xuất &amp; so sánh</p>
+  <h2>5.2 Thư viện BPMN TO-BE — 10 sơ đồ</h2>
+  <table><thead><tr><th>#</th><th>Quy trình</th><th>Tasks</th><th>GW</th><th>Cải tiến trọng yếu</th></tr></thead><tbody>
+    <tr><td>01</td><td>Seller</td><td>14→13</td><td>15→7</td><td>eKYC / OCR</td></tr>
+    <tr><td>02</td><td>Dispute</td><td>12→13</td><td>16→9</td><td>AI evidence triage</td></tr>
+    <tr><td>03</td><td><strong>Order ★</strong></td><td>26→22</td><td>17→9</td><td>Risk-tiered, auto-accept</td></tr>
+    <tr><td>04</td><td><strong>Return ★</strong></td><td>13→16</td><td>18→9</td><td>Instant Refund + retry pickup</td></tr>
+    <tr><td>05</td><td>CSKH</td><td>18→14</td><td>11→9</td><td>Chatbot AI Lazzie</td></tr>
+    <tr><td>06</td><td>Marketing</td><td>21→16</td><td>15→8</td><td>Risk-tiered approval</td></tr>
+    <tr><td>07</td><td>HR &amp; Training</td><td>17→21</td><td>15→15</td><td>LMS onboarding</td></tr>
+    <tr><td>08</td><td>Payment</td><td>22→17</td><td>16→14</td><td>Auto-reconcile L+1/L+2</td></tr>
+    <tr><td>09</td><td>Logistics</td><td>20→17</td><td>13→19</td><td>AI route + drop-off</td></tr>
+    <tr><td>10</td><td>IT Ops</td><td>18→18</td><td>16→16</td><td>CI/CD + AIOps</td></tr>
+  </tbody></table>
+  <div class="thumb-grid" id="tobeGrid">
+    <button type="button" data-full="../docs/screenshots/05-customer-service-tobe.png" data-cap="05 — CSKH TO-BE"><img src="../docs/screenshots/05-customer-service-tobe.png" alt="05 CSKH TO-BE" loading="lazy"><span>05 CSKH</span></button>
+    <button type="button" data-full="../docs/screenshots/06-marketing-tobe.png" data-cap="06 — Marketing TO-BE"><img src="../docs/screenshots/06-marketing-tobe.png" alt="06 Marketing TO-BE" loading="lazy"><span>06 Marketing</span></button>
+    <button type="button" data-full="../docs/screenshots/07-hr-training-tobe.png" data-cap="07 — HR &amp; Training TO-BE"><img src="../docs/screenshots/07-hr-training-tobe.png" alt="07 HR TO-BE" loading="lazy"><span>07 HR &amp; ĐT</span></button>
+    <button type="button" data-full="../docs/screenshots/08-payment-settlement-tobe.png" data-cap="08 — Payment TO-BE"><img src="../docs/screenshots/08-payment-settlement-tobe.png" alt="08 Payment TO-BE" loading="lazy"><span>08 Payment</span></button>
+    <button type="button" data-full="../docs/screenshots/09-logistics-delivery-tobe.png" data-cap="09 — Logistics TO-BE"><img src="../docs/screenshots/09-logistics-delivery-tobe.png" alt="09 Logistics TO-BE" loading="lazy"><span>09 Logistics</span></button>
+    <button type="button" data-full="../docs/screenshots/10-it-platform-tobe.png" data-cap="10 — IT TO-BE"><img src="../docs/screenshots/10-it-platform-tobe.png" alt="10 IT TO-BE" loading="lazy"><span>10 IT Ops</span></button>
+    <button type="button" data-full="../docs/screenshots/01-seller-management-tobe.png" data-cap="01 — Seller TO-BE"><img src="../docs/screenshots/01-seller-management-tobe.png" alt="01 Seller TO-BE" loading="lazy"><span>01 Seller</span></button>
+    <button type="button" data-full="../docs/screenshots/02-dispute-management-tobe.png" data-cap="02 — Dispute TO-BE"><img src="../docs/screenshots/02-dispute-management-tobe.png" alt="02 Dispute TO-BE" loading="lazy"><span>02 Dispute</span></button>
+    <button type="button" data-full="../docs/screenshots/03-order-processing-tobe.png" data-cap="03 — Order TO-BE"><img src="../docs/screenshots/03-order-processing-tobe.png" alt="03 Order TO-BE" loading="lazy"><span>03 Order ★</span></button>
+    <button type="button" data-full="../docs/screenshots/04-return-refund-tobe.png" data-cap="04 — Return TO-BE"><img src="../docs/screenshots/04-return-refund-tobe.png" alt="04 Return TO-BE" loading="lazy"><span>04 Return ★</span></button>
+  </div>
+</div></section>
+
+<!-- ================= 16. WASTE + PARETO ================= -->
+<section class="slide" id="s16"><div class="wrap">
+  <p class="overline">Phần 5 — Đề xuất &amp; so sánh</p>
+  <h2>5.3 Waste &amp; Pareto 80/20</h2>
+  <table><thead><tr><th>#</th><th>Quy trình</th><th>Top Waste</th><th>%</th><th>Top Fix</th></tr></thead><tbody>
+    <tr><td>01</td><td>Seller</td><td>Hold (compliance 24–48h)</td><td class="red">50%</td><td>Risk-based auto-approve</td></tr>
+    <tr><td>02</td><td>Dispute</td><td>Hold (seller ≤48h)</td><td class="red">80%</td><td>Dynamic SLA</td></tr>
+    <tr><td>03</td><td><strong>Đơn hàng ★</strong></td><td>Hold (confirm 48h + auto 7d)</td><td class="red">83%</td><td>SLA 24h + reminder</td></tr>
+    <tr><td>04</td><td><strong>Hoàn trả ★</strong></td><td>Move (thẩm định tay)</td><td class="red">60%</td><td>Instant refund</td></tr>
+    <tr><td>05</td><td>CSKH</td><td>Move (xác minh + esc.)</td><td class="red">60%</td><td>Chatbot + NLP</td></tr>
+    <tr><td>06</td><td>Marketing</td><td>Hold (approve 5–8d)</td><td class="red">83%</td><td>Parallel approval</td></tr>
+    <tr><td>07</td><td>Nhân sự</td><td>Hold (ngân sách 5–10d)</td><td class="red">86%</td><td>Auto-approve</td></tr>
+    <tr><td>08</td><td>Thanh toán</td><td>Hold + Move</td><td>50/50</td><td>Auto-reconcile ML</td></tr>
+    <tr><td>09</td><td>Logistics</td><td>Hold (giao lại)</td><td class="red">86%</td><td>Slot + gọi trước</td></tr>
+    <tr><td>10</td><td>CNTT</td><td>Hold (bug loop 2–5d)</td><td class="red">80%</td><td>Shift-left + AI review</td></tr>
+  </tbody></table>
+  <div class="pareto-grid">
+    <figure><img src="../docs/screenshots/pareto-03.png" alt="Pareto P3 Đơn hàng" loading="lazy" data-zoom><figcaption>P3 — Pareto Đơn hàng (trọng điểm)</figcaption></figure>
+    <figure><img src="../docs/screenshots/pareto-04.png" alt="Pareto P4 Hoàn trả" loading="lazy" data-zoom><figcaption>P4 — Pareto Hoàn trả (trọng điểm)</figcaption></figure>
+  </div>
+  <div class="mini-grid" id="paretoGrid">
+    <button type="button" data-full="../docs/screenshots/pareto-01.png" data-cap="P1 — Pareto Seller"><img src="../docs/screenshots/pareto-01.png" alt="P1" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-02.png" data-cap="P2 — Pareto Dispute"><img src="../docs/screenshots/pareto-02.png" alt="P2" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-05.png" data-cap="P5 — Pareto CSKH"><img src="../docs/screenshots/pareto-05.png" alt="P5" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-06.png" data-cap="P6 — Pareto Marketing"><img src="../docs/screenshots/pareto-06.png" alt="P6" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-07.png" data-cap="P7 — Pareto HR"><img src="../docs/screenshots/pareto-07.png" alt="P7" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-08.png" data-cap="P8 — Pareto Payment"><img src="../docs/screenshots/pareto-08.png" alt="P8" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-09.png" data-cap="P9 — Pareto Logistics"><img src="../docs/screenshots/pareto-09.png" alt="P9" loading="lazy"></button>
+    <button type="button" data-full="../docs/screenshots/pareto-10.png" data-cap="P10 — Pareto IT"><img src="../docs/screenshots/pareto-10.png" alt="P10" loading="lazy"></button>
+  </div>
+  <blockquote><strong>Nhận xét — Pareto Đơn hàng:</strong> <span class="orange">~87% chi phí lãng phí</span> (~590 tỷ/tháng) nằm ở 3 nhóm đầu — xử lý trước 3 nhóm này giành phần lớn hiệu quả. Riêng <strong>Hold</strong> là dạng waste lớn nhất ở <strong>7/10</strong> quy trình.</blockquote>
+</div></section>
+
+<!-- ================= 17. PETRI ================= -->
+<section class="slide section" id="s17"><div class="wrap" style="align-items:center;text-align:center">
+  <span class="num">6</span>
+  <h1>Kiểm chứng Petri Net &amp;<br>Lộ trình triển khai</h1>
+  <p>van der Aalst: Option to Complete • Proper Completion • No Dead Transitions (+ boundedness cap=4) — 20/20 mô hình AS-IS + TO-BE</p>
+  <div class="kpi-row" style="max-width:900px;margin:10px auto 0">
+    <div class="kpi"><div class="v gr">100%</div><div class="l">Bounded (cap=4)</div></div>
+    <div class="kpi drk"><div class="v gr">100%</div><div class="l">Option to Complete</div></div>
+    <div class="kpi"><div class="v gr">100%</div><div class="l">Proper Completion</div></div>
+    <div class="kpi gld"><div class="v gr">100%</div><div class="l">No Dead Transitions</div></div>
+  </div>
+  <p style="margin-top:8px">Cấu trúc: mỗi activity <b>1-in-1-out</b> (20/20) • loop qua gateway join • parity AS-IS ↔ TO-BE</p>
+</div></section>
+
+<!-- ================= 18. LỘ TRÌNH TRIỂN KHAI ================= -->
+<section class="slide" id="s18"><div class="wrap">
+  <p class="overline">Phần 6 — Kiểm chứng &amp; đề xuất</p>
+  <h2>6.1 Lộ trình triển khai — 12 tuần, 3 giai đoạn</h2>
+  <p>Ưu tiên các gói “quick win” trước để có kết quả ngắn hạn, sau đó mở rộng AI vào các quy trình nền tảng.</p>
+  <div class="timeline">
+    <div class="ph f1"><span class="w">Tuần 1–4</span><span class="b">GĐ 1 — Quick wins</span><span class="c">Ưu tiên cao • Chi phí thấp</span></div>
+    <div class="ph f2"><span class="w">Tuần 5–8</span><span class="b">GĐ 2 — Tự động hóa</span><span class="c">Ưu tiên cao • Chi phí trung bình</span></div>
+    <div class="ph f3"><span class="w">Tuần 9–12</span><span class="b">GĐ 3 — AI mở rộng</span><span class="c">Ưu tiên trung bình • Chi phí cao</span></div>
+  </div>
+  <div class="grid3">
+    <div class="card"><h3>GĐ 1 — Quick wins</h3><ul>
+      <li>Auto-accept đơn + SLA cảnh báo</li>
+      <li>Instant Refund: đơn &lt;200K, shop uy tín</li>
+      <li>Chatbot AI + Auto-Context (Knowledge Base)</li>
+      <li>CSAT/CES auto-survey 2 câu</li>
+    </ul></div>
+    <div class="card"><h3>GĐ 2 — Tự động hóa</h3><ul>
+      <li>CS Copilot gợi ý cho Tier 1</li>
+      <li>eKYC / OCR onboarding seller</li>
+      <li>AI evidence triage (giảm ~70% review tay)</li>
+      <li>Sentiment + auto-escalation</li>
+    </ul></div>
+    <div class="card"><h3>GĐ 3 — AI mở rộng</h3><ul>
+      <li>Pre-delivery contact + time slot</li>
+      <li>Auto-reconcile thanh toán (ML)</li>
+      <li>Proactive outreach + ML insight</li>
+      <li>AIOps / CI-CD vận hành nền tảng</li>
+    </ul></div>
+  </div>
+  <blockquote>Mức ưu tiên &amp; chi phí là <strong>ước tính</strong> từ đề xuất TO-BE của từng quy trình (mục 5.1–5.3); thứ tự giai đoạn bám theo Pareto — xử lý trước các nhóm waste lớn (Hold, Move) chiếm ~87% chi phí lãng phí.</blockquote>
+</div></section>
+
+<!-- ================= 19. KẾT LUẬN ================= -->
+<section class="slide" id="s19"><div class="wrap">
+  <p class="overline">Phần 6 — Kiểm chứng &amp; đề xuất</p>
+  <h2>6.2 Kết luận &amp; Kiến nghị</h2>
+  <div class="grid2">
+    <div class="card"><h3 class="green">Điểm mạnh phát huy</h3><ul>
+      <li><strong>LazMall</strong> — “Thương mại niềm tin”, khác biệt vs Shopee</li>
+      <li><strong>Alibaba ecosystem</strong> — TMall, Gmarket, AI/ML</li>
+      <li><strong>LEX</strong> — mạng giao hàng riêng</li>
+      <li><strong>Escrow</strong> — bảo vệ buyer &amp; seller</li>
+    </ul></div>
+    <div class="card"><h3 class="red">Thách thức → TO-BE đã xử lý</h3><ul>
+      <li>COD 40–45% (fail 20–25%) → risk-tiered + pre-delivery</li>
+      <li>Return 8–12% → Instant Refund + AI inspection</li>
+      <li>Refund 8,5 ngày (3× benchmark) → <span class="green">1,8 ngày −78,8%</span></li>
+      <li>Duyệt seller 40h → <span class="green">eKYC 2h −95%</span></li>
+    </ul></div>
+  </div>
+  <div class="card"><h3>Bài học kinh nghiệm</h3><ol>
+    <li>BPMN trực quan hóa tốt quy trình đa bên (multi-stakeholder)</li>
+    <li>VA/NVA + Waste → quick wins, đặc biệt <strong>Hold waste</strong></li>
+    <li>Fishbone &amp; 5-Why giúp fix đúng root cause, không fix triệu chứng</li>
+    <li>Benchmark đối thủ để đặt target thực tế</li>
+  </ol></div>
+</div></section>
+
+<!-- ================= 20. HẠN CHẾ ================= -->
+<section class="slide" id="s20"><div class="wrap">
+  <p class="overline">Phần 6 — Kiểm chứng &amp; đề xuất</p>
+  <h2>6.3 Hạn chế &amp; Hướng phát triển</h2>
+  <div class="grid2">
+    <div class="card"><h3>Hạn chế nghiên cứu</h3><ul>
+      <li>Không có internal access — dựa trên external observation</li>
+      <li>Số liệu là <strong>ước tính</strong> (phỏng vấn mẫu + báo cáo công khai + Seller Center policy)</li>
+      <li>CSAT ước tính từ app-store ratings</li>
+    </ul></div>
+    <div class="card"><h3>Hướng phát triển</h3><ol>
+      <li><strong>BPMS Engine:</strong> chạy 20 file .bpmn trên Camunda, simulation tải thực</li>
+      <li><strong>Phỏng vấn thực tế:</strong> seller, buyer, CS, logistics</li>
+      <li><strong>Simulation:</strong> Monte Carlo cho Cycle Time &amp; chi phí</li>
+      <li><strong>AI realtime:</strong> risk-score giảm COD refusal; mở rộng Cross-border &amp; FBL</li>
+    </ol></div>
+  </div>
+</div></section>
+
+<!-- ================= 21. PHỤ LỤC BPMN ================= -->
+<section class="slide" id="s21"><div class="wrap">
+  <p class="overline">Phụ lục</p>
+  <h2>Phụ lục A — Toàn bộ BPMN AS-IS (10 sơ đồ)</h2>
+  <div class="thumb-grid" id="asisGrid">
+    <button type="button" data-full="../docs/screenshots/01-seller-management-asis.png" data-cap="01 — Seller AS-IS"><img src="../docs/screenshots/01-seller-management-asis.png" alt="01 AS-IS" loading="lazy"><span>01 Seller</span></button>
+    <button type="button" data-full="../docs/screenshots/02-dispute-management-asis.png" data-cap="02 — Dispute AS-IS"><img src="../docs/screenshots/02-dispute-management-asis.png" alt="02 AS-IS" loading="lazy"><span>02 Dispute</span></button>
+    <button type="button" data-full="../docs/screenshots/03-order-processing-asis.png" data-cap="03 — Order AS-IS"><img src="../docs/screenshots/03-order-processing-asis.png" alt="03 AS-IS" loading="lazy"><span>03 Order ★</span></button>
+    <button type="button" data-full="../docs/screenshots/04-return-refund-asis.png" data-cap="04 — Return AS-IS"><img src="../docs/screenshots/04-return-refund-asis.png" alt="04 AS-IS" loading="lazy"><span>04 Return ★</span></button>
+    <button type="button" data-full="../docs/screenshots/05-customer-service-asis.png" data-cap="05 — CSKH AS-IS"><img src="../docs/screenshots/05-customer-service-asis.png" alt="05 AS-IS" loading="lazy"><span>05 CSKH</span></button>
+    <button type="button" data-full="../docs/screenshots/06-marketing-asis.png" data-cap="06 — Marketing AS-IS"><img src="../docs/screenshots/06-marketing-asis.png" alt="06 AS-IS" loading="lazy"><span>06 Marketing</span></button>
+    <button type="button" data-full="../docs/screenshots/07-hr-training-asis.png" data-cap="07 — HR AS-IS"><img src="../docs/screenshots/07-hr-training-asis.png" alt="07 AS-IS" loading="lazy"><span>07 HR</span></button>
+    <button type="button" data-full="../docs/screenshots/08-payment-settlement-asis.png" data-cap="08 — Payment AS-IS"><img src="../docs/screenshots/08-payment-settlement-asis.png" alt="08 AS-IS" loading="lazy"><span>08 Payment</span></button>
+    <button type="button" data-full="../docs/screenshots/09-logistics-delivery-asis.png" data-cap="09 — Logistics AS-IS"><img src="../docs/screenshots/09-logistics-delivery-asis.png" alt="09 AS-IS" loading="lazy"><span>09 Logistics</span></button>
+    <button type="button" data-full="../docs/screenshots/10-it-platform-asis.png" data-cap="10 — IT AS-IS"><img src="../docs/screenshots/10-it-platform-asis.png" alt="10 AS-IS" loading="lazy"><span>10 IT Ops</span></button>
+  </div>
+  <p class="foot">Bấm bất kỳ sơ đồ nào để phóng to, cuộn chuột để zoom, kéo để di chuyển. File gốc: <b>processes/*.bpmn</b> • Ảnh: <b>docs/screenshots/</b></p>
+</div></section>
+
+<!-- ================= 22. CẢM ƠN ================= -->
+<section class="slide cover" id="s22"><div class="wrap" style="align-items:center;text-align:center">
+  <h1>Cảm ơn!</h1>
+  <p style="font-size:clamp(19px,2.2vw,30px);font-weight:800;color:#fff">Q&amp;A — Trình bày &amp; Thảo luận</p>
+  <div class="team">
+    <div class="member"><div class="avatar">K</div><div><div class="n">Trần Quốc Khánh</div><div class="m">MSSV: 24730254</div></div></div>
+    <div class="member"><div class="avatar b">M</div><div><div class="n">Nguyễn Lưu Nhật Minh</div><div class="m">MSSV: 23730190</div></div></div>
+  </div>
+  <p><span class="sub">IE203 — GV: ThS. Hà Lê Hoài Trung</span></p>
+</div></section>
+
+</div>
+
+<!-- ================= LIGHTBOX ================= -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Phóng to sơ đồ">
+  <div class="bar">
+    <strong id="lbCap">Sơ đồ</strong>
+    <button type="button" id="lbOut">− Thu nhỏ</button>
+    <span class="zv" id="lbZoom">100%</span>
+    <button type="button" id="lbIn">+ Phóng to</button>
+    <button type="button" id="lbFit">Vừa màn hình</button>
+    <button type="button" id="lb11">1:1</button>
+    <button type="button" id="lbClose">✕ Đóng (Esc)</button>
+  </div>
+  <div class="view" id="lbView"><img id="lbImg" alt="Phóng to sơ đồ BPMN"></div>
+</div>
+
+<script>
+(function(){
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var nav = document.getElementById('navdots');
+  var counter = document.getElementById('counter');
+  var progress = document.getElementById('progress');
+  var count = slides.length, idx = 0, busy = false;
+
+  /* ---------- dots ---------- */
+  var dots = [];
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < count; i++){
+    (function(i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = 'Slide ' + (i+1);
+      b.setAttribute('aria-label','Tới slide ' + (i+1));
+      b.addEventListener('click', function(){ go(i); });
+      dots.push(b); frag.appendChild(b);
+    })(i);
+  }
+  nav.appendChild(frag);
+
+  function render(){
+    counter.textContent = (idx+1) + ' / ' + count;
+    progress.style.width = ((idx+1)/count*100) + '%';
+    dots.forEach(function(d,i){ d.classList.toggle('active', i===idx); });
+    try{ history.replaceState(null,'','#s'+(idx+1)); }catch(e){}
+  }
+  function go(i){
+    if (lb.open) return;
+    if (i<0) i=0; if (i>count-1) i=count-1;
+    idx = i; busy = true;
+    slides[idx].scrollIntoView({behavior:'smooth', block:'start'});
+    render(); setTimeout(function(){ busy=false; }, 450);
+  }
+  function cur(){ return idx; }
+  var syncT=null;
+  deck.addEventListener('scroll', function(){
+    if (busy || lb.open) return;
+    if (syncT) return;
+    syncT=setTimeout(function(){ syncT=null;
+      var h = window.innerHeight||800, i = Math.round(deck.scrollTop/h);
+      if (i<0) i=0; if (i>count-1) i=count-1;
+      if (i!==idx){ idx=i; render(); }
+    },120);
+  }, {passive:true});
+
+  /* ---------- inline zoomable figures ---------- */
+  function baseH(fig){
+    var v = parseInt(fig.getAttribute('data-h')||'300',10);
+    return isNaN(v)?300:v;
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fig]'), function(fig){
+    var img = fig.querySelector('.fig-view img');
+    var view = fig.querySelector('.fig-view');
+    var zv = fig.querySelector('.zv');
+    var h = baseH(fig), fit = false;
+    function apply(){
+      if (fit){ img.style.height='auto'; img.style.width='100%'; if(zv) zv.textContent='Fit'; }
+      else { img.style.width='auto'; img.style.height=h+'px'; if(zv) zv.textContent=Math.round(h/baseH(fig)*100)+'%'; }
+    }
+    apply();
+    Array.prototype.forEach.call(fig.querySelectorAll('.seg button'), function(b){
+      b.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        Array.prototype.forEach.call(fig.querySelectorAll('.seg button'), function(x){x.classList.remove('on');});
+        b.classList.add('on');
+        var t = b.getAttribute('data-t');
+        img.src = (t==='tobe') ? img.getAttribute('data-tobe') : img.getAttribute('data-asis');
+        img.alt = img.alt.replace(/AS-IS|TO-BE/, t==='tobe'?'TO-BE':'AS-IS');
+      });
+    });
+    Array.prototype.forEach.call(fig.querySelectorAll('[data-z]'), function(b){
+      b.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var z = b.getAttribute('data-z');
+        if (z==='in'){ fit=false; h=Math.min(900,h+80); }
+        else if (z==='out'){ fit=false; h=Math.max(140,h-80); }
+        else if (z==='fit'){ fit=true; }
+        else if (z==='full'){ lb.show(img.currentSrc||img.src, img.alt); return; }
+        apply();
+      });
+    });
+    img.addEventListener('click', function(ev){ ev.stopPropagation(); lb.show(img.currentSrc||img.src, img.alt); });
+    img.addEventListener('wheel', function(ev){
+      if (!ev.ctrlKey) return;
+      ev.preventDefault(); fit=false;
+      h = Math.max(140, Math.min(900, h + (ev.deltaY<0?60:-60)));
+      apply();
+    }, {passive:false});
+  });
+
+  /* ---------- lightbox ---------- */
+  var lbEl=document.getElementById('lightbox'), lbImg=document.getElementById('lbImg'),
+      lbCap=document.getElementById('lbCap'), lbView=document.getElementById('lbView'),
+      lbZoom=document.getElementById('lbZoom');
+  var lb = { open:false, scale:1, natW:0 };
+  lb.show = function(src, cap){
+    lb.open=true; lb.scale=1;
+    lbImg.style.width='auto'; lbZoom.textContent='100%';
+    lbImg.src=src; lbCap.textContent=cap||src.split('/').pop();
+    lbEl.classList.add('open');
+    lbView.scrollLeft=0; lbView.scrollTop=0;
+  };
+  function hide(){ lb.open=false; lbEl.classList.remove('open'); lbImg.removeAttribute('src'); }
+  function applyLb(){
+    if (!lb.natW) return;
+    lbImg.style.width = Math.round(lb.natW*lb.scale)+'px';
+    lbZoom.textContent = Math.round(lb.scale*100)+'%';
+  }
+  lbImg.addEventListener('load', function(){
+    lb.natW = lbImg.naturalWidth||1600;
+    if (lb.natW < 1400){ lb.scale = Math.max(1, 1500/lb.natW); } else { lb.scale = 1; }
+    var fitW = (lbView.clientWidth-28)/lb.natW;
+    if (fitW < lb.scale) lb.scale = Math.max(0.2, fitW);
+    applyLb();
+  });
+  document.getElementById('lbIn').addEventListener('click', function(){ lb.scale=Math.min(5,lb.scale*1.25); applyLb(); });
+  document.getElementById('lbOut').addEventListener('click', function(){ lb.scale=Math.max(0.15,lb.scale/1.25); applyLb(); });
+  document.getElementById('lb11').addEventListener('click', function(){ lb.scale=1; applyLb(); });
+  document.getElementById('lbFit').addEventListener('click', function(){
+    if (!lb.natW) return;
+    lb.scale=Math.max(0.15,(lbView.clientWidth-28)/lb.natW); applyLb();
+  });
+  document.getElementById('lbClose').addEventListener('click', hide);
+  lbView.addEventListener('click', function(e){ if (e.target===lbView) hide(); });
+  lbView.addEventListener('wheel', function(e){
+    if (!lb.open) return;
+    e.preventDefault();
+    lb.scale = Math.max(0.15, Math.min(5, lb.scale*(e.deltaY<0?1.12:0.89)));
+    applyLb();
+  }, {passive:false});
+  var drag=null;
+  lbView.addEventListener('pointerdown', function(e){ drag={x:e.clientX,y:e.clientY,l:lbView.scrollLeft,t:lbView.scrollTop}; lbView.style.cursor='grabbing'; });
+  window.addEventListener('pointermove', function(e){
+    if (!drag) return;
+    lbView.scrollLeft=drag.l-(e.clientX-drag.x); lbView.scrollTop=drag.t-(e.clientY-drag.y);
+  });
+  window.addEventListener('pointerup', function(){ drag=null; lbView.style.cursor='grab'; });
+
+  /* thumbnails + pareto */
+  function bindGrid(sel){
+    Array.prototype.forEach.call(document.querySelectorAll(sel+' button[data-full]'), function(b){
+      b.addEventListener('click', function(ev){ ev.stopPropagation(); lb.show(b.getAttribute('data-full'), b.getAttribute('data-cap')||''); });
+    });
+  }
+  bindGrid('#tobeGrid'); bindGrid('#asisGrid'); bindGrid('#paretoGrid');
+  Array.prototype.forEach.call(document.querySelectorAll('.pareto-grid img[data-zoom]'), function(im){
+    im.addEventListener('click', function(ev){ ev.stopPropagation(); lb.show(im.currentSrc||im.src, im.alt); });
+  });
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener('keydown', function(e){
+    if (lb.open){
+      if (e.key==='Escape'){ e.preventDefault(); hide(); }
+      else if (e.key==='+'||e.key==='='){ lb.scale=Math.min(5,lb.scale*1.25); applyLb(); }
+      else if (e.key==='-'){ lb.scale=Math.max(0.15,lb.scale/1.25); applyLb(); }
+      else if (e.key==='0'){ lb.scale=1; applyLb(); }
+      return;
+    }
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    var k=e.key;
+    if (k===' '||k==='Spacebar'||k==='ArrowRight'||k==='ArrowDown'||k==='PageDown'||k==='Enter'){ e.preventDefault(); go(cur()+1); }
+    else if (k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'||k==='Backspace'){ e.preventDefault(); go(cur()-1); }
+    else if (k==='Home'){ e.preventDefault(); go(0); }
+    else if (k==='End'){ e.preventDefault(); go(count-1); }
+    else if (k==='f'||k==='F'){ e.preventDefault();
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(function(){});
+      else document.exitFullscreen().catch(function(){});
+    }
+  });
+
+  /* touch swipe */
+  var ty=null;
+  deck.addEventListener('touchstart', function(e){ ty=e.touches[0].clientY; }, {passive:true});
+  deck.addEventListener('touchend', function(e){
+    if (ty===null||lb.open) return;
+    var dy=ty-e.changedTouches[0].clientY; ty=null;
+    if (Math.abs(dy)<50) return;
+    go(cur()+(dy>0?1:-1));
+  }, {passive:true});
+  deck.addEventListener('click', function(e){
+    if (lb.open) return;
+    if (e.target.closest('a,button,table,pre,.flow,blockquote,input,textarea,img,.fig')) return;
+    var x=e.clientX/window.innerWidth;
+    if (x>0.75) go(cur()+1); else if (x<0.12) go(cur()-1);
+  });
+
+  /* deep link */
+  var m=/^#s(\d+)$/.exec(location.hash||'');
+  idx = m ? Math.min(count-1, Math.max(0, parseInt(m[1],10)-1)) : 0;
+  render();
+  if (idx>0) setTimeout(function(){ slides[idx].scrollIntoView({block:'start'}); },60);
+  window.__deck={go:go,cur:cur,count:count,lb:lb};
+})();
+</script>
+
+</body>
+</html>

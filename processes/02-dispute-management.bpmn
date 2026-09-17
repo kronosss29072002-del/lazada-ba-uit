@@ -1,0 +1,222 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_DisputeManagement" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_DisputeManagement" name="Quản lý Tranh chấp" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Buyer" name="Buyer">
+        <bpmn:flowNodeRef>StartEvent_Dispute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateDispute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReplyEvidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_EvidenceComplete</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestMoreEvidence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ReplyEvidence_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_RequestMoreEvidence_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
+        <bpmn:flowNodeRef>Task_CollectData</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AuthTriage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyParties</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SimpleCase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SLA</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_NotifyParties_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_AuthTriage_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Seller">
+        <bpmn:flowNodeRef>Task_SellerReply</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_SellerReply_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_CS" name="CS Agent">
+        <bpmn:flowNodeRef>Task_ReviewCase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Decide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_BuyerWins</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Compromise</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ReviewCase_4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_Decide_3</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Escalation" name="Escalation Team">
+        <bpmn:flowNodeRef>Task_Escalate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeniorReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SeniorDecision</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Dispute" name="Yêu cầu giải quyết tranh chấp">
+      <bpmn:outgoing>Flow_Start_Create</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_CreateDispute" name="Tạo tranh chấp + lý do">
+      <bpmn:incoming>Flow_Start_Create</bpmn:incoming>
+      <bpmn:outgoing>Flow_Create_Collect</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReplyEvidence" name="Bổ sung bằng chứng (nếu có)">
+      <bpmn:incoming>Flow_Join_Task_ReplyEvidence_1_to_Task_ReplyEvidence</bpmn:incoming>
+      <bpmn:outgoing>Flow_Evidence_Solid</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_EvidenceSolid" name="Có bằng chứng cứng?">
+      <bpmn:incoming>Flow_Evidence_Solid</bpmn:incoming>
+      <bpmn:outgoing>Flow_Evidence_SolidYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Evidence_SoftNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_RequestMoreEvidence" name="Yêu cầu bổ sung bằng chứng">
+      <bpmn:incoming>Flow_Join_Task_RequestMoreEvidence_2_to_Task_RequestMoreEvidence</bpmn:incoming>
+      <bpmn:outgoing>Flow_Request_Evidence</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CollectData" name="Tự động thu thập dữ liệu đơn hàng">
+      <bpmn:incoming>Flow_Create_Collect</bpmn:incoming>
+      <bpmn:outgoing>Flow_Collect_Triage</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AuthTriage" name="AI phân loại tranh chấp (Đơn giản/Phức tạp)">
+      <bpmn:incoming>Flow_Collect_Triage</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_AuthTriage_to_Split_Task_AuthTriage_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_SellerHistory" name="Seller từng vi phạm SLA?">
+      <bpmn:incoming>Flow_Triage_History</bpmn:incoming>
+      <bpmn:outgoing>Flow_History_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_History_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_CheckSLAHistory" name="Kiểm tra lịch sử SLA">
+      <bpmn:incoming>Flow_History_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Check_Notify</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_NotifyParties" name="Gửi thông báo đối soát đến hai bên">
+      <bpmn:incoming>Flow_Join_Task_NotifyParties_3_to_Task_NotifyParties</bpmn:incoming>
+      <bpmn:outgoing>Flow_Notify_SLA</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_SellerReply" name="Seller phản hồi (≤48h)">
+      <bpmn:incoming>Flow_SLA_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_SellerReply_to_Split_Task_SellerReply_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReviewCase" name="CS thẩm định toàn bộ hồ sơ tranh chấp">
+      <bpmn:incoming>Flow_Join_Task_ReviewCase_4_to_Task_ReviewCase</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_Decide</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Decide" name="CS ban hành quyết định xử lý">
+      <bpmn:incoming>Flow_Review_Decide</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_Decide_to_Split_Task_Decide_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Escalate" name="Chuyển lên nhóm chuyên trách (Lazada Escalation)">
+      <bpmn:incoming>Flow_Decide_Escalate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Escalate_Review</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SeniorReview" name="Hội đồng thẩm định &amp; ra quyết định cuối">
+      <bpmn:incoming>Flow_Escalate_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Senior_Final</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_SLA" name="Seller phản hồi trong 48h?">
+      <bpmn:incoming>Flow_Notify_SLA</bpmn:incoming>
+      <bpmn:outgoing>Flow_SLA_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SLA_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_EvidenceComplete" name="Bằng chứng đã đầy đủ &amp; hợp lệ?">
+      <bpmn:incoming>Flow_Evidence_SolidYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Evidence_Complete</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Evidence_Incomplete</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_SimpleCase" name="Vụ việc thuộc nhóm đơn giản?">
+      <bpmn:incoming>Flow_Triage_simple</bpmn:incoming>
+      <bpmn:outgoing>Flow_Simple_Auto</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_BuyerWins" name="Buyer thắng?">
+      <bpmn:incoming>Flow_Decide_Wins</bpmn:incoming>
+      <bpmn:outgoing>Flow_Wins_Settle</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Wins_Not</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_Compromise" name="Đồng thuận?">
+      <bpmn:incoming>Flow_Decide_Compromise</bpmn:incoming>
+      <bpmn:outgoing>Flow_Compromise_Settle</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_SeniorDecision" name="Quyết định cuối?">
+      <bpmn:incoming>Flow_Senior_Final</bpmn:incoming>
+      <bpmn:outgoing>Flow_Senior_Settle</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_End_Settled_1" name="Gom nhánh kết thúc">
+      <bpmn:incoming>Flow_SLA_No</bpmn:incoming>
+      <bpmn:incoming>Flow_Senior_Settle</bpmn:incoming>
+      <bpmn:incoming>Flow_Wins_Settle</bpmn:incoming>
+      <bpmn:incoming>Flow_Compromise_Settle</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_End_Settled_1_to_End_Settled</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_Settled" name="Tranh chấp đã được giải quyết">
+      <bpmn:incoming>Flow_Join_End_Settled_1_to_End_Settled</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Rejected" name="Tranh chấp đã bị bác bỏ">
+      <bpmn:incoming>Flow_Wins_Not</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_AIResolved" name="Tranh chấp đã được AI tự giải quyết">
+      <bpmn:incoming>Flow_Simple_Auto</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Create" sourceRef="StartEvent_Dispute" targetRef="Task_CreateDispute" />
+    <bpmn:sequenceFlow id="Flow_Create_Collect" sourceRef="Task_CreateDispute" targetRef="Task_CollectData" />
+    <bpmn:sequenceFlow id="Flow_Collect_Triage" sourceRef="Task_CollectData" targetRef="Task_AuthTriage" />
+    <bpmn:sequenceFlow id="Flow_Triage_History" sourceRef="Split_Task_AuthTriage_1" targetRef="Gate_SellerHistory" />
+    <bpmn:sequenceFlow id="Flow_History_Yes" sourceRef="Gate_SellerHistory" targetRef="Join_Task_NotifyParties_3" />
+    <bpmn:sequenceFlow id="Flow_History_No" sourceRef="Gate_SellerHistory" targetRef="Task_CheckSLAHistory" />
+    <bpmn:sequenceFlow id="Flow_Check_Notify" sourceRef="Task_CheckSLAHistory" targetRef="Join_Task_NotifyParties_3" />
+    <bpmn:sequenceFlow id="Flow_Notify_SLA" sourceRef="Task_NotifyParties" targetRef="Gate_SLA" />
+    <bpmn:sequenceFlow id="Flow_SLA_Yes" sourceRef="Gate_SLA" targetRef="Task_SellerReply" />
+    <bpmn:sequenceFlow id="Flow_SLA_No" sourceRef="Gate_SLA" targetRef="Join_End_Settled_1" />
+    <bpmn:sequenceFlow id="Flow_SellerReply_Review" sourceRef="Split_Task_SellerReply_2" targetRef="Join_Task_ReviewCase_4" />
+    <bpmn:sequenceFlow id="Flow_SellerReply_Rejoin" sourceRef="Split_Task_SellerReply_2" targetRef="Join_Task_ReplyEvidence_1" />
+    <bpmn:sequenceFlow id="Flow_Evidence_Solid" sourceRef="Task_ReplyEvidence" targetRef="Gate_EvidenceSolid" />
+    <bpmn:sequenceFlow id="Flow_Evidence_SolidYes" sourceRef="Gate_EvidenceSolid" targetRef="Gate_EvidenceComplete" />
+    <bpmn:sequenceFlow id="Flow_Evidence_SoftNo" sourceRef="Gate_EvidenceSolid" targetRef="Join_Task_RequestMoreEvidence_2" />
+    <bpmn:sequenceFlow id="Flow_Evidence_Complete" sourceRef="Gate_EvidenceComplete" targetRef="Join_Task_ReviewCase_4" />
+    <bpmn:sequenceFlow id="Flow_Evidence_Incomplete" sourceRef="Gate_EvidenceComplete" targetRef="Join_Task_RequestMoreEvidence_2" />
+    <bpmn:sequenceFlow id="Flow_Request_Evidence" sourceRef="Task_RequestMoreEvidence" targetRef="Join_Task_ReplyEvidence_1" />
+    <bpmn:sequenceFlow id="Flow_Review_Decide" sourceRef="Task_ReviewCase" targetRef="Task_Decide" />
+    <bpmn:sequenceFlow id="Flow_Decide_Wins" sourceRef="Split_Task_Decide_3" targetRef="Gate_BuyerWins" />
+    <bpmn:sequenceFlow id="Flow_Decide_Compromise" sourceRef="Split_Task_Decide_3" targetRef="Gate_Compromise" />
+    <bpmn:sequenceFlow id="Flow_Decide_Escalate" sourceRef="Split_Task_Decide_3" targetRef="Task_Escalate" />
+    <bpmn:sequenceFlow id="Flow_Escalate_Review" sourceRef="Task_Escalate" targetRef="Task_SeniorReview" />
+    <bpmn:sequenceFlow id="Flow_Senior_Final" sourceRef="Task_SeniorReview" targetRef="Gate_SeniorDecision" />
+    <bpmn:sequenceFlow id="Flow_Senior_Settle" sourceRef="Gate_SeniorDecision" targetRef="Join_End_Settled_1" />
+    <bpmn:sequenceFlow id="Flow_Wins_Settle" sourceRef="Gate_BuyerWins" targetRef="Join_End_Settled_1" />
+    <bpmn:sequenceFlow id="Flow_Wins_Not" sourceRef="Gate_BuyerWins" targetRef="End_Rejected" />
+    <bpmn:sequenceFlow id="Flow_Compromise_Settle" sourceRef="Gate_Compromise" targetRef="Join_End_Settled_1" />
+    <bpmn:sequenceFlow id="Flow_Simple_Auto" sourceRef="Gate_SimpleCase" targetRef="End_AIResolved" />
+    <bpmn:sequenceFlow id="Flow_Triage_simple" sourceRef="Split_Task_AuthTriage_1" targetRef="Gate_SimpleCase" />
+    <bpmn:exclusiveGateway id="Join_Task_ReplyEvidence_1" name="Gom luồng trước khi Bổ sung bằng chứng (nếu có)">
+      <bpmn:incoming>Flow_SellerReply_Rejoin</bpmn:incoming>
+      <bpmn:incoming>Flow_Request_Evidence</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ReplyEvidence_1_to_Task_ReplyEvidence</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ReplyEvidence_1_to_Task_ReplyEvidence" sourceRef="Join_Task_ReplyEvidence_1" targetRef="Task_ReplyEvidence" />
+    <bpmn:exclusiveGateway id="Join_Task_RequestMoreEvidence_2" name="Gom luồng trước khi Yêu cầu bổ sung bằng chứng">
+      <bpmn:incoming>Flow_Evidence_SoftNo</bpmn:incoming>
+      <bpmn:incoming>Flow_Evidence_Incomplete</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_RequestMoreEvidence_2_to_Task_RequestMoreEvidence</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_RequestMoreEvidence_2_to_Task_RequestMoreEvidence" sourceRef="Join_Task_RequestMoreEvidence_2" targetRef="Task_RequestMoreEvidence" />
+    <bpmn:exclusiveGateway id="Join_Task_NotifyParties_3" name="Gom luồng trước khi Gửi thông báo đối soát đến hai bên">
+      <bpmn:incoming>Flow_History_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_Check_Notify</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_NotifyParties_3_to_Task_NotifyParties</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_NotifyParties_3_to_Task_NotifyParties" sourceRef="Join_Task_NotifyParties_3" targetRef="Task_NotifyParties" />
+    <bpmn:exclusiveGateway id="Join_Task_ReviewCase_4" name="Gom luồng trước khi CS thẩm định toàn bộ hồ sơ tranh chấp">
+      <bpmn:incoming>Flow_SellerReply_Review</bpmn:incoming>
+      <bpmn:incoming>Flow_Evidence_Complete</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ReviewCase_4_to_Task_ReviewCase</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ReviewCase_4_to_Task_ReviewCase" sourceRef="Join_Task_ReviewCase_4" targetRef="Task_ReviewCase" />
+    <bpmn:exclusiveGateway id="Split_Task_AuthTriage_1" name="Phân luồng sau AI phân loại tranh chấp (Đơn giản/Phức tạp)">
+      <bpmn:incoming>Flow_Task_AuthTriage_to_Split_Task_AuthTriage_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Triage_History</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Triage_simple</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_AuthTriage_to_Split_Task_AuthTriage_1" sourceRef="Task_AuthTriage" targetRef="Split_Task_AuthTriage_1" />
+    <bpmn:exclusiveGateway id="Split_Task_SellerReply_2" name="Phân luồng sau Seller phản hồi (≤48h)">
+      <bpmn:incoming>Flow_Task_SellerReply_to_Split_Task_SellerReply_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_SellerReply_Review</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SellerReply_Rejoin</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_SellerReply_to_Split_Task_SellerReply_2" sourceRef="Task_SellerReply" targetRef="Split_Task_SellerReply_2" />
+    <bpmn:exclusiveGateway id="Split_Task_Decide_3" name="Phân luồng sau CS ban hành quyết định xử lý">
+      <bpmn:incoming>Flow_Task_Decide_to_Split_Task_Decide_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_Decide_Wins</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Decide_Compromise</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Decide_Escalate</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_Decide_to_Split_Task_Decide_3" sourceRef="Task_Decide" targetRef="Split_Task_Decide_3" />
+    <bpmn:sequenceFlow id="Flow_Join_End_Settled_1_to_End_Settled" sourceRef="Join_End_Settled_1" targetRef="End_Settled" name="" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_DisputeManagement"><bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><dc:Bounds x="30" y="140" width="5180" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="392" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="602" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_CS_di" bpmnElement="Lane_CS"><dc:Bounds x="30" y="812" width="5180" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Escalation_di" bpmnElement="Lane_Escalation"><dc:Bounds x="30" y="1064" width="5180" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Dispute_di" bpmnElement="StartEvent_Dispute"><dc:Bounds x="212" y="296" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CreateDispute_di" bpmnElement="Task_CreateDispute"><dc:Bounds x="408" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReplyEvidence_di" bpmnElement="Task_ReplyEvidence"><dc:Bounds x="3288" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_EvidenceSolid_di" bpmnElement="Gate_EvidenceSolid"><dc:Bounds x="3565" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_RequestMoreEvidence_di" bpmnElement="Task_RequestMoreEvidence"><dc:Bounds x="648" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CollectData_di" bpmnElement="Task_CollectData"><dc:Bounds x="648" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AuthTriage_di" bpmnElement="Task_AuthTriage"><dc:Bounds x="888" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SellerHistory_di" bpmnElement="Gate_SellerHistory"><dc:Bounds x="1405" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CheckSLAHistory_di" bpmnElement="Task_CheckSLAHistory"><dc:Bounds x="1608" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifyParties_di" bpmnElement="Task_NotifyParties"><dc:Bounds x="2088" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SellerReply_di" bpmnElement="Task_SellerReply"><dc:Bounds x="2568" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReviewCase_di" bpmnElement="Task_ReviewCase"><dc:Bounds x="3288" y="854" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Decide_di" bpmnElement="Task_Decide"><dc:Bounds x="3528" y="854" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Escalate_di" bpmnElement="Task_Escalate"><dc:Bounds x="4008" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SeniorReview_di" bpmnElement="Task_SeniorReview"><dc:Bounds x="4248" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SLA_di" bpmnElement="Gate_SLA"><dc:Bounds x="2365" y="472" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_EvidenceComplete_di" bpmnElement="Gate_EvidenceComplete"><dc:Bounds x="205" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SimpleCase_di" bpmnElement="Gate_SimpleCase"><dc:Bounds x="1405" y="472" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_BuyerWins_di" bpmnElement="Gate_BuyerWins"><dc:Bounds x="4045" y="865" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Compromise_di" bpmnElement="Gate_Compromise"><dc:Bounds x="4045" y="961" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SeniorDecision_di" bpmnElement="Gate_SeniorDecision"><dc:Bounds x="4525" y="1144" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_End_Settled_1_di" bpmnElement="Join_End_Settled_1"><dc:Bounds x="4765" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Settled_di" bpmnElement="End_Settled"><dc:Bounds x="5012" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected"><dc:Bounds x="4292" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_AIResolved_di" bpmnElement="End_AIResolved"><dc:Bounds x="1652" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ReplyEvidence_1_di" bpmnElement="Join_Task_ReplyEvidence_1"><dc:Bounds x="3085" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_RequestMoreEvidence_2_di" bpmnElement="Join_Task_RequestMoreEvidence_2"><dc:Bounds x="445" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_NotifyParties_3_di" bpmnElement="Join_Task_NotifyParties_3"><dc:Bounds x="1885" y="472" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ReviewCase_4_di" bpmnElement="Join_Task_ReviewCase_4"><dc:Bounds x="3085" y="865" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_AuthTriage_1_di" bpmnElement="Split_Task_AuthTriage_1"><dc:Bounds x="1165" y="472" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_SellerReply_2_di" bpmnElement="Split_Task_SellerReply_2"><dc:Bounds x="2845" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_Decide_3_di" bpmnElement="Split_Task_Decide_3"><dc:Bounds x="3805" y="865" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_Evidence_Complete_di" bpmnElement="Flow_Evidence_Complete"><di:waypoint x="255" y="218" /><di:waypoint x="310" y="218" /><di:waypoint x="310" y="392" /><di:waypoint x="2950" y="392" /><di:waypoint x="2950" y="890" /><di:waypoint x="3085" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Evidence_Incomplete_di" bpmnElement="Flow_Evidence_Incomplete"><di:waypoint x="255" y="218" /><di:waypoint x="445" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Start_Create_di" bpmnElement="Flow_Start_Create"><di:waypoint x="248" y="314" /><di:waypoint x="408" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Create_Collect_di" bpmnElement="Flow_Create_Collect"><di:waypoint x="532" y="314" /><di:waypoint x="550" y="314" /><di:waypoint x="550" y="392" /><di:waypoint x="550" y="497" /><di:waypoint x="648" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_RequestMoreEvidence_2_to_Task_RequestMoreEvidence_di" bpmnElement="Flow_Join_Task_RequestMoreEvidence_2_to_Task_RequestMoreEvidence"><di:waypoint x="495" y="218" /><di:waypoint x="648" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Collect_Triage_di" bpmnElement="Flow_Collect_Triage"><di:waypoint x="772" y="497" /><di:waypoint x="888" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Request_Evidence_di" bpmnElement="Flow_Request_Evidence"><di:waypoint x="772" y="218" /><di:waypoint x="790" y="218" /><di:waypoint x="790" y="170" /><di:waypoint x="2950" y="170" /><di:waypoint x="2950" y="218" /><di:waypoint x="3085" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_AuthTriage_to_Split_Task_AuthTriage_1_di" bpmnElement="Flow_Task_AuthTriage_to_Split_Task_AuthTriage_1"><di:waypoint x="1012" y="497" /><di:waypoint x="1165" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Triage_History_di" bpmnElement="Flow_Triage_History"><di:waypoint x="1215" y="497" /><di:waypoint x="1270" y="497" /><di:waypoint x="1270" y="392" /><di:waypoint x="1270" y="218" /><di:waypoint x="1405" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Triage_simple_di" bpmnElement="Flow_Triage_simple"><di:waypoint x="1215" y="497" /><di:waypoint x="1405" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_History_No_di" bpmnElement="Flow_History_No"><di:waypoint x="1455" y="218" /><di:waypoint x="1510" y="218" /><di:waypoint x="1510" y="266" /><di:waypoint x="1510" y="314" /><di:waypoint x="1608" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_History_Yes_di" bpmnElement="Flow_History_Yes"><di:waypoint x="1455" y="218" /><di:waypoint x="1510" y="218" /><di:waypoint x="1510" y="392" /><di:waypoint x="1750" y="392" /><di:waypoint x="1750" y="497" /><di:waypoint x="1885" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Simple_Auto_di" bpmnElement="Flow_Simple_Auto"><di:waypoint x="1455" y="497" /><di:waypoint x="1510" y="497" /><di:waypoint x="1510" y="392" /><di:waypoint x="1510" y="218" /><di:waypoint x="1652" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Check_Notify_di" bpmnElement="Flow_Check_Notify"><di:waypoint x="1732" y="314" /><di:waypoint x="1750" y="314" /><di:waypoint x="1750" y="392" /><di:waypoint x="1750" y="497" /><di:waypoint x="1885" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_NotifyParties_3_to_Task_NotifyParties_di" bpmnElement="Flow_Join_Task_NotifyParties_3_to_Task_NotifyParties"><di:waypoint x="1935" y="497" /><di:waypoint x="2088" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_SLA_di" bpmnElement="Flow_Notify_SLA"><di:waypoint x="2212" y="497" /><di:waypoint x="2365" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SLA_No_di" bpmnElement="Flow_SLA_No"><di:waypoint x="2415" y="497" /><di:waypoint x="2470" y="497" /><di:waypoint x="2470" y="392" /><di:waypoint x="4630" y="392" /><di:waypoint x="4630" y="218" /><di:waypoint x="4765" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SLA_Yes_di" bpmnElement="Flow_SLA_Yes"><di:waypoint x="2415" y="497" /><di:waypoint x="2470" y="497" /><di:waypoint x="2470" y="602" /><di:waypoint x="2470" y="707" /><di:waypoint x="2568" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_SellerReply_to_Split_Task_SellerReply_2_di" bpmnElement="Flow_Task_SellerReply_to_Split_Task_SellerReply_2"><di:waypoint x="2692" y="707" /><di:waypoint x="2845" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SellerReply_Rejoin_di" bpmnElement="Flow_SellerReply_Rejoin"><di:waypoint x="2895" y="707" /><di:waypoint x="2950" y="707" /><di:waypoint x="2950" y="392" /><di:waypoint x="2950" y="218" /><di:waypoint x="3085" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SellerReply_Review_di" bpmnElement="Flow_SellerReply_Review"><di:waypoint x="2895" y="707" /><di:waypoint x="2950" y="707" /><di:waypoint x="2950" y="812" /><di:waypoint x="2950" y="890" /><di:waypoint x="3085" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ReplyEvidence_1_to_Task_ReplyEvidence_di" bpmnElement="Flow_Join_Task_ReplyEvidence_1_to_Task_ReplyEvidence"><di:waypoint x="3135" y="218" /><di:waypoint x="3288" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ReviewCase_4_to_Task_ReviewCase_di" bpmnElement="Flow_Join_Task_ReviewCase_4_to_Task_ReviewCase"><di:waypoint x="3135" y="890" /><di:waypoint x="3288" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Evidence_Solid_di" bpmnElement="Flow_Evidence_Solid"><di:waypoint x="3412" y="218" /><di:waypoint x="3565" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Review_Decide_di" bpmnElement="Flow_Review_Decide"><di:waypoint x="3412" y="890" /><di:waypoint x="3528" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Evidence_SoftNo_di" bpmnElement="Flow_Evidence_SoftNo"><di:waypoint x="3615" y="218" /><di:waypoint x="3670" y="218" /><di:waypoint x="3670" y="1324" /><di:waypoint x="310" y="1324" /><di:waypoint x="310" y="218" /><di:waypoint x="445" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Evidence_SolidYes_di" bpmnElement="Flow_Evidence_SolidYes"><di:waypoint x="3615" y="218" /><di:waypoint x="3670" y="218" /><di:waypoint x="3670" y="1340" /><di:waypoint x="70" y="1340" /><di:waypoint x="70" y="218" /><di:waypoint x="205" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_Decide_to_Split_Task_Decide_3_di" bpmnElement="Flow_Task_Decide_to_Split_Task_Decide_3"><di:waypoint x="3652" y="890" /><di:waypoint x="3805" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Decide_Compromise_di" bpmnElement="Flow_Decide_Compromise"><di:waypoint x="3855" y="890" /><di:waypoint x="3910" y="890" /><di:waypoint x="3910" y="938" /><di:waypoint x="3910" y="986" /><di:waypoint x="4045" y="986" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Decide_Escalate_di" bpmnElement="Flow_Decide_Escalate"><di:waypoint x="3855" y="890" /><di:waypoint x="3910" y="890" /><di:waypoint x="3910" y="1064" /><di:waypoint x="3910" y="1169" /><di:waypoint x="4008" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Decide_Wins_di" bpmnElement="Flow_Decide_Wins"><di:waypoint x="3855" y="890" /><di:waypoint x="4045" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Compromise_Settle_di" bpmnElement="Flow_Compromise_Settle"><di:waypoint x="4095" y="986" /><di:waypoint x="4150" y="986" /><di:waypoint x="4150" y="392" /><di:waypoint x="4630" y="392" /><di:waypoint x="4630" y="218" /><di:waypoint x="4765" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Escalate_Review_di" bpmnElement="Flow_Escalate_Review"><di:waypoint x="4132" y="1169" /><di:waypoint x="4248" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Wins_Not_di" bpmnElement="Flow_Wins_Not"><di:waypoint x="4095" y="890" /><di:waypoint x="4150" y="890" /><di:waypoint x="4150" y="392" /><di:waypoint x="4150" y="218" /><di:waypoint x="4292" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Wins_Settle_di" bpmnElement="Flow_Wins_Settle"><di:waypoint x="4095" y="890" /><di:waypoint x="4150" y="890" /><di:waypoint x="4150" y="392" /><di:waypoint x="4630" y="392" /><di:waypoint x="4630" y="218" /><di:waypoint x="4765" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Senior_Final_di" bpmnElement="Flow_Senior_Final"><di:waypoint x="4372" y="1169" /><di:waypoint x="4525" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Senior_Settle_di" bpmnElement="Flow_Senior_Settle"><di:waypoint x="4575" y="1169" /><di:waypoint x="4630" y="1169" /><di:waypoint x="4630" y="392" /><di:waypoint x="4630" y="218" /><di:waypoint x="4765" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_End_Settled_1_to_End_Settled_di" bpmnElement="Flow_Join_End_Settled_1_to_End_Settled"><di:waypoint x="4815" y="218" /><di:waypoint x="5012" y="218" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

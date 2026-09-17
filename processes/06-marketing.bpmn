@@ -1,0 +1,268 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Marketing" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <bpmn:process id="Process_Marketing" name="Quy trình Marketing và Khuyến mãi" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Marketing" name="Marketing Team">
+        <bpmn:flowNodeRef>StartEvent_Idea</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Research</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DesignConcept</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MonitorLive</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PostReport</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_DesignConcept_1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Approval" name="Approval">
+        <bpmn:flowNodeRef>Task_ComplianceCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_Compliance</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BudgetReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_BudgetTier</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DirectorApprove</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_System" name="Lazada System">
+        <bpmn:flowNodeRef>Task_AutoInviteSellers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfigCampaign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoTestVoucher</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_VoucherTest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_QACampaign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_QAPass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LaunchCampaign</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AutoReport</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_ReportReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExtendData</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_AutoInviteSellers_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_ConfigCampaign_3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Task_AutoTestVoucher_4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_AutoInviteSellers_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Split_Task_LaunchCampaign_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Sellers">
+        <bpmn:flowNodeRef>Task_SellerConfirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gate_SellerConfirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SellerRegister</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SellerPrepare</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Buyer" name="Buyers">
+        <bpmn:flowNodeRef>Task_BuyerBrowse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BuyerPurchase</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Idea" name="Ý tưởng chiến dịch mới">
+      <bpmn:outgoing>Flow_Idea_Research</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Research" name="Nghiên cứu thị trường &amp; lập bản đề xuất">
+      <bpmn:incoming>Flow_Idea_Research</bpmn:incoming>
+      <bpmn:outgoing>Flow_Research_Audience</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_AudienceFit" name="Đối tượng khách hàng phù hợp?">
+      <bpmn:incoming>Flow_Research_Audience</bpmn:incoming>
+      <bpmn:outgoing>Flow_Audience_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Audience_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ReSegment" name="Phân khúc lại nhóm đối tượng mục tiêu">
+      <bpmn:incoming>Flow_Audience_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_ReSegment_Design</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_DesignConcept" name="Thiết kế concept &amp; lập kế hoạch chi tiết">
+      <bpmn:incoming>Flow_Join_Task_DesignConcept_1_to_Task_DesignConcept</bpmn:incoming>
+      <bpmn:outgoing>Flow_Design_Compliance</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_MonitorLive" name="Theo dõi hiệu năng hệ thống &amp; doanh số realtime">
+      <bpmn:incoming>Flow_Launch_Monitor</bpmn:incoming>
+      <bpmn:outgoing>Flow_Monitor_Report</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PostReport" name="Lập báo cáo tổng kết &amp; đánh giá ROI">
+      <bpmn:incoming>Flow_Report_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Report_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ComplianceCheck" name="Kiểm tra tính tuân thủ pháp lý khuyến mãi (Nghị định 81)">
+      <bpmn:incoming>Flow_Design_Compliance</bpmn:incoming>
+      <bpmn:outgoing>Flow_Compliance_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_BudgetReview" name="Thẩm định ngân sách &amp; tỷ suất ROI">
+      <bpmn:incoming>Flow_Compliance_Pass</bpmn:incoming>
+      <bpmn:outgoing>Flow_Budget_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_DirectorApprove" name="Giám đốc Khối phê duyệt ngân sách lớn">
+      <bpmn:incoming>Flow_Gate_Large</bpmn:incoming>
+      <bpmn:outgoing>Flow_Director_Invite</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_AutoInviteSellers" name="Hệ thống gửi lời mời tham gia đến Sellers">
+      <bpmn:incoming>Flow_Join_Task_AutoInviteSellers_2_to_Task_AutoInviteSellers</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_AutoInviteSellers_to_Split_Task_AutoInviteSellers_1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ConfigCampaign" name="Cấu hình chiến dịch trên hệ thống">
+      <bpmn:incoming>Flow_Join_Task_ConfigCampaign_3_to_Task_ConfigCampaign</bpmn:incoming>
+      <bpmn:outgoing>Flow_Config_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_PromoStack" name="Trùng lặp voucher hoặc sự kiện?">
+      <bpmn:incoming>Flow_Config_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Promo_No</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Promo_Yes</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_ResolveConflict" name="Tự động phân tách &amp; giải quyết xung đột mã">
+      <bpmn:incoming>Flow_Promo_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Resolve_Test</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AutoTestVoucher" name="Hệ thống kiểm tra &amp; giả lập áp mã voucher">
+      <bpmn:incoming>Flow_Join_Task_AutoTestVoucher_4_to_Task_AutoTestVoucher</bpmn:incoming>
+      <bpmn:outgoing>Flow_Test_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_QACampaign" name="Kiểm toán QA toàn diện trước giờ G">
+      <bpmn:incoming>Flow_Test_Pass</bpmn:incoming>
+      <bpmn:outgoing>Flow_QA_Gate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_LaunchCampaign" name="Kích hoạt Chiến dịch 12.12 Siêu Hội Mua Sắm">
+      <bpmn:incoming>Flow_Gate_QAYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Task_LaunchCampaign_to_Split_Task_LaunchCampaign_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AutoReport" name="Hệ thống tự động xuất báo cáo sơ bộ">
+      <bpmn:incoming>Flow_Monitor_Report</bpmn:incoming>
+      <bpmn:outgoing>Flow_Report_ReadyGate</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_ExtendData" name="Thu thập bổ sung số liệu đối soát">
+      <bpmn:incoming>Flow_Report_No</bpmn:incoming>
+      <bpmn:outgoing>Flow_Report_Retry</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gate_ReportReady" name="Số liệu báo cáo đã đầy đủ?">
+      <bpmn:incoming>Flow_Report_ReadyGate</bpmn:incoming>
+      <bpmn:incoming>Flow_Report_Retry</bpmn:incoming>
+      <bpmn:outgoing>Flow_Report_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Report_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_SellerConfirm" name="Seller xem xét thư mời chiến dịch">
+      <bpmn:incoming>Flow_Invite_Register</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirm_Gate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SellerRegister" name="Seller xác nhận tham gia trên Seller Centre">
+      <bpmn:incoming>Flow_Confirm_Yes</bpmn:incoming>
+      <bpmn:outgoing>Flow_Register_Prepare</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SellerPrepare" name="Seller chuẩn bị tồn kho &amp; cài đặt giá sốc">
+      <bpmn:incoming>Flow_Register_Prepare</bpmn:incoming>
+      <bpmn:outgoing>Flow_Prepare_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_BuyerBrowse" name="Buyer truy cập săn deal 12.12 Siêu Sale">
+      <bpmn:incoming>Flow_Launch_Browse</bpmn:incoming>
+      <bpmn:outgoing>Flow_Browse_Purchase</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_BuyerPurchase" name="Buyer thanh toán áp mã FreeShip &amp; Lazada Voucher">
+      <bpmn:incoming>Flow_Browse_Purchase</bpmn:incoming>
+      <bpmn:outgoing>Flow_Purchase_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gate_Compliance" name="Đạt chuẩn pháp lý &amp; chính sách sàn?">
+      <bpmn:incoming>Flow_Compliance_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Compliance_Pass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Compliance_Fail</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_BudgetTier" name="Ngân sách có vượt hạn mức cơ bản?">
+      <bpmn:incoming>Flow_Budget_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gate_Small</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_Large</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_VoucherTest" name="Kiểm thử voucher thành công?">
+      <bpmn:incoming>Flow_Test_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Test_Pass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Test_Fail</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_QAPass" name="Đạt chuẩn kiểm toán sau chiến dịch?">
+      <bpmn:incoming>Flow_QA_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gate_QAYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gate_QANo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gate_SellerConfirm" name="Seller đồng ý tham gia?">
+      <bpmn:incoming>Flow_Confirm_Gate</bpmn:incoming>
+      <bpmn:outgoing>Flow_Confirm_Yes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Confirm_No</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Join_End_CampaignDone_1" name="Gom nhánh kết thúc">
+      <bpmn:incoming>Flow_Confirm_No</bpmn:incoming>
+      <bpmn:incoming>Flow_Prepare_End</bpmn:incoming>
+      <bpmn:incoming>Flow_Purchase_End</bpmn:incoming>
+      <bpmn:incoming>Flow_Report_End</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_End_CampaignDone_1_to_End_CampaignDone</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_CampaignDone" name="Chiến dịch đã kết thúc thành công">
+      <bpmn:incoming>Flow_Join_End_CampaignDone_1_to_End_CampaignDone</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Idea_Research" sourceRef="StartEvent_Idea" targetRef="Task_Research" />
+    <bpmn:sequenceFlow id="Flow_Research_Audience" sourceRef="Task_Research" targetRef="Gate_AudienceFit" />
+    <bpmn:sequenceFlow id="Flow_Audience_Yes" sourceRef="Gate_AudienceFit" targetRef="Join_Task_DesignConcept_1" />
+    <bpmn:sequenceFlow id="Flow_Audience_No" sourceRef="Gate_AudienceFit" targetRef="Task_ReSegment" />
+    <bpmn:sequenceFlow id="Flow_ReSegment_Design" sourceRef="Task_ReSegment" targetRef="Join_Task_DesignConcept_1" />
+    <bpmn:sequenceFlow id="Flow_Design_Compliance" sourceRef="Task_DesignConcept" targetRef="Task_ComplianceCheck" />
+    <bpmn:sequenceFlow id="Flow_Compliance_Gate" sourceRef="Task_ComplianceCheck" targetRef="Gate_Compliance" />
+    <bpmn:sequenceFlow id="Flow_Compliance_Pass" sourceRef="Gate_Compliance" targetRef="Task_BudgetReview" />
+    <bpmn:sequenceFlow id="Flow_Compliance_Fail" sourceRef="Gate_Compliance" targetRef="Join_Task_DesignConcept_1" />
+    <bpmn:sequenceFlow id="Flow_Budget_Gate" sourceRef="Task_BudgetReview" targetRef="Gate_BudgetTier" />
+    <bpmn:sequenceFlow id="Flow_Gate_Small" sourceRef="Gate_BudgetTier" targetRef="Join_Task_AutoInviteSellers_2" />
+    <bpmn:sequenceFlow id="Flow_Gate_Large" sourceRef="Gate_BudgetTier" targetRef="Task_DirectorApprove" />
+    <bpmn:sequenceFlow id="Flow_Director_Invite" sourceRef="Task_DirectorApprove" targetRef="Join_Task_AutoInviteSellers_2" />
+    <bpmn:sequenceFlow id="Flow_Invite_Config" sourceRef="Split_Task_AutoInviteSellers_1" targetRef="Join_Task_ConfigCampaign_3" />
+    <bpmn:sequenceFlow id="Flow_Invite_Register" sourceRef="Split_Task_AutoInviteSellers_1" targetRef="Task_SellerConfirm" />
+    <bpmn:sequenceFlow id="Flow_Confirm_Gate" sourceRef="Task_SellerConfirm" targetRef="Gate_SellerConfirm" />
+    <bpmn:sequenceFlow id="Flow_Confirm_Yes" sourceRef="Gate_SellerConfirm" targetRef="Task_SellerRegister" />
+    <bpmn:sequenceFlow id="Flow_Confirm_No" sourceRef="Gate_SellerConfirm" targetRef="Join_End_CampaignDone_1" />
+    <bpmn:sequenceFlow id="Flow_Register_Prepare" sourceRef="Task_SellerRegister" targetRef="Task_SellerPrepare" />
+    <bpmn:sequenceFlow id="Flow_Prepare_End" sourceRef="Task_SellerPrepare" targetRef="Join_End_CampaignDone_1" />
+    <bpmn:sequenceFlow id="Flow_Config_Gate" sourceRef="Task_ConfigCampaign" targetRef="Gate_PromoStack" />
+    <bpmn:sequenceFlow id="Flow_Promo_No" sourceRef="Gate_PromoStack" targetRef="Join_Task_AutoTestVoucher_4" />
+    <bpmn:sequenceFlow id="Flow_Promo_Yes" sourceRef="Gate_PromoStack" targetRef="Task_ResolveConflict" />
+    <bpmn:sequenceFlow id="Flow_Resolve_Test" sourceRef="Task_ResolveConflict" targetRef="Join_Task_AutoTestVoucher_4" />
+    <bpmn:sequenceFlow id="Flow_Test_Gate" sourceRef="Task_AutoTestVoucher" targetRef="Gate_VoucherTest" />
+    <bpmn:sequenceFlow id="Flow_Test_Pass" sourceRef="Gate_VoucherTest" targetRef="Task_QACampaign" />
+    <bpmn:sequenceFlow id="Flow_Test_Fail" sourceRef="Gate_VoucherTest" targetRef="Join_Task_ConfigCampaign_3" />
+    <bpmn:sequenceFlow id="Flow_QA_Gate" sourceRef="Task_QACampaign" targetRef="Gate_QAPass" />
+    <bpmn:sequenceFlow id="Flow_Gate_QAYes" sourceRef="Gate_QAPass" targetRef="Task_LaunchCampaign" />
+    <bpmn:sequenceFlow id="Flow_Gate_QANo" sourceRef="Gate_QAPass" targetRef="Join_Task_ConfigCampaign_3" />
+    <bpmn:sequenceFlow id="Flow_Launch_Monitor" sourceRef="Split_Task_LaunchCampaign_2" targetRef="Task_MonitorLive" />
+    <bpmn:sequenceFlow id="Flow_Launch_Browse" sourceRef="Split_Task_LaunchCampaign_2" targetRef="Task_BuyerBrowse" />
+    <bpmn:sequenceFlow id="Flow_Browse_Purchase" sourceRef="Task_BuyerBrowse" targetRef="Task_BuyerPurchase" />
+    <bpmn:sequenceFlow id="Flow_Purchase_End" sourceRef="Task_BuyerPurchase" targetRef="Join_End_CampaignDone_1" />
+    <bpmn:sequenceFlow id="Flow_Monitor_Report" sourceRef="Task_MonitorLive" targetRef="Task_AutoReport" />
+    <bpmn:sequenceFlow id="Flow_Report_ReadyGate" sourceRef="Task_AutoReport" targetRef="Gate_ReportReady" />
+    <bpmn:sequenceFlow id="Flow_Report_Yes" sourceRef="Gate_ReportReady" targetRef="Task_PostReport" />
+    <bpmn:sequenceFlow id="Flow_Report_No" sourceRef="Gate_ReportReady" targetRef="Task_ExtendData" />
+    <bpmn:sequenceFlow id="Flow_Report_Retry" sourceRef="Task_ExtendData" targetRef="Gate_ReportReady" />
+    <bpmn:sequenceFlow id="Flow_Report_End" sourceRef="Task_PostReport" targetRef="Join_End_CampaignDone_1" />
+    <bpmn:exclusiveGateway id="Join_Task_DesignConcept_1" name="Gom luồng trước khi Thiết kế concept &amp; lập kế hoạch chi tiết">
+      <bpmn:incoming>Flow_Audience_Yes</bpmn:incoming>
+      <bpmn:incoming>Flow_ReSegment_Design</bpmn:incoming>
+      <bpmn:incoming>Flow_Compliance_Fail</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_DesignConcept_1_to_Task_DesignConcept</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_DesignConcept_1_to_Task_DesignConcept" sourceRef="Join_Task_DesignConcept_1" targetRef="Task_DesignConcept" />
+    <bpmn:exclusiveGateway id="Join_Task_AutoInviteSellers_2" name="Gom luồng trước khi Hệ thống gửi lời mời tham gia đến Sellers">
+      <bpmn:incoming>Flow_Gate_Small</bpmn:incoming>
+      <bpmn:incoming>Flow_Director_Invite</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_AutoInviteSellers_2_to_Task_AutoInviteSellers</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_AutoInviteSellers_2_to_Task_AutoInviteSellers" sourceRef="Join_Task_AutoInviteSellers_2" targetRef="Task_AutoInviteSellers" />
+    <bpmn:exclusiveGateway id="Join_Task_ConfigCampaign_3" name="Gom luồng trước khi Cấu hình chiến dịch trên hệ thống">
+      <bpmn:incoming>Flow_Invite_Config</bpmn:incoming>
+      <bpmn:incoming>Flow_Test_Fail</bpmn:incoming>
+      <bpmn:incoming>Flow_Gate_QANo</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_ConfigCampaign_3_to_Task_ConfigCampaign</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_ConfigCampaign_3_to_Task_ConfigCampaign" sourceRef="Join_Task_ConfigCampaign_3" targetRef="Task_ConfigCampaign" />
+    <bpmn:exclusiveGateway id="Join_Task_AutoTestVoucher_4" name="Gom luồng trước khi Hệ thống kiểm tra &amp; giả lập áp mã voucher">
+      <bpmn:incoming>Flow_Promo_No</bpmn:incoming>
+      <bpmn:incoming>Flow_Resolve_Test</bpmn:incoming>
+      <bpmn:outgoing>Flow_Join_Task_AutoTestVoucher_4_to_Task_AutoTestVoucher</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Join_Task_AutoTestVoucher_4_to_Task_AutoTestVoucher" sourceRef="Join_Task_AutoTestVoucher_4" targetRef="Task_AutoTestVoucher" />
+    <bpmn:exclusiveGateway id="Split_Task_AutoInviteSellers_1" name="Phân luồng sau Hệ thống gửi lời mời tham gia đến Sellers">
+      <bpmn:incoming>Flow_Task_AutoInviteSellers_to_Split_Task_AutoInviteSellers_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_Invite_Config</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Invite_Register</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_AutoInviteSellers_to_Split_Task_AutoInviteSellers_1" sourceRef="Task_AutoInviteSellers" targetRef="Split_Task_AutoInviteSellers_1" />
+    <bpmn:exclusiveGateway id="Split_Task_LaunchCampaign_2" name="Phân luồng sau Kích hoạt Chiến dịch 12.12 Siêu Hội Mua Sắm">
+      <bpmn:incoming>Flow_Task_LaunchCampaign_to_Split_Task_LaunchCampaign_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_Launch_Monitor</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Launch_Browse</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_Task_LaunchCampaign_to_Split_Task_LaunchCampaign_2" sourceRef="Task_LaunchCampaign" targetRef="Split_Task_LaunchCampaign_2" />
+    <bpmn:sequenceFlow id="Flow_Join_End_CampaignDone_1_to_End_CampaignDone" sourceRef="Join_End_CampaignDone_1" targetRef="End_CampaignDone" name="" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_Marketing"><bpmndi:BPMNShape id="Lane_Marketing_di" bpmnElement="Lane_Marketing"><dc:Bounds x="30" y="140" width="7580" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Approval_di" bpmnElement="Lane_Approval"><dc:Bounds x="30" y="350" width="7580" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="560" width="7580" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="770" width="7580" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><dc:Bounds x="30" y="980" width="7580" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Idea_di" bpmnElement="StartEvent_Idea"><dc:Bounds x="212" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Research_di" bpmnElement="Task_Research"><dc:Bounds x="408" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_AudienceFit_di" bpmnElement="Gate_AudienceFit"><dc:Bounds x="685" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReSegment_di" bpmnElement="Task_ReSegment"><dc:Bounds x="888" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_DesignConcept_di" bpmnElement="Task_DesignConcept"><dc:Bounds x="1368" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_MonitorLive_di" bpmnElement="Task_MonitorLive"><dc:Bounds x="6168" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PostReport_di" bpmnElement="Task_PostReport"><dc:Bounds x="6888" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ComplianceCheck_di" bpmnElement="Task_ComplianceCheck"><dc:Bounds x="1608" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_BudgetReview_di" bpmnElement="Task_BudgetReview"><dc:Bounds x="2088" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_DirectorApprove_di" bpmnElement="Task_DirectorApprove"><dc:Bounds x="2568" y="419" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoInviteSellers_di" bpmnElement="Task_AutoInviteSellers"><dc:Bounds x="3048" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfigCampaign_di" bpmnElement="Task_ConfigCampaign"><dc:Bounds x="3768" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PromoStack_di" bpmnElement="Gate_PromoStack"><dc:Bounds x="4045" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ResolveConflict_di" bpmnElement="Task_ResolveConflict"><dc:Bounds x="4248" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoTestVoucher_di" bpmnElement="Task_AutoTestVoucher"><dc:Bounds x="4728" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_QACampaign_di" bpmnElement="Task_QACampaign"><dc:Bounds x="5208" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_LaunchCampaign_di" bpmnElement="Task_LaunchCampaign"><dc:Bounds x="5688" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoReport_di" bpmnElement="Task_AutoReport"><dc:Bounds x="6408" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ExtendData_di" bpmnElement="Task_ExtendData"><dc:Bounds x="6888" y="629" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ReportReady_di" bpmnElement="Gate_ReportReady"><dc:Bounds x="6685" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SellerConfirm_di" bpmnElement="Task_SellerConfirm"><dc:Bounds x="3528" y="839" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SellerRegister_di" bpmnElement="Task_SellerRegister"><dc:Bounds x="4008" y="839" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SellerPrepare_di" bpmnElement="Task_SellerPrepare"><dc:Bounds x="4248" y="839" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_BuyerBrowse_di" bpmnElement="Task_BuyerBrowse"><dc:Bounds x="6168" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_BuyerPurchase_di" bpmnElement="Task_BuyerPurchase"><dc:Bounds x="6408" y="1049" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Compliance_di" bpmnElement="Gate_Compliance"><dc:Bounds x="1885" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_BudgetTier_di" bpmnElement="Gate_BudgetTier"><dc:Bounds x="2365" y="430" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_VoucherTest_di" bpmnElement="Gate_VoucherTest"><dc:Bounds x="5005" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_QAPass_di" bpmnElement="Gate_QAPass"><dc:Bounds x="5485" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SellerConfirm_di" bpmnElement="Gate_SellerConfirm"><dc:Bounds x="3805" y="850" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_End_CampaignDone_1_di" bpmnElement="Join_End_CampaignDone_1"><dc:Bounds x="7165" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_CampaignDone_di" bpmnElement="End_CampaignDone"><dc:Bounds x="7412" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_DesignConcept_1_di" bpmnElement="Join_Task_DesignConcept_1"><dc:Bounds x="1165" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_AutoInviteSellers_2_di" bpmnElement="Join_Task_AutoInviteSellers_2"><dc:Bounds x="2845" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ConfigCampaign_3_di" bpmnElement="Join_Task_ConfigCampaign_3"><dc:Bounds x="3565" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_AutoTestVoucher_4_di" bpmnElement="Join_Task_AutoTestVoucher_4"><dc:Bounds x="4525" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_AutoInviteSellers_1_di" bpmnElement="Split_Task_AutoInviteSellers_1"><dc:Bounds x="3325" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_LaunchCampaign_2_di" bpmnElement="Split_Task_LaunchCampaign_2"><dc:Bounds x="5965" y="640" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_Idea_Research_di" bpmnElement="Flow_Idea_Research"><di:waypoint x="248" y="245" /><di:waypoint x="408" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Research_Audience_di" bpmnElement="Flow_Research_Audience"><di:waypoint x="532" y="245" /><di:waypoint x="685" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Audience_No_di" bpmnElement="Flow_Audience_No"><di:waypoint x="735" y="245" /><di:waypoint x="888" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Audience_Yes_di" bpmnElement="Flow_Audience_Yes"><di:waypoint x="735" y="245" /><di:waypoint x="790" y="245" /><di:waypoint x="790" y="197" /><di:waypoint x="1030" y="197" /><di:waypoint x="1030" y="245" /><di:waypoint x="1165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ReSegment_Design_di" bpmnElement="Flow_ReSegment_Design"><di:waypoint x="1012" y="245" /><di:waypoint x="1165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_DesignConcept_1_to_Task_DesignConcept_di" bpmnElement="Flow_Join_Task_DesignConcept_1_to_Task_DesignConcept"><di:waypoint x="1215" y="245" /><di:waypoint x="1368" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Design_Compliance_di" bpmnElement="Flow_Design_Compliance"><di:waypoint x="1492" y="245" /><di:waypoint x="1510" y="245" /><di:waypoint x="1510" y="350" /><di:waypoint x="1510" y="455" /><di:waypoint x="1608" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Compliance_Gate_di" bpmnElement="Flow_Compliance_Gate"><di:waypoint x="1732" y="455" /><di:waypoint x="1885" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Compliance_Fail_di" bpmnElement="Flow_Compliance_Fail"><di:waypoint x="1935" y="455" /><di:waypoint x="1990" y="455" /><di:waypoint x="1990" y="1352" /><di:waypoint x="1030" y="1352" /><di:waypoint x="1030" y="245" /><di:waypoint x="1165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Compliance_Pass_di" bpmnElement="Flow_Compliance_Pass"><di:waypoint x="1935" y="455" /><di:waypoint x="2088" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Budget_Gate_di" bpmnElement="Flow_Budget_Gate"><di:waypoint x="2212" y="455" /><di:waypoint x="2365" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Large_di" bpmnElement="Flow_Gate_Large"><di:waypoint x="2415" y="455" /><di:waypoint x="2568" y="455" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Small_di" bpmnElement="Flow_Gate_Small"><di:waypoint x="2415" y="455" /><di:waypoint x="2470" y="455" /><di:waypoint x="2470" y="560" /><di:waypoint x="2710" y="560" /><di:waypoint x="2710" y="665" /><di:waypoint x="2845" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Director_Invite_di" bpmnElement="Flow_Director_Invite"><di:waypoint x="2692" y="455" /><di:waypoint x="2710" y="455" /><di:waypoint x="2710" y="560" /><di:waypoint x="2710" y="665" /><di:waypoint x="2845" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_AutoInviteSellers_2_to_Task_AutoInviteSellers_di" bpmnElement="Flow_Join_Task_AutoInviteSellers_2_to_Task_AutoInviteSellers"><di:waypoint x="2895" y="665" /><di:waypoint x="3048" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_AutoInviteSellers_to_Split_Task_AutoInviteSellers_1_di" bpmnElement="Flow_Task_AutoInviteSellers_to_Split_Task_AutoInviteSellers_1"><di:waypoint x="3172" y="665" /><di:waypoint x="3325" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Invite_Config_di" bpmnElement="Flow_Invite_Config"><di:waypoint x="3375" y="665" /><di:waypoint x="3565" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Invite_Register_di" bpmnElement="Flow_Invite_Register"><di:waypoint x="3375" y="665" /><di:waypoint x="3430" y="665" /><di:waypoint x="3430" y="770" /><di:waypoint x="3430" y="875" /><di:waypoint x="3528" y="875" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_Gate_di" bpmnElement="Flow_Confirm_Gate"><di:waypoint x="3652" y="875" /><di:waypoint x="3805" y="875" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ConfigCampaign_3_to_Task_ConfigCampaign_di" bpmnElement="Flow_Join_Task_ConfigCampaign_3_to_Task_ConfigCampaign"><di:waypoint x="3615" y="665" /><di:waypoint x="3768" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Config_Gate_di" bpmnElement="Flow_Config_Gate"><di:waypoint x="3892" y="665" /><di:waypoint x="3910" y="665" /><di:waypoint x="3910" y="350" /><di:waypoint x="3910" y="245" /><di:waypoint x="4045" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_No_di" bpmnElement="Flow_Confirm_No"><di:waypoint x="3855" y="875" /><di:waypoint x="3910" y="875" /><di:waypoint x="3910" y="350" /><di:waypoint x="7030" y="350" /><di:waypoint x="7030" y="245" /><di:waypoint x="7165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_Yes_di" bpmnElement="Flow_Confirm_Yes"><di:waypoint x="3855" y="875" /><di:waypoint x="4008" y="875" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Promo_No_di" bpmnElement="Flow_Promo_No"><di:waypoint x="4095" y="245" /><di:waypoint x="4150" y="245" /><di:waypoint x="4150" y="350" /><di:waypoint x="4390" y="350" /><di:waypoint x="4390" y="665" /><di:waypoint x="4525" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Promo_Yes_di" bpmnElement="Flow_Promo_Yes"><di:waypoint x="4095" y="245" /><di:waypoint x="4248" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Register_Prepare_di" bpmnElement="Flow_Register_Prepare"><di:waypoint x="4132" y="875" /><di:waypoint x="4248" y="875" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Prepare_End_di" bpmnElement="Flow_Prepare_End"><di:waypoint x="4372" y="875" /><di:waypoint x="4390" y="875" /><di:waypoint x="4390" y="350" /><di:waypoint x="7030" y="350" /><di:waypoint x="7030" y="245" /><di:waypoint x="7165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Resolve_Test_di" bpmnElement="Flow_Resolve_Test"><di:waypoint x="4372" y="245" /><di:waypoint x="4390" y="245" /><di:waypoint x="4390" y="350" /><di:waypoint x="4390" y="665" /><di:waypoint x="4525" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_AutoTestVoucher_4_to_Task_AutoTestVoucher_di" bpmnElement="Flow_Join_Task_AutoTestVoucher_4_to_Task_AutoTestVoucher"><di:waypoint x="4575" y="665" /><di:waypoint x="4728" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Test_Gate_di" bpmnElement="Flow_Test_Gate"><di:waypoint x="4852" y="665" /><di:waypoint x="5005" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Test_Fail_di" bpmnElement="Flow_Test_Fail"><di:waypoint x="5055" y="665" /><di:waypoint x="5110" y="665" /><di:waypoint x="5110" y="1320" /><di:waypoint x="3430" y="1320" /><di:waypoint x="3430" y="665" /><di:waypoint x="3565" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Test_Pass_di" bpmnElement="Flow_Test_Pass"><di:waypoint x="5055" y="665" /><di:waypoint x="5208" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_QA_Gate_di" bpmnElement="Flow_QA_Gate"><di:waypoint x="5332" y="665" /><di:waypoint x="5485" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_QANo_di" bpmnElement="Flow_Gate_QANo"><di:waypoint x="5535" y="665" /><di:waypoint x="5590" y="665" /><di:waypoint x="5590" y="1368" /><di:waypoint x="3430" y="1368" /><di:waypoint x="3430" y="665" /><di:waypoint x="3565" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_QAYes_di" bpmnElement="Flow_Gate_QAYes"><di:waypoint x="5535" y="665" /><di:waypoint x="5688" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_LaunchCampaign_to_Split_Task_LaunchCampaign_2_di" bpmnElement="Flow_Task_LaunchCampaign_to_Split_Task_LaunchCampaign_2"><di:waypoint x="5812" y="665" /><di:waypoint x="5965" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Launch_Browse_di" bpmnElement="Flow_Launch_Browse"><di:waypoint x="6015" y="665" /><di:waypoint x="6070" y="665" /><di:waypoint x="6070" y="770" /><di:waypoint x="6070" y="1085" /><di:waypoint x="6168" y="1085" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Launch_Monitor_di" bpmnElement="Flow_Launch_Monitor"><di:waypoint x="6015" y="665" /><di:waypoint x="6070" y="665" /><di:waypoint x="6070" y="350" /><di:waypoint x="6070" y="245" /><di:waypoint x="6168" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Browse_Purchase_di" bpmnElement="Flow_Browse_Purchase"><di:waypoint x="6292" y="1085" /><di:waypoint x="6408" y="1085" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Monitor_Report_di" bpmnElement="Flow_Monitor_Report"><di:waypoint x="6292" y="245" /><di:waypoint x="6310" y="245" /><di:waypoint x="6310" y="350" /><di:waypoint x="6310" y="665" /><di:waypoint x="6408" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Purchase_End_di" bpmnElement="Flow_Purchase_End"><di:waypoint x="6532" y="1085" /><di:waypoint x="6550" y="1085" /><di:waypoint x="6550" y="350" /><di:waypoint x="7030" y="350" /><di:waypoint x="7030" y="245" /><di:waypoint x="7165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Report_ReadyGate_di" bpmnElement="Flow_Report_ReadyGate"><di:waypoint x="6532" y="665" /><di:waypoint x="6685" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Report_No_di" bpmnElement="Flow_Report_No"><di:waypoint x="6735" y="665" /><di:waypoint x="6888" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Report_Yes_di" bpmnElement="Flow_Report_Yes"><di:waypoint x="6735" y="665" /><di:waypoint x="6790" y="665" /><di:waypoint x="6790" y="350" /><di:waypoint x="6790" y="245" /><di:waypoint x="6888" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Report_End_di" bpmnElement="Flow_Report_End"><di:waypoint x="7012" y="245" /><di:waypoint x="7165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Report_Retry_di" bpmnElement="Flow_Report_Retry"><di:waypoint x="7012" y="665" /><di:waypoint x="7030" y="665" /><di:waypoint x="7030" y="1368" /><di:waypoint x="6550" y="1368" /><di:waypoint x="6550" y="665" /><di:waypoint x="6685" y="665" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_End_CampaignDone_1_to_End_CampaignDone_di" bpmnElement="Flow_Join_End_CampaignDone_1_to_End_CampaignDone"><di:waypoint x="7215" y="245" /><di:waypoint x="7412" y="245" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>
