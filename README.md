@@ -15,7 +15,7 @@
 | Nhóm | Số lượng | Quy trình |
 |------|----------|-----------|
 | **Quản lý (Management)** | 3 | Quản lý Nhà bán hàng (01), Quản lý Tranh chấp & Khiếu nại (02), Quản lý Nhân sự & Đào tạo (07) |
-| **Cốt lõi (Core)** | 4 | Xử lý Đơn hàng online (03), Thanh toán & Đối soát (08), Logistics & Giao nhận (09), Hoàn trả & Hoàn tiền (04) |
+| **Cốt lõi (Core)** | 4 | Xử lý Đơn hàng Online (03), Thanh toán & Đối soát (08), Logistics & Giao nhận (09), Hoàn trả & Hoàn tiền (04) |
 | **Hỗ trợ (Support)** | 3 | Chăm sóc Khách hàng (05), Marketing & Promotions (06), Vận hành Nền tảng Công nghệ (10) |
 
 **Cả 10 quy trình** đều được phân tích chi tiết bằng BPMN 2.0 (AS-IS + TO-BE), kiểm chứng Petri Net, và đầy đủ phân tích định tính + định lượng:
@@ -24,7 +24,7 @@
 |---|-----------|------|--------------------------|---------------------------|-----------|
 | 01 | Quản lý Nhà bán hàng | Management | 14 / 15 | 13 / 7 | SOUND |
 | 02 | Quản lý Tranh chấp | Management | 12 / 16 | 13 / 9 | SOUND |
-| 03 | Xử lý Đơn hàng online ⭐ | Core | 26 / 17 | 22 / 9 | SOUND |
+| 03 | Xử lý Đơn hàng Online ⭐ | Core | 26 / 17 | 22 / 9 | SOUND |
 | 04 | Hoàn trả & Hoàn tiền | Core | 13 / 18 | 16 / 9 | SOUND |
 | 05 | Chăm sóc Khách hàng | Support | 18 / 11 | 14 / 9 | SOUND |
 | 06 | Marketing & Promotions | Support | 21 / 15 | 16 / 8 | SOUND |
@@ -90,7 +90,7 @@ lazada-ba-project/
 │   │   ├── 08-payment-settlement.md
 │   │   ├── 09-logistics-delivery.md
 │   │   ├── 10-it-platform.md
-│   │   ├── comparison/               ← AS-IS vs TO-BE so sánh (10 files)
+│   │   ├── comparison/               ← So sánh AS-IS vs TO-BE (10 files)
 │   │   ├── fishbone-diagrams.md       ← Fishbone root cause
 │   │   ├── issue-register.md          ← Đăng ký vấn đề
 │   │   └── 5-why-supplementary.md     ← Phân tích 5-Why bổ sung
@@ -170,7 +170,7 @@ lazada-ba-project/
 | Phân tích định lượng (Cycle Time, Cost, Quality) | **10 quy trình** |
 | Phân tích Pareto (80/20) | **10 biểu đồ PNG** |
 | Phỏng vấn (10 định tính + 10 định lượng) | **10 quy trình** |
-| AS-IS vs TO-BE so sánh | **10 file comparison** |
+| So sánh AS-IS vs TO-BE | **10 file comparison** |
 | Screenshots BPMN | **20 PNG** (10 AS-IS + 10 TO-BE) |
 | Báo cáo Word | **DOAN-LAZADA-UIT.doc + .docx** |
 

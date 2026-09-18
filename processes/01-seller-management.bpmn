@@ -1,248 +1,248 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_SellerManagement" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
-  <bpmn:process id="Process_SellerManagement" name="Quản lý Nhà bán hàng" isExecutable="true">
-    <bpmn:laneSet id="LaneSet_1">
-      <bpmn:lane id="Lane_Seller" name="Seller">
-        <bpmn:flowNodeRef>StartEvent_Register</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Register</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_UploadDocs</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_FixBankInfo</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_FixRejection</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>End_Approved</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>End_Rejected</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_UploadDocs_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_FixRejection_4</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
-        <bpmn:flowNodeRef>Gate_PhoneVerif</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_VerifyPhone</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ValidateIdentity</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_BankValid</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_OCRCheck</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_DocValid</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_ResubmitLimit</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ScoreRisk</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_RiskDoubt</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_AutoApprove</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_NotifyResult</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_ValidateIdentity_2</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_OCRCheck_3</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_NotifyResult_6</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Split_Task_NotifyResult_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Compliance" name="Compliance Team">
-        <bpmn:flowNodeRef>Task_ManualReview</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_Approve</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_ManualReview_5</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Legal" name="Legal / Giám sát Vận hành">
-        <bpmn:flowNodeRef>Task_MonitorViolations</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_ViolationSeverity</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Warn</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Suspend</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Ban</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>End_Warned</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>End_Suspended</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>End_Banned</bpmn:flowNodeRef>
-      </bpmn:lane>
-    </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_Register" name="Yêu cầu đăng ký gian hàng">
-      <bpmn:outgoing>Flow_Register_Submit</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:userTask id="Task_Register" name="Điền thông tin định danh Seller">
-      <bpmn:incoming>Flow_Register_Submit</bpmn:incoming>
-      <bpmn:outgoing>Flow_Register_Phone</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_PhoneVerif" name="SĐT đã xác thực?">
-      <bpmn:incoming>Flow_Register_Phone</bpmn:incoming>
-      <bpmn:outgoing>Flow_Phone_Yes</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Phone_No</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_VerifyPhone" name="Gửi OTP xác thực SĐT">
-      <bpmn:incoming>Flow_Phone_No</bpmn:incoming>
-      <bpmn:outgoing>Flow_Verify_Upload</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:userTask id="Task_UploadDocs" name="Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)">
-      <bpmn:outgoing>Flow_Docs_Validate</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs</bpmn:incoming>
-    </bpmn:userTask>
-    <bpmn:serviceTask id="Task_ValidateIdentity" name="Validate định danh tự động">
-      <bpmn:outgoing>Flow_Validate_Bank</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity</bpmn:incoming>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_BankValid" name="Tài khoản NH hợp lệ?">
-      <bpmn:incoming>Flow_Validate_Bank</bpmn:incoming>
-      <bpmn:outgoing>Flow_Bank_Yes</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Bank_No</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_FixBankInfo" name="Cập nhật tài khoản ngân hàng (giải ngân)">
-      <bpmn:incoming>Flow_Bank_No</bpmn:incoming>
-      <bpmn:outgoing>Flow_FixBank_OCR</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:serviceTask id="Task_OCRCheck" name="Quét OCR + kiểm tra giấy tờ giả">
-      <bpmn:outgoing>Flow_OCR_Gate</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck</bpmn:incoming>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_DocValid" name="Giấy tờ hợp lệ?">
-      <bpmn:incoming>Flow_OCR_Gate</bpmn:incoming>
-      <bpmn:outgoing>Flow_DocValid_Pass</bpmn:outgoing>
-      <bpmn:outgoing>Flow_DocValid_Fail</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_FixRejection" name="Bổ sung / sửa hồ sơ">
-      <bpmn:outgoing>Flow_Fix_Gate</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_FixRejection_4_to_Task_FixRejection</bpmn:incoming>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_ResubmitLimit" name="Còn lượt sửa hồ sơ?">
-      <bpmn:incoming>Flow_Fix_Gate</bpmn:incoming>
-      <bpmn:outgoing>Flow_Resubmit_OK</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Resubmit_End</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_ScoreRisk" name="Chấm điểm rủi ro (Risk scoring)">
-      <bpmn:incoming>Flow_DocValid_Pass</bpmn:incoming>
-      <bpmn:outgoing>Flow_Risk_Doubt</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_RiskDoubt" name="Có nghi vấn rủi ro cao?">
-      <bpmn:incoming>Flow_Risk_Doubt</bpmn:incoming>
-      <bpmn:outgoing>Flow_Doubt_No</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Doubt_Yes</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_AutoApprove" name="Phân tầng rủi ro?">
-      <bpmn:incoming>Flow_Doubt_No</bpmn:incoming>
-      <bpmn:outgoing>Flow_Gate_Auto</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Gate_Manual</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Gate_Reject</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_ManualReview" name="Compliance review thủ công (24-48h)">
-      <bpmn:outgoing>Flow_Manual_Approve</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_ManualReview_5_to_Task_ManualReview</bpmn:incoming>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_Approve" name="Kết quả thẩm định?">
-      <bpmn:incoming>Flow_Manual_Approve</bpmn:incoming>
-      <bpmn:outgoing>Flow_Approve_Notify</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Reject_Notify</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Reject_Fix</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_NotifyResult" name="Thông báo kết quả duyệt Seller Centre">
-      <bpmn:incoming>Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_MonitorViolations" name="Giám sát điểm đánh giá &amp; vi phạm (auto)">
-      <bpmn:incoming>Flow_Notify_Monitor</bpmn:incoming>
-      <bpmn:outgoing>Flow_Monitor_Gate</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_ViolationSeverity" name="Mức độ vi phạm?">
-      <bpmn:incoming>Flow_Monitor_Gate</bpmn:incoming>
-      <bpmn:outgoing>Flow_Gate_Warn</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Gate_Suspend</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Gate_Ban</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_Warn" name="Gửi cảnh cáo Seller">
-      <bpmn:incoming>Flow_Gate_Warn</bpmn:incoming>
-      <bpmn:outgoing>Flow_Warn_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_Suspend" name="Tạm khóa gian hàng (7 ngày)">
-      <bpmn:incoming>Flow_Gate_Suspend</bpmn:incoming>
-      <bpmn:outgoing>Flow_Suspend_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_Ban" name="Khóa gian hàng vĩnh viễn">
-      <bpmn:incoming>Flow_Gate_Ban</bpmn:incoming>
-      <bpmn:outgoing>Flow_Ban_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:endEvent id="End_Approved" name="Gian hàng Lazada đã được kích hoạt">
-      <bpmn:incoming>Flow_Notify_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="End_Rejected" name="Hồ sơ đã bị từ chối vĩnh viễn">
-      <bpmn:incoming>Flow_Resubmit_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="End_Warned" name="Gian hàng đã bị cảnh cáo">
-      <bpmn:incoming>Flow_Warn_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="End_Suspended" name="Gian hàng đã bị tạm khóa">
-      <bpmn:incoming>Flow_Suspend_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="End_Banned" name="Gian hàng đã bị khóa vĩnh viễn">
-      <bpmn:incoming>Flow_Ban_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_Register_Submit" sourceRef="StartEvent_Register" targetRef="Task_Register" />
-    <bpmn:sequenceFlow id="Flow_Register_Phone" sourceRef="Task_Register" targetRef="Gate_PhoneVerif" />
-    <bpmn:sequenceFlow id="Flow_Phone_Yes" name="Đã xác thực" sourceRef="Gate_PhoneVerif" targetRef="Join_Task_UploadDocs_1" />
-    <bpmn:sequenceFlow id="Flow_Phone_No" name="Chưa xác thực" sourceRef="Gate_PhoneVerif" targetRef="Task_VerifyPhone" />
-    <bpmn:sequenceFlow id="Flow_Verify_Upload" sourceRef="Task_VerifyPhone" targetRef="Join_Task_UploadDocs_1" />
-    <bpmn:sequenceFlow id="Flow_Docs_Validate" sourceRef="Task_UploadDocs" targetRef="Join_Task_ValidateIdentity_2" />
-    <bpmn:sequenceFlow id="Flow_Validate_Bank" sourceRef="Task_ValidateIdentity" targetRef="Gate_BankValid" />
-    <bpmn:sequenceFlow id="Flow_Bank_Yes" name="Hợp lệ" sourceRef="Gate_BankValid" targetRef="Join_Task_OCRCheck_3" />
-    <bpmn:sequenceFlow id="Flow_Bank_No" name="Không hợp lệ" sourceRef="Gate_BankValid" targetRef="Task_FixBankInfo" />
-    <bpmn:sequenceFlow id="Flow_FixBank_OCR" sourceRef="Task_FixBankInfo" targetRef="Join_Task_OCRCheck_3" />
-    <bpmn:sequenceFlow id="Flow_OCR_Gate" sourceRef="Task_OCRCheck" targetRef="Gate_DocValid" />
-    <bpmn:sequenceFlow id="Flow_DocValid_Pass" name="Đạt chuẩn OCR" sourceRef="Gate_DocValid" targetRef="Task_ScoreRisk" />
-    <bpmn:sequenceFlow id="Flow_DocValid_Fail" name="Lỗi OCR" sourceRef="Gate_DocValid" targetRef="Join_Task_FixRejection_4" />
-    <bpmn:sequenceFlow id="Flow_Fix_Gate" sourceRef="Task_FixRejection" targetRef="Gate_ResubmitLimit" />
-    <bpmn:sequenceFlow id="Flow_Resubmit_OK" name="Còn lượt" sourceRef="Gate_ResubmitLimit" targetRef="Join_Task_ValidateIdentity_2" />
-    <bpmn:sequenceFlow id="Flow_Resubmit_End" name="Hết lượt (3 lần)" sourceRef="Gate_ResubmitLimit" targetRef="End_Rejected" />
-    <bpmn:sequenceFlow id="Flow_Risk_Doubt" sourceRef="Task_ScoreRisk" targetRef="Gate_RiskDoubt" />
-    <bpmn:sequenceFlow id="Flow_Doubt_No" name="Rủi ro thấp/vừa" sourceRef="Gate_RiskDoubt" targetRef="Gate_AutoApprove" />
-    <bpmn:sequenceFlow id="Flow_Doubt_Yes" name="Nghi vấn cao" sourceRef="Gate_RiskDoubt" targetRef="Join_Task_ManualReview_5" />
-    <bpmn:sequenceFlow id="Flow_Gate_Auto" name="Điểm tốt (Low-risk)" sourceRef="Gate_AutoApprove" targetRef="Join_Task_NotifyResult_6" />
-    <bpmn:sequenceFlow id="Flow_Gate_Manual" name="Cần hậu kiểm" sourceRef="Gate_AutoApprove" targetRef="Join_Task_ManualReview_5" />
-    <bpmn:sequenceFlow id="Flow_Gate_Reject" name="Không đạt" sourceRef="Gate_AutoApprove" targetRef="Join_Task_FixRejection_4" />
-    <bpmn:sequenceFlow id="Flow_Manual_Approve" sourceRef="Task_ManualReview" targetRef="Gate_Approve" />
-    <bpmn:sequenceFlow id="Flow_Approve_Notify" name="Chấp thuận" sourceRef="Gate_Approve" targetRef="Join_Task_NotifyResult_6" />
-    <bpmn:sequenceFlow id="Flow_Reject_Notify" name="Từ chối" sourceRef="Gate_Approve" targetRef="Join_Task_NotifyResult_6" />
-    <bpmn:sequenceFlow id="Flow_Reject_Fix" name="Yêu cầu bổ sung" sourceRef="Gate_Approve" targetRef="Join_Task_FixRejection_4" />
-    <bpmn:sequenceFlow id="Flow_Notify_End" sourceRef="Split_Task_NotifyResult_1" targetRef="End_Approved" />
-    <bpmn:sequenceFlow id="Flow_Notify_Monitor" sourceRef="Split_Task_NotifyResult_1" targetRef="Task_MonitorViolations" />
-    <bpmn:sequenceFlow id="Flow_Monitor_Gate" sourceRef="Task_MonitorViolations" targetRef="Gate_ViolationSeverity" />
-    <bpmn:sequenceFlow id="Flow_Gate_Warn" name="Nhẹ (1-2 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Warn" />
-    <bpmn:sequenceFlow id="Flow_Gate_Suspend" name="Trung bình (3-5 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Suspend" />
-    <bpmn:sequenceFlow id="Flow_Gate_Ban" name="Nặng (&gt;6 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Ban" />
-    <bpmn:sequenceFlow id="Flow_Warn_End" sourceRef="Task_Warn" targetRef="End_Warned" />
-    <bpmn:sequenceFlow id="Flow_Suspend_End" sourceRef="Task_Suspend" targetRef="End_Suspended" />
-    <bpmn:sequenceFlow id="Flow_Ban_End" sourceRef="Task_Ban" targetRef="End_Banned" />
-    <bpmn:exclusiveGateway id="Join_Task_UploadDocs_1" name="Gom luồng trước khi Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)">
-      <bpmn:incoming>Flow_Phone_Yes</bpmn:incoming>
-      <bpmn:incoming>Flow_Verify_Upload</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs" sourceRef="Join_Task_UploadDocs_1" targetRef="Task_UploadDocs" />
-    <bpmn:exclusiveGateway id="Join_Task_ValidateIdentity_2" name="Gom luồng trước khi Validate định danh tự động">
-      <bpmn:incoming>Flow_Docs_Validate</bpmn:incoming>
-      <bpmn:incoming>Flow_Resubmit_OK</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity" sourceRef="Join_Task_ValidateIdentity_2" targetRef="Task_ValidateIdentity" />
-    <bpmn:exclusiveGateway id="Join_Task_OCRCheck_3" name="Gom luồng trước khi Quét OCR + kiểm tra giấy tờ giả">
-      <bpmn:incoming>Flow_Bank_Yes</bpmn:incoming>
-      <bpmn:incoming>Flow_FixBank_OCR</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck" sourceRef="Join_Task_OCRCheck_3" targetRef="Task_OCRCheck" />
-    <bpmn:exclusiveGateway id="Join_Task_FixRejection_4" name="Gom luồng trước khi Bổ sung / sửa hồ sơ">
-      <bpmn:incoming>Flow_DocValid_Fail</bpmn:incoming>
-      <bpmn:incoming>Flow_Gate_Reject</bpmn:incoming>
-      <bpmn:incoming>Flow_Reject_Fix</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_FixRejection_4_to_Task_FixRejection</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_FixRejection_4_to_Task_FixRejection" sourceRef="Join_Task_FixRejection_4" targetRef="Task_FixRejection" />
-    <bpmn:exclusiveGateway id="Join_Task_ManualReview_5" name="Gom luồng trước khi Compliance review thủ công (24-48h)">
-      <bpmn:incoming>Flow_Doubt_Yes</bpmn:incoming>
-      <bpmn:incoming>Flow_Gate_Manual</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_ManualReview_5_to_Task_ManualReview</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_ManualReview_5_to_Task_ManualReview" sourceRef="Join_Task_ManualReview_5" targetRef="Task_ManualReview" />
-    <bpmn:exclusiveGateway id="Join_Task_NotifyResult_6" name="Gom luồng trước khi Thông báo kết quả duyệt Seller Centre">
-      <bpmn:incoming>Flow_Gate_Auto</bpmn:incoming>
-      <bpmn:incoming>Flow_Approve_Notify</bpmn:incoming>
-      <bpmn:incoming>Flow_Reject_Notify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult" sourceRef="Join_Task_NotifyResult_6" targetRef="Task_NotifyResult" />
-    <bpmn:exclusiveGateway id="Split_Task_NotifyResult_1" name="Phân luồng sau Thông báo kết quả duyệt Seller Centre">
-      <bpmn:outgoing>Flow_Notify_End</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Notify_Monitor</bpmn:outgoing>
-      <bpmn:incoming>Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1</bpmn:incoming>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1" sourceRef="Task_NotifyResult" targetRef="Split_Task_NotifyResult_1" />
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_SellerManagement"><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="140" width="5660" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="392" width="5660" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Compliance_di" bpmnElement="Lane_Compliance"><dc:Bounds x="30" y="644" width="5660" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Legal_di" bpmnElement="Lane_Legal"><dc:Bounds x="30" y="854" width="5660" height="348" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Register_di" bpmnElement="StartEvent_Register"><dc:Bounds x="212" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Register_di" bpmnElement="Task_Register"><dc:Bounds x="408" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PhoneVerif_di" bpmnElement="Gate_PhoneVerif"><dc:Bounds x="685" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_VerifyPhone_di" bpmnElement="Task_VerifyPhone"><dc:Bounds x="888" y="530" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_UploadDocs_di" bpmnElement="Task_UploadDocs"><dc:Bounds x="1368" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ValidateIdentity_di" bpmnElement="Task_ValidateIdentity"><dc:Bounds x="1848" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_BankValid_di" bpmnElement="Gate_BankValid"><dc:Bounds x="2125" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_FixBankInfo_di" bpmnElement="Task_FixBankInfo"><dc:Bounds x="2328" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_OCRCheck_di" bpmnElement="Task_OCRCheck"><dc:Bounds x="2808" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_DocValid_di" bpmnElement="Gate_DocValid"><dc:Bounds x="3085" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_FixRejection_di" bpmnElement="Task_FixRejection"><dc:Bounds x="648" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ResubmitLimit_di" bpmnElement="Gate_ResubmitLimit"><dc:Bounds x="925" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ScoreRisk_di" bpmnElement="Task_ScoreRisk"><dc:Bounds x="3288" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_RiskDoubt_di" bpmnElement="Gate_RiskDoubt"><dc:Bounds x="3565" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_AutoApprove_di" bpmnElement="Gate_AutoApprove"><dc:Bounds x="3805" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ManualReview_di" bpmnElement="Task_ManualReview"><dc:Bounds x="4248" y="713" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Approve_di" bpmnElement="Gate_Approve"><dc:Bounds x="205" y="724" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifyResult_di" bpmnElement="Task_NotifyResult"><dc:Bounds x="4248" y="434" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_MonitorViolations_di" bpmnElement="Task_MonitorViolations"><dc:Bounds x="4728" y="896" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ViolationSeverity_di" bpmnElement="Gate_ViolationSeverity"><dc:Bounds x="5005" y="907" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Warn_di" bpmnElement="Task_Warn"><dc:Bounds x="5208" y="1088" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Suspend_di" bpmnElement="Task_Suspend"><dc:Bounds x="5208" y="992" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Ban_di" bpmnElement="Task_Ban"><dc:Bounds x="5208" y="896" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Approved_di" bpmnElement="End_Approved"><dc:Bounds x="4772" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected"><dc:Bounds x="1172" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Warned_di" bpmnElement="End_Warned"><dc:Bounds x="5492" y="1106" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Suspended_di" bpmnElement="End_Suspended"><dc:Bounds x="5492" y="1010" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Banned_di" bpmnElement="End_Banned"><dc:Bounds x="5492" y="914" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_UploadDocs_1_di" bpmnElement="Join_Task_UploadDocs_1"><dc:Bounds x="1165" y="289" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ValidateIdentity_2_di" bpmnElement="Join_Task_ValidateIdentity_2"><dc:Bounds x="1645" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_OCRCheck_3_di" bpmnElement="Join_Task_OCRCheck_3"><dc:Bounds x="2605" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_FixRejection_4_di" bpmnElement="Join_Task_FixRejection_4"><dc:Bounds x="445" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ManualReview_5_di" bpmnElement="Join_Task_ManualReview_5"><dc:Bounds x="4045" y="724" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_NotifyResult_6_di" bpmnElement="Join_Task_NotifyResult_6"><dc:Bounds x="4045" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_NotifyResult_1_di" bpmnElement="Split_Task_NotifyResult_1"><dc:Bounds x="4525" y="445" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_Approve_Notify_di" bpmnElement="Flow_Approve_Notify"><di:waypoint x="255" y="749" /><di:waypoint x="310" y="749" /><di:waypoint x="310" y="644" /><di:waypoint x="3910" y="644" /><di:waypoint x="3910" y="470" /><di:waypoint x="4045" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="2075" y="620" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Register_Submit_di" bpmnElement="Flow_Register_Submit"><di:waypoint x="248" y="218" /><di:waypoint x="310" y="218" /><di:waypoint x="310" y="266" /><di:waypoint x="310" y="314" /><di:waypoint x="408" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Reject_Fix_di" bpmnElement="Flow_Reject_Fix"><di:waypoint x="255" y="749" /><di:waypoint x="310" y="749" /><di:waypoint x="310" y="392" /><di:waypoint x="310" y="218" /><di:waypoint x="445" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="320" y="564" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Reject_Notify_di" bpmnElement="Flow_Reject_Notify"><di:waypoint x="255" y="749" /><di:waypoint x="310" y="749" /><di:waypoint x="310" y="644" /><di:waypoint x="3910" y="644" /><di:waypoint x="3910" y="470" /><di:waypoint x="4045" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="2075" y="620" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_FixRejection_4_to_Task_FixRejection_di" bpmnElement="Flow_Join_Task_FixRejection_4_to_Task_FixRejection"><di:waypoint x="495" y="218" /><di:waypoint x="648" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Register_Phone_di" bpmnElement="Flow_Register_Phone"><di:waypoint x="532" y="314" /><di:waypoint x="550" y="314" /><di:waypoint x="550" y="392" /><di:waypoint x="550" y="470" /><di:waypoint x="685" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Fix_Gate_di" bpmnElement="Flow_Fix_Gate"><di:waypoint x="772" y="218" /><di:waypoint x="790" y="218" /><di:waypoint x="790" y="392" /><di:waypoint x="790" y="470" /><di:waypoint x="925" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Phone_No_di" bpmnElement="Flow_Phone_No"><di:waypoint x="735" y="470" /><di:waypoint x="790" y="470" /><di:waypoint x="790" y="518" /><di:waypoint x="790" y="566" /><di:waypoint x="888" y="566" /><bpmndi:BPMNLabel><dc:Bounds x="804" y="542" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Phone_Yes_di" bpmnElement="Flow_Phone_Yes"><di:waypoint x="735" y="470" /><di:waypoint x="790" y="470" /><di:waypoint x="790" y="392" /><di:waypoint x="1030" y="392" /><di:waypoint x="1030" y="314" /><di:waypoint x="1165" y="314" /><bpmndi:BPMNLabel><dc:Bounds x="875" y="368" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Resubmit_End_di" bpmnElement="Flow_Resubmit_End"><di:waypoint x="975" y="470" /><di:waypoint x="1030" y="470" /><di:waypoint x="1030" y="392" /><di:waypoint x="1030" y="218" /><di:waypoint x="1172" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="1040" y="298" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Resubmit_OK_di" bpmnElement="Flow_Resubmit_OK"><di:waypoint x="975" y="470" /><di:waypoint x="1645" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="1275" y="446" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Verify_Upload_di" bpmnElement="Flow_Verify_Upload"><di:waypoint x="1012" y="566" /><di:waypoint x="1030" y="566" /><di:waypoint x="1030" y="392" /><di:waypoint x="1030" y="314" /><di:waypoint x="1165" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs_di" bpmnElement="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs"><di:waypoint x="1215" y="314" /><di:waypoint x="1270" y="314" /><di:waypoint x="1270" y="266" /><di:waypoint x="1270" y="218" /><di:waypoint x="1368" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Docs_Validate_di" bpmnElement="Flow_Docs_Validate"><di:waypoint x="1492" y="218" /><di:waypoint x="1510" y="218" /><di:waypoint x="1510" y="392" /><di:waypoint x="1510" y="470" /><di:waypoint x="1645" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity_di" bpmnElement="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity"><di:waypoint x="1695" y="470" /><di:waypoint x="1848" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Validate_Bank_di" bpmnElement="Flow_Validate_Bank"><di:waypoint x="1972" y="470" /><di:waypoint x="2125" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Bank_No_di" bpmnElement="Flow_Bank_No"><di:waypoint x="2175" y="470" /><di:waypoint x="2230" y="470" /><di:waypoint x="2230" y="392" /><di:waypoint x="2230" y="218" /><di:waypoint x="2328" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="2240" y="298" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Bank_Yes_di" bpmnElement="Flow_Bank_Yes"><di:waypoint x="2175" y="470" /><di:waypoint x="2605" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="2355" y="446" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_FixBank_OCR_di" bpmnElement="Flow_FixBank_OCR"><di:waypoint x="2452" y="218" /><di:waypoint x="2470" y="218" /><di:waypoint x="2470" y="392" /><di:waypoint x="2470" y="470" /><di:waypoint x="2605" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck_di" bpmnElement="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck"><di:waypoint x="2655" y="470" /><di:waypoint x="2808" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_OCR_Gate_di" bpmnElement="Flow_OCR_Gate"><di:waypoint x="2932" y="470" /><di:waypoint x="3085" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_DocValid_Fail_di" bpmnElement="Flow_DocValid_Fail"><di:waypoint x="3135" y="470" /><di:waypoint x="3190" y="470" /><di:waypoint x="3190" y="1380" /><di:waypoint x="310" y="1380" /><di:waypoint x="310" y="218" /><di:waypoint x="445" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="1715" y="1356" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_DocValid_Pass_di" bpmnElement="Flow_DocValid_Pass"><di:waypoint x="3135" y="470" /><di:waypoint x="3288" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="3176" y="446" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Risk_Doubt_di" bpmnElement="Flow_Risk_Doubt"><di:waypoint x="3412" y="470" /><di:waypoint x="3565" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Doubt_No_di" bpmnElement="Flow_Doubt_No"><di:waypoint x="3615" y="470" /><di:waypoint x="3805" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="3675" y="446" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Doubt_Yes_di" bpmnElement="Flow_Doubt_Yes"><di:waypoint x="3615" y="470" /><di:waypoint x="3670" y="470" /><di:waypoint x="3670" y="644" /><di:waypoint x="3910" y="644" /><di:waypoint x="3910" y="749" /><di:waypoint x="4045" y="749" /><bpmndi:BPMNLabel><dc:Bounds x="3755" y="620" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Auto_di" bpmnElement="Flow_Gate_Auto"><di:waypoint x="3855" y="470" /><di:waypoint x="4045" y="470" /><bpmndi:BPMNLabel><dc:Bounds x="3915" y="446" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Manual_di" bpmnElement="Flow_Gate_Manual"><di:waypoint x="3855" y="470" /><di:waypoint x="3910" y="470" /><di:waypoint x="3910" y="644" /><di:waypoint x="3910" y="749" /><di:waypoint x="4045" y="749" /><bpmndi:BPMNLabel><dc:Bounds x="3920" y="550" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Reject_di" bpmnElement="Flow_Gate_Reject"><di:waypoint x="3855" y="470" /><di:waypoint x="3910" y="470" /><di:waypoint x="3910" y="1300" /><di:waypoint x="310" y="1300" /><di:waypoint x="310" y="218" /><di:waypoint x="445" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="2075" y="1276" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ManualReview_5_to_Task_ManualReview_di" bpmnElement="Flow_Join_Task_ManualReview_5_to_Task_ManualReview"><di:waypoint x="4095" y="749" /><di:waypoint x="4248" y="749" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult_di" bpmnElement="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult"><di:waypoint x="4095" y="470" /><di:waypoint x="4248" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Manual_Approve_di" bpmnElement="Flow_Manual_Approve"><di:waypoint x="4372" y="749" /><di:waypoint x="4390" y="749" /><di:waypoint x="4390" y="1348" /><di:waypoint x="70" y="1348" /><di:waypoint x="70" y="749" /><di:waypoint x="205" y="749" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1_di" bpmnElement="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1"><di:waypoint x="4372" y="470" /><di:waypoint x="4525" y="470" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_End_di" bpmnElement="Flow_Notify_End"><di:waypoint x="4575" y="470" /><di:waypoint x="4630" y="470" /><di:waypoint x="4630" y="392" /><di:waypoint x="4630" y="218" /><di:waypoint x="4772" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_Monitor_di" bpmnElement="Flow_Notify_Monitor"><di:waypoint x="4575" y="470" /><di:waypoint x="4630" y="470" /><di:waypoint x="4630" y="644" /><di:waypoint x="4630" y="932" /><di:waypoint x="4728" y="932" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Monitor_Gate_di" bpmnElement="Flow_Monitor_Gate"><di:waypoint x="4852" y="932" /><di:waypoint x="5005" y="932" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Ban_di" bpmnElement="Flow_Gate_Ban"><di:waypoint x="5055" y="932" /><di:waypoint x="5208" y="932" /><bpmndi:BPMNLabel><dc:Bounds x="5096" y="908" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Suspend_di" bpmnElement="Flow_Gate_Suspend"><di:waypoint x="5055" y="932" /><di:waypoint x="5110" y="932" /><di:waypoint x="5110" y="980" /><di:waypoint x="5110" y="1028" /><di:waypoint x="5208" y="1028" /><bpmndi:BPMNLabel><dc:Bounds x="5124" y="1004" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Gate_Warn_di" bpmnElement="Flow_Gate_Warn"><di:waypoint x="5055" y="932" /><di:waypoint x="5110" y="932" /><di:waypoint x="5110" y="980" /><di:waypoint x="5110" y="1124" /><di:waypoint x="5208" y="1124" /><bpmndi:BPMNLabel><dc:Bounds x="5120" y="1045" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Ban_End_di" bpmnElement="Flow_Ban_End"><di:waypoint x="5332" y="932" /><di:waypoint x="5492" y="932" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Suspend_End_di" bpmnElement="Flow_Suspend_End"><di:waypoint x="5332" y="1028" /><di:waypoint x="5492" y="1028" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Warn_End_di" bpmnElement="Flow_Warn_End"><di:waypoint x="5332" y="1124" /><di:waypoint x="5492" y="1124" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
-</bpmn:definitions>
+<ns0:definitions xmlns:ns0="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:ns1="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:ns2="http://www.omg.org/spec/DD/20100524/DC" xmlns:ns3="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_SellerManagement" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <ns0:process id="Process_SellerManagement" name="Quản lý Nhà bán hàng" isExecutable="true">
+    <ns0:laneSet id="LaneSet_1">
+      <ns0:lane id="Lane_Seller" name="Seller">
+        <ns0:flowNodeRef>StartEvent_Register</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Register</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_UploadDocs</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_FixBankInfo</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_FixRejection</ns0:flowNodeRef>
+        <ns0:flowNodeRef>End_Approved</ns0:flowNodeRef>
+        <ns0:flowNodeRef>End_Rejected</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_UploadDocs_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_FixRejection_4</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_System" name="Lazada System (Automated)">
+        <ns0:flowNodeRef>Gate_PhoneVerif</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_VerifyPhone</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ValidateIdentity</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_BankValid</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_OCRCheck</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_DocValid</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_ResubmitLimit</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ScoreRisk</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_RiskDoubt</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_AutoApprove</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_NotifyResult</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_ValidateIdentity_2</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_OCRCheck_3</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_NotifyResult_6</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Split_Task_NotifyResult_1</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Compliance" name="Compliance Team">
+        <ns0:flowNodeRef>Task_ManualReview</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_Approve</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_ManualReview_5</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Legal" name="Legal / Giám sát Vận hành">
+        <ns0:flowNodeRef>Task_MonitorViolations</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_ViolationSeverity</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Warn</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Suspend</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Ban</ns0:flowNodeRef>
+        <ns0:flowNodeRef>End_Warned</ns0:flowNodeRef>
+        <ns0:flowNodeRef>End_Suspended</ns0:flowNodeRef>
+        <ns0:flowNodeRef>End_Banned</ns0:flowNodeRef>
+      </ns0:lane>
+    </ns0:laneSet>
+    <ns0:startEvent id="StartEvent_Register" name="Yêu cầu đăng ký gian hàng">
+      <ns0:outgoing>Flow_Register_Submit</ns0:outgoing>
+    </ns0:startEvent>
+    <ns0:userTask id="Task_Register" name="Điền thông tin định danh Seller">
+      <ns0:incoming>Flow_Register_Submit</ns0:incoming>
+      <ns0:outgoing>Flow_Register_Phone</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_PhoneVerif" name="SĐT đã xác thực?">
+      <ns0:incoming>Flow_Register_Phone</ns0:incoming>
+      <ns0:outgoing>Flow_Phone_Yes</ns0:outgoing>
+      <ns0:outgoing>Flow_Phone_No</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_VerifyPhone" name="Gửi OTP xác thực SĐT">
+      <ns0:incoming>Flow_Phone_No</ns0:incoming>
+      <ns0:outgoing>Flow_Verify_Upload</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:userTask id="Task_UploadDocs" name="Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)">
+      <ns0:outgoing>Flow_Docs_Validate</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs</ns0:incoming>
+    </ns0:userTask>
+    <ns0:serviceTask id="Task_ValidateIdentity" name="Validate định danh tự động">
+      <ns0:outgoing>Flow_Validate_Bank</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity</ns0:incoming>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_BankValid" name="Tài khoản NH hợp lệ?">
+      <ns0:incoming>Flow_Validate_Bank</ns0:incoming>
+      <ns0:outgoing>Flow_Bank_Yes</ns0:outgoing>
+      <ns0:outgoing>Flow_Bank_No</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_FixBankInfo" name="Cập nhật tài khoản ngân hàng (giải ngân)">
+      <ns0:incoming>Flow_Bank_No</ns0:incoming>
+      <ns0:outgoing>Flow_FixBank_OCR</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:serviceTask id="Task_OCRCheck" name="Quét OCR + kiểm tra giấy tờ giả">
+      <ns0:outgoing>Flow_OCR_Gate</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck</ns0:incoming>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_DocValid" name="Giấy tờ hợp lệ?">
+      <ns0:incoming>Flow_OCR_Gate</ns0:incoming>
+      <ns0:outgoing>Flow_DocValid_Pass</ns0:outgoing>
+      <ns0:outgoing>Flow_DocValid_Fail</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_FixRejection" name="Bổ sung / sửa hồ sơ">
+      <ns0:outgoing>Flow_Fix_Gate</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_FixRejection_4_to_Task_FixRejection</ns0:incoming>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_ResubmitLimit" name="Còn lượt sửa hồ sơ?">
+      <ns0:incoming>Flow_Fix_Gate</ns0:incoming>
+      <ns0:outgoing>Flow_Resubmit_OK</ns0:outgoing>
+      <ns0:outgoing>Flow_Resubmit_End</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_ScoreRisk" name="Chấm điểm rủi ro (Risk scoring)">
+      <ns0:incoming>Flow_DocValid_Pass</ns0:incoming>
+      <ns0:outgoing>Flow_Risk_Doubt</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_RiskDoubt" name="Có nghi vấn rủi ro cao?">
+      <ns0:incoming>Flow_Risk_Doubt</ns0:incoming>
+      <ns0:outgoing>Flow_Doubt_No</ns0:outgoing>
+      <ns0:outgoing>Flow_Doubt_Yes</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_AutoApprove" name="Phân tầng rủi ro?">
+      <ns0:incoming>Flow_Doubt_No</ns0:incoming>
+      <ns0:outgoing>Flow_Gate_Auto</ns0:outgoing>
+      <ns0:outgoing>Flow_Gate_Manual</ns0:outgoing>
+      <ns0:outgoing>Flow_Gate_Reject</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_ManualReview" name="Compliance review thủ công (24-48h)">
+      <ns0:outgoing>Flow_Manual_Approve</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_ManualReview_5_to_Task_ManualReview</ns0:incoming>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_Approve" name="Kết quả thẩm định?">
+      <ns0:incoming>Flow_Manual_Approve</ns0:incoming>
+      <ns0:outgoing>Flow_Approve_Notify</ns0:outgoing>
+      <ns0:outgoing>Flow_Reject_Notify</ns0:outgoing>
+      <ns0:outgoing>Flow_Reject_Fix</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_NotifyResult" name="Thông báo kết quả duyệt Seller Centre">
+      <ns0:incoming>Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult</ns0:incoming>
+      <ns0:outgoing>Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_MonitorViolations" name="Giám sát điểm đánh giá &amp; vi phạm (auto)">
+      <ns0:incoming>Flow_Notify_Monitor</ns0:incoming>
+      <ns0:outgoing>Flow_Monitor_Gate</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_ViolationSeverity" name="Mức độ vi phạm?">
+      <ns0:incoming>Flow_Monitor_Gate</ns0:incoming>
+      <ns0:outgoing>Flow_Gate_Warn</ns0:outgoing>
+      <ns0:outgoing>Flow_Gate_Suspend</ns0:outgoing>
+      <ns0:outgoing>Flow_Gate_Ban</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_Warn" name="Gửi cảnh cáo Seller">
+      <ns0:incoming>Flow_Gate_Warn</ns0:incoming>
+      <ns0:outgoing>Flow_Warn_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_Suspend" name="Tạm khóa gian hàng (7 ngày)">
+      <ns0:incoming>Flow_Gate_Suspend</ns0:incoming>
+      <ns0:outgoing>Flow_Suspend_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_Ban" name="Khóa gian hàng vĩnh viễn">
+      <ns0:incoming>Flow_Gate_Ban</ns0:incoming>
+      <ns0:outgoing>Flow_Ban_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:endEvent id="End_Approved" name="Gian hàng Lazada đã được kích hoạt">
+      <ns0:incoming>Flow_Notify_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="End_Rejected" name="Hồ sơ đã bị từ chối vĩnh viễn">
+      <ns0:incoming>Flow_Resubmit_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="End_Warned" name="Gian hàng đã bị cảnh cáo">
+      <ns0:incoming>Flow_Warn_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="End_Suspended" name="Gian hàng đã bị tạm khóa">
+      <ns0:incoming>Flow_Suspend_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="End_Banned" name="Gian hàng đã bị khóa vĩnh viễn">
+      <ns0:incoming>Flow_Ban_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:sequenceFlow id="Flow_Register_Submit" sourceRef="StartEvent_Register" targetRef="Task_Register" />
+    <ns0:sequenceFlow id="Flow_Register_Phone" sourceRef="Task_Register" targetRef="Gate_PhoneVerif" />
+    <ns0:sequenceFlow id="Flow_Phone_Yes" name="Đã xác thực" sourceRef="Gate_PhoneVerif" targetRef="Join_Task_UploadDocs_1" />
+    <ns0:sequenceFlow id="Flow_Phone_No" name="Chưa xác thực" sourceRef="Gate_PhoneVerif" targetRef="Task_VerifyPhone" />
+    <ns0:sequenceFlow id="Flow_Verify_Upload" sourceRef="Task_VerifyPhone" targetRef="Join_Task_UploadDocs_1" />
+    <ns0:sequenceFlow id="Flow_Docs_Validate" sourceRef="Task_UploadDocs" targetRef="Join_Task_ValidateIdentity_2" />
+    <ns0:sequenceFlow id="Flow_Validate_Bank" sourceRef="Task_ValidateIdentity" targetRef="Gate_BankValid" />
+    <ns0:sequenceFlow id="Flow_Bank_Yes" name="Hợp lệ" sourceRef="Gate_BankValid" targetRef="Join_Task_OCRCheck_3" />
+    <ns0:sequenceFlow id="Flow_Bank_No" name="Không hợp lệ" sourceRef="Gate_BankValid" targetRef="Task_FixBankInfo" />
+    <ns0:sequenceFlow id="Flow_FixBank_OCR" sourceRef="Task_FixBankInfo" targetRef="Join_Task_OCRCheck_3" />
+    <ns0:sequenceFlow id="Flow_OCR_Gate" sourceRef="Task_OCRCheck" targetRef="Gate_DocValid" />
+    <ns0:sequenceFlow id="Flow_DocValid_Pass" name="Đạt chuẩn OCR" sourceRef="Gate_DocValid" targetRef="Task_ScoreRisk" />
+    <ns0:sequenceFlow id="Flow_DocValid_Fail" name="Lỗi OCR" sourceRef="Gate_DocValid" targetRef="Join_Task_FixRejection_4" />
+    <ns0:sequenceFlow id="Flow_Fix_Gate" sourceRef="Task_FixRejection" targetRef="Gate_ResubmitLimit" />
+    <ns0:sequenceFlow id="Flow_Resubmit_OK" name="Còn lượt" sourceRef="Gate_ResubmitLimit" targetRef="Join_Task_ValidateIdentity_2" />
+    <ns0:sequenceFlow id="Flow_Resubmit_End" name="Hết lượt (3 lần)" sourceRef="Gate_ResubmitLimit" targetRef="End_Rejected" />
+    <ns0:sequenceFlow id="Flow_Risk_Doubt" sourceRef="Task_ScoreRisk" targetRef="Gate_RiskDoubt" />
+    <ns0:sequenceFlow id="Flow_Doubt_No" name="Rủi ro thấp/vừa" sourceRef="Gate_RiskDoubt" targetRef="Gate_AutoApprove" />
+    <ns0:sequenceFlow id="Flow_Doubt_Yes" name="Nghi vấn cao" sourceRef="Gate_RiskDoubt" targetRef="Join_Task_ManualReview_5" />
+    <ns0:sequenceFlow id="Flow_Gate_Auto" name="Điểm tốt (Low-risk)" sourceRef="Gate_AutoApprove" targetRef="Join_Task_NotifyResult_6" />
+    <ns0:sequenceFlow id="Flow_Gate_Manual" name="Cần hậu kiểm" sourceRef="Gate_AutoApprove" targetRef="Join_Task_ManualReview_5" />
+    <ns0:sequenceFlow id="Flow_Gate_Reject" name="Không đạt" sourceRef="Gate_AutoApprove" targetRef="Join_Task_FixRejection_4" />
+    <ns0:sequenceFlow id="Flow_Manual_Approve" sourceRef="Task_ManualReview" targetRef="Gate_Approve" />
+    <ns0:sequenceFlow id="Flow_Approve_Notify" name="Chấp thuận" sourceRef="Gate_Approve" targetRef="Join_Task_NotifyResult_6" />
+    <ns0:sequenceFlow id="Flow_Reject_Notify" name="Từ chối" sourceRef="Gate_Approve" targetRef="Join_Task_NotifyResult_6" />
+    <ns0:sequenceFlow id="Flow_Reject_Fix" name="Yêu cầu bổ sung" sourceRef="Gate_Approve" targetRef="Join_Task_FixRejection_4" />
+    <ns0:sequenceFlow id="Flow_Notify_End" sourceRef="Split_Task_NotifyResult_1" targetRef="End_Approved" name="Kích hoạt gian hàng" />
+    <ns0:sequenceFlow id="Flow_Notify_Monitor" sourceRef="Split_Task_NotifyResult_1" targetRef="Task_MonitorViolations" name="Giám sát vi phạm" />
+    <ns0:sequenceFlow id="Flow_Monitor_Gate" sourceRef="Task_MonitorViolations" targetRef="Gate_ViolationSeverity" />
+    <ns0:sequenceFlow id="Flow_Gate_Warn" name="Nhẹ (1-2 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Warn" />
+    <ns0:sequenceFlow id="Flow_Gate_Suspend" name="Trung bình (3-5 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Suspend" />
+    <ns0:sequenceFlow id="Flow_Gate_Ban" name="Nặng (&gt;6 sao phạt)" sourceRef="Gate_ViolationSeverity" targetRef="Task_Ban" />
+    <ns0:sequenceFlow id="Flow_Warn_End" sourceRef="Task_Warn" targetRef="End_Warned" />
+    <ns0:sequenceFlow id="Flow_Suspend_End" sourceRef="Task_Suspend" targetRef="End_Suspended" />
+    <ns0:sequenceFlow id="Flow_Ban_End" sourceRef="Task_Ban" targetRef="End_Banned" />
+    <ns0:exclusiveGateway id="Join_Task_UploadDocs_1" name="Gom luồng trước khi Upload CMND/CCCD + GPKD + Giấy chứng nhận (LazMall)">
+      <ns0:incoming>Flow_Phone_Yes</ns0:incoming>
+      <ns0:incoming>Flow_Verify_Upload</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs" sourceRef="Join_Task_UploadDocs_1" targetRef="Task_UploadDocs" />
+    <ns0:exclusiveGateway id="Join_Task_ValidateIdentity_2" name="Gom luồng trước khi Validate định danh tự động">
+      <ns0:incoming>Flow_Docs_Validate</ns0:incoming>
+      <ns0:incoming>Flow_Resubmit_OK</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity" sourceRef="Join_Task_ValidateIdentity_2" targetRef="Task_ValidateIdentity" />
+    <ns0:exclusiveGateway id="Join_Task_OCRCheck_3" name="Gom luồng trước khi Quét OCR + kiểm tra giấy tờ giả">
+      <ns0:incoming>Flow_Bank_Yes</ns0:incoming>
+      <ns0:incoming>Flow_FixBank_OCR</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck" sourceRef="Join_Task_OCRCheck_3" targetRef="Task_OCRCheck" />
+    <ns0:exclusiveGateway id="Join_Task_FixRejection_4" name="Gom luồng trước khi Bổ sung / sửa hồ sơ">
+      <ns0:incoming>Flow_DocValid_Fail</ns0:incoming>
+      <ns0:incoming>Flow_Gate_Reject</ns0:incoming>
+      <ns0:incoming>Flow_Reject_Fix</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_FixRejection_4_to_Task_FixRejection</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_FixRejection_4_to_Task_FixRejection" sourceRef="Join_Task_FixRejection_4" targetRef="Task_FixRejection" />
+    <ns0:exclusiveGateway id="Join_Task_ManualReview_5" name="Gom luồng trước khi Compliance review thủ công (24-48h)">
+      <ns0:incoming>Flow_Doubt_Yes</ns0:incoming>
+      <ns0:incoming>Flow_Gate_Manual</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_ManualReview_5_to_Task_ManualReview</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_ManualReview_5_to_Task_ManualReview" sourceRef="Join_Task_ManualReview_5" targetRef="Task_ManualReview" />
+    <ns0:exclusiveGateway id="Join_Task_NotifyResult_6" name="Gom luồng trước khi Thông báo kết quả duyệt Seller Centre">
+      <ns0:incoming>Flow_Gate_Auto</ns0:incoming>
+      <ns0:incoming>Flow_Approve_Notify</ns0:incoming>
+      <ns0:incoming>Flow_Reject_Notify</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult" sourceRef="Join_Task_NotifyResult_6" targetRef="Task_NotifyResult" />
+    <ns0:exclusiveGateway id="Split_Task_NotifyResult_1" name="Phân luồng sau Thông báo kết quả duyệt Seller Centre">
+      <ns0:outgoing>Flow_Notify_End</ns0:outgoing>
+      <ns0:outgoing>Flow_Notify_Monitor</ns0:outgoing>
+      <ns0:incoming>Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1</ns0:incoming>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1" sourceRef="Task_NotifyResult" targetRef="Split_Task_NotifyResult_1" />
+  </ns0:process>
+  <ns1:BPMNDiagram id="BPMNDiagram_1">
+    <ns1:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_SellerManagement"><ns1:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><ns2:Bounds x="30" y="140" width="5660" height="252" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><ns2:Bounds x="30" y="392" width="5660" height="252" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_Compliance_di" bpmnElement="Lane_Compliance"><ns2:Bounds x="30" y="644" width="5660" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_Legal_di" bpmnElement="Lane_Legal"><ns2:Bounds x="30" y="854" width="5660" height="348" /></ns1:BPMNShape><ns1:BPMNShape id="StartEvent_Register_di" bpmnElement="StartEvent_Register"><ns2:Bounds x="212" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="Task_Register_di" bpmnElement="Task_Register"><ns2:Bounds x="408" y="278" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_PhoneVerif_di" bpmnElement="Gate_PhoneVerif"><ns2:Bounds x="685" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_VerifyPhone_di" bpmnElement="Task_VerifyPhone"><ns2:Bounds x="888" y="530" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_UploadDocs_di" bpmnElement="Task_UploadDocs"><ns2:Bounds x="1368" y="182" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ValidateIdentity_di" bpmnElement="Task_ValidateIdentity"><ns2:Bounds x="1848" y="434" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_BankValid_di" bpmnElement="Gate_BankValid"><ns2:Bounds x="2125" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_FixBankInfo_di" bpmnElement="Task_FixBankInfo"><ns2:Bounds x="2328" y="182" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_OCRCheck_di" bpmnElement="Task_OCRCheck"><ns2:Bounds x="2808" y="434" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_DocValid_di" bpmnElement="Gate_DocValid"><ns2:Bounds x="3085" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_FixRejection_di" bpmnElement="Task_FixRejection"><ns2:Bounds x="648" y="182" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_ResubmitLimit_di" bpmnElement="Gate_ResubmitLimit"><ns2:Bounds x="925" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ScoreRisk_di" bpmnElement="Task_ScoreRisk"><ns2:Bounds x="3288" y="434" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_RiskDoubt_di" bpmnElement="Gate_RiskDoubt"><ns2:Bounds x="3565" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_AutoApprove_di" bpmnElement="Gate_AutoApprove"><ns2:Bounds x="3805" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ManualReview_di" bpmnElement="Task_ManualReview"><ns2:Bounds x="4248" y="713" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_Approve_di" bpmnElement="Gate_Approve"><ns2:Bounds x="205" y="724" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_NotifyResult_di" bpmnElement="Task_NotifyResult"><ns2:Bounds x="4248" y="434" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_MonitorViolations_di" bpmnElement="Task_MonitorViolations"><ns2:Bounds x="4728" y="896" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_ViolationSeverity_di" bpmnElement="Gate_ViolationSeverity"><ns2:Bounds x="5005" y="907" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_Warn_di" bpmnElement="Task_Warn"><ns2:Bounds x="5208" y="1088" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_Suspend_di" bpmnElement="Task_Suspend"><ns2:Bounds x="5208" y="992" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_Ban_di" bpmnElement="Task_Ban"><ns2:Bounds x="5208" y="896" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="End_Approved_di" bpmnElement="End_Approved"><ns2:Bounds x="4772" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected"><ns2:Bounds x="1172" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="End_Warned_di" bpmnElement="End_Warned"><ns2:Bounds x="5492" y="1106" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="End_Suspended_di" bpmnElement="End_Suspended"><ns2:Bounds x="5492" y="1010" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="End_Banned_di" bpmnElement="End_Banned"><ns2:Bounds x="5492" y="914" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_UploadDocs_1_di" bpmnElement="Join_Task_UploadDocs_1"><ns2:Bounds x="1165" y="289" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_ValidateIdentity_2_di" bpmnElement="Join_Task_ValidateIdentity_2"><ns2:Bounds x="1645" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_OCRCheck_3_di" bpmnElement="Join_Task_OCRCheck_3"><ns2:Bounds x="2605" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_FixRejection_4_di" bpmnElement="Join_Task_FixRejection_4"><ns2:Bounds x="445" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_ManualReview_5_di" bpmnElement="Join_Task_ManualReview_5"><ns2:Bounds x="4045" y="724" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_NotifyResult_6_di" bpmnElement="Join_Task_NotifyResult_6"><ns2:Bounds x="4045" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_NotifyResult_1_di" bpmnElement="Split_Task_NotifyResult_1"><ns2:Bounds x="4525" y="445" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNEdge id="Flow_Approve_Notify_di" bpmnElement="Flow_Approve_Notify"><ns3:waypoint x="255" y="749" /><ns3:waypoint x="310" y="749" /><ns3:waypoint x="310" y="644" /><ns3:waypoint x="3910" y="644" /><ns3:waypoint x="3910" y="470" /><ns3:waypoint x="4045" y="470" /><ns1:BPMNLabel><ns2:Bounds x="2075" y="620" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Register_Submit_di" bpmnElement="Flow_Register_Submit"><ns3:waypoint x="248" y="218" /><ns3:waypoint x="310" y="218" /><ns3:waypoint x="310" y="266" /><ns3:waypoint x="310" y="314" /><ns3:waypoint x="408" y="314" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Reject_Fix_di" bpmnElement="Flow_Reject_Fix"><ns3:waypoint x="255" y="749" /><ns3:waypoint x="310" y="749" /><ns3:waypoint x="310" y="392" /><ns3:waypoint x="310" y="218" /><ns3:waypoint x="445" y="218" /><ns1:BPMNLabel><ns2:Bounds x="320" y="564" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Reject_Notify_di" bpmnElement="Flow_Reject_Notify"><ns3:waypoint x="255" y="749" /><ns3:waypoint x="310" y="749" /><ns3:waypoint x="310" y="644" /><ns3:waypoint x="3910" y="644" /><ns3:waypoint x="3910" y="470" /><ns3:waypoint x="4045" y="470" /><ns1:BPMNLabel><ns2:Bounds x="2075" y="620" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_FixRejection_4_to_Task_FixRejection_di" bpmnElement="Flow_Join_Task_FixRejection_4_to_Task_FixRejection"><ns3:waypoint x="495" y="218" /><ns3:waypoint x="648" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Register_Phone_di" bpmnElement="Flow_Register_Phone"><ns3:waypoint x="532" y="314" /><ns3:waypoint x="550" y="314" /><ns3:waypoint x="550" y="392" /><ns3:waypoint x="550" y="470" /><ns3:waypoint x="685" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Fix_Gate_di" bpmnElement="Flow_Fix_Gate"><ns3:waypoint x="772" y="218" /><ns3:waypoint x="790" y="218" /><ns3:waypoint x="790" y="392" /><ns3:waypoint x="790" y="470" /><ns3:waypoint x="925" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Phone_No_di" bpmnElement="Flow_Phone_No"><ns3:waypoint x="735" y="470" /><ns3:waypoint x="790" y="470" /><ns3:waypoint x="790" y="518" /><ns3:waypoint x="790" y="566" /><ns3:waypoint x="888" y="566" /><ns1:BPMNLabel><ns2:Bounds x="804" y="542" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Phone_Yes_di" bpmnElement="Flow_Phone_Yes"><ns3:waypoint x="735" y="470" /><ns3:waypoint x="790" y="470" /><ns3:waypoint x="790" y="392" /><ns3:waypoint x="1030" y="392" /><ns3:waypoint x="1030" y="314" /><ns3:waypoint x="1165" y="314" /><ns1:BPMNLabel><ns2:Bounds x="875" y="368" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Resubmit_End_di" bpmnElement="Flow_Resubmit_End"><ns3:waypoint x="975" y="470" /><ns3:waypoint x="1030" y="470" /><ns3:waypoint x="1030" y="392" /><ns3:waypoint x="1030" y="218" /><ns3:waypoint x="1172" y="218" /><ns1:BPMNLabel><ns2:Bounds x="1040" y="298" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Resubmit_OK_di" bpmnElement="Flow_Resubmit_OK"><ns3:waypoint x="975" y="470" /><ns3:waypoint x="1645" y="470" /><ns1:BPMNLabel><ns2:Bounds x="1275" y="446" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Verify_Upload_di" bpmnElement="Flow_Verify_Upload"><ns3:waypoint x="1012" y="566" /><ns3:waypoint x="1030" y="566" /><ns3:waypoint x="1030" y="392" /><ns3:waypoint x="1030" y="314" /><ns3:waypoint x="1165" y="314" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs_di" bpmnElement="Flow_Join_Task_UploadDocs_1_to_Task_UploadDocs"><ns3:waypoint x="1215" y="314" /><ns3:waypoint x="1270" y="314" /><ns3:waypoint x="1270" y="266" /><ns3:waypoint x="1270" y="218" /><ns3:waypoint x="1368" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Docs_Validate_di" bpmnElement="Flow_Docs_Validate"><ns3:waypoint x="1492" y="218" /><ns3:waypoint x="1510" y="218" /><ns3:waypoint x="1510" y="392" /><ns3:waypoint x="1510" y="470" /><ns3:waypoint x="1645" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity_di" bpmnElement="Flow_Join_Task_ValidateIdentity_2_to_Task_ValidateIdentity"><ns3:waypoint x="1695" y="470" /><ns3:waypoint x="1848" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Validate_Bank_di" bpmnElement="Flow_Validate_Bank"><ns3:waypoint x="1972" y="470" /><ns3:waypoint x="2125" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Bank_No_di" bpmnElement="Flow_Bank_No"><ns3:waypoint x="2175" y="470" /><ns3:waypoint x="2230" y="470" /><ns3:waypoint x="2230" y="392" /><ns3:waypoint x="2230" y="218" /><ns3:waypoint x="2328" y="218" /><ns1:BPMNLabel><ns2:Bounds x="2240" y="298" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Bank_Yes_di" bpmnElement="Flow_Bank_Yes"><ns3:waypoint x="2175" y="470" /><ns3:waypoint x="2605" y="470" /><ns1:BPMNLabel><ns2:Bounds x="2355" y="446" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_FixBank_OCR_di" bpmnElement="Flow_FixBank_OCR"><ns3:waypoint x="2452" y="218" /><ns3:waypoint x="2470" y="218" /><ns3:waypoint x="2470" y="392" /><ns3:waypoint x="2470" y="470" /><ns3:waypoint x="2605" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck_di" bpmnElement="Flow_Join_Task_OCRCheck_3_to_Task_OCRCheck"><ns3:waypoint x="2655" y="470" /><ns3:waypoint x="2808" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_OCR_Gate_di" bpmnElement="Flow_OCR_Gate"><ns3:waypoint x="2932" y="470" /><ns3:waypoint x="3085" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_DocValid_Fail_di" bpmnElement="Flow_DocValid_Fail"><ns3:waypoint x="3135" y="470" /><ns3:waypoint x="3190" y="470" /><ns3:waypoint x="3190" y="1380" /><ns3:waypoint x="310" y="1380" /><ns3:waypoint x="310" y="218" /><ns3:waypoint x="445" y="218" /><ns1:BPMNLabel><ns2:Bounds x="1715" y="1356" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_DocValid_Pass_di" bpmnElement="Flow_DocValid_Pass"><ns3:waypoint x="3135" y="470" /><ns3:waypoint x="3288" y="470" /><ns1:BPMNLabel><ns2:Bounds x="3176" y="446" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Risk_Doubt_di" bpmnElement="Flow_Risk_Doubt"><ns3:waypoint x="3412" y="470" /><ns3:waypoint x="3565" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Doubt_No_di" bpmnElement="Flow_Doubt_No"><ns3:waypoint x="3615" y="470" /><ns3:waypoint x="3805" y="470" /><ns1:BPMNLabel><ns2:Bounds x="3675" y="446" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Doubt_Yes_di" bpmnElement="Flow_Doubt_Yes"><ns3:waypoint x="3615" y="470" /><ns3:waypoint x="3670" y="470" /><ns3:waypoint x="3670" y="644" /><ns3:waypoint x="3910" y="644" /><ns3:waypoint x="3910" y="749" /><ns3:waypoint x="4045" y="749" /><ns1:BPMNLabel><ns2:Bounds x="3755" y="620" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Gate_Auto_di" bpmnElement="Flow_Gate_Auto"><ns3:waypoint x="3855" y="470" /><ns3:waypoint x="4045" y="470" /><ns1:BPMNLabel><ns2:Bounds x="3915" y="446" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Gate_Manual_di" bpmnElement="Flow_Gate_Manual"><ns3:waypoint x="3855" y="470" /><ns3:waypoint x="3910" y="470" /><ns3:waypoint x="3910" y="644" /><ns3:waypoint x="3910" y="749" /><ns3:waypoint x="4045" y="749" /><ns1:BPMNLabel><ns2:Bounds x="3920" y="550" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Gate_Reject_di" bpmnElement="Flow_Gate_Reject"><ns3:waypoint x="3855" y="470" /><ns3:waypoint x="3910" y="470" /><ns3:waypoint x="3910" y="1300" /><ns3:waypoint x="310" y="1300" /><ns3:waypoint x="310" y="218" /><ns3:waypoint x="445" y="218" /><ns1:BPMNLabel><ns2:Bounds x="2075" y="1276" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_ManualReview_5_to_Task_ManualReview_di" bpmnElement="Flow_Join_Task_ManualReview_5_to_Task_ManualReview"><ns3:waypoint x="4095" y="749" /><ns3:waypoint x="4248" y="749" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult_di" bpmnElement="Flow_Join_Task_NotifyResult_6_to_Task_NotifyResult"><ns3:waypoint x="4095" y="470" /><ns3:waypoint x="4248" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Manual_Approve_di" bpmnElement="Flow_Manual_Approve"><ns3:waypoint x="4372" y="749" /><ns3:waypoint x="4390" y="749" /><ns3:waypoint x="4390" y="1348" /><ns3:waypoint x="70" y="1348" /><ns3:waypoint x="70" y="749" /><ns3:waypoint x="205" y="749" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1_di" bpmnElement="Flow_Task_NotifyResult_to_Split_Task_NotifyResult_1"><ns3:waypoint x="4372" y="470" /><ns3:waypoint x="4525" y="470" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Notify_End_di" bpmnElement="Flow_Notify_End"><ns3:waypoint x="4575" y="470" /><ns3:waypoint x="4630" y="470" /><ns3:waypoint x="4630" y="392" /><ns3:waypoint x="4630" y="218" /><ns3:waypoint x="4772" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Notify_Monitor_di" bpmnElement="Flow_Notify_Monitor"><ns3:waypoint x="4575" y="470" /><ns3:waypoint x="4630" y="470" /><ns3:waypoint x="4630" y="644" /><ns3:waypoint x="4630" y="932" /><ns3:waypoint x="4728" y="932" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Monitor_Gate_di" bpmnElement="Flow_Monitor_Gate"><ns3:waypoint x="4852" y="932" /><ns3:waypoint x="5005" y="932" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Gate_Ban_di" bpmnElement="Flow_Gate_Ban"><ns3:waypoint x="5055" y="932" /><ns3:waypoint x="5208" y="932" /><ns1:BPMNLabel><ns2:Bounds x="5096" y="908" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Gate_Suspend_di" bpmnElement="Flow_Gate_Suspend"><ns3:waypoint x="5055" y="932" /><ns3:waypoint x="5110" y="932" /><ns3:waypoint x="5110" y="980" /><ns3:waypoint x="5110" y="1028" /><ns3:waypoint x="5208" y="1028" /><ns1:BPMNLabel><ns2:Bounds x="5124" y="1004" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Gate_Warn_di" bpmnElement="Flow_Gate_Warn"><ns3:waypoint x="5055" y="932" /><ns3:waypoint x="5110" y="932" /><ns3:waypoint x="5110" y="980" /><ns3:waypoint x="5110" y="1124" /><ns3:waypoint x="5208" y="1124" /><ns1:BPMNLabel><ns2:Bounds x="5120" y="1045" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Ban_End_di" bpmnElement="Flow_Ban_End"><ns3:waypoint x="5332" y="932" /><ns3:waypoint x="5492" y="932" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Suspend_End_di" bpmnElement="Flow_Suspend_End"><ns3:waypoint x="5332" y="1028" /><ns3:waypoint x="5492" y="1028" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Warn_End_di" bpmnElement="Flow_Warn_End"><ns3:waypoint x="5332" y="1124" /><ns3:waypoint x="5492" y="1124" /></ns1:BPMNEdge></ns1:BPMNPlane></ns1:BPMNDiagram>
+</ns0:definitions>

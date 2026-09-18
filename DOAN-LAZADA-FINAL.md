@@ -572,6 +572,29 @@ flowchart TD
 | 10 | Chờ auto-confirm (7 ngày) | System | **NVA** | Dọng vốn Seller không cần thiết | Rút ngắn còn 24-72h đối với Shop uy tín |
 | 11 | Đối soát & Giải ngân (L+2) | Finance/System | **BVA** | Quyết toán dòng tiền cho Seller | Auto-payout ngay khi giao xong cho Shop Diamond |
 
+**Bảng 3.2b: Phân tích VA/BVA/NVA THEO TỪNG BƯỚC (micro-steps) — cum hoạt động 'Seller xác nhận → Đóng gói → Bàn giao 3PL' của quy trình Xử lý Đơn hàng**
+
+| # | Vi mô-bước (Micro-step) | Phân loại | Góc nhìn Tích cực (+) | Góc nhìn Tiêu cực (−) | Đề xuất TO-BE |
+|---|------------------------|-----------|-----------------------|-----------------------|---------------|
+| 1 | Chờ đơn chuyển sang trạng thái 'Chờ Seller xác nhận' (SLA tối đa 48h) | **NVA** | SLA 48h là khoảng thời gian thương lượng để các seller nhỏ lẻ, bán bán thời gian, không trực liên tục vẫn kịp xử lý đơn — tránh auto-cancel oan cho người bán hợp lệ. | 100% đơn phải chờ trung bình 12h (docs/analysis/03:195: 720 phút, trọng số 100%); seller quá hạn chính là nguyên nhân của ~20% tổng lượng hủy đơn (docs/analysis/03:140), kéo dài toàn bộ chuỗi fulfillment. | Auto-accept sau 2h cho Shop phân hạng uy tín (Gold/Diamond) kết hợp push + SMS reminder realtime (docs/analysis/03:64, 84); SLA động theo phân hạng thay vì SLA chung 48h. |
+| 2 | Mở Seller Center kiểm tra danh sách đơn mới (giám sát chủ động) | **NVA** | Giúp seller chủ động nắm bắt đơn mới và không bỏ lỡ đơn khi hệ thống chưa gửi thông báo — là điểm kiểm soát đầu tiên của người bán trên luồng đơn. | Tốn thời gian đăng nhập và duyệt danh sách nhiều lần/ngày; nếu seller không online đúng lúc thì đơn vẫn nằm im, thời gian chờ vẫn trôi — không giải quyết được gốc rễ (docs/analysis/03:145). | Thay bằng push notification realtime + SMS (docs/analysis/03:283) để seller được 'kéo' đến đơn thay vì tự tìm; shop uy tín thì auto-accept, không cần bước này. |
+| 3 | Đối chiếu hàng tồn kho thực tế với đơn (đếm / kiểm tra tay) | **NVA** | Đảm bảo seller không xác nhận đơn khi đã hết hàng thực tế, tránh oversell và hủy đơn sau đó gây mất uy tín gian hàng và lãng phí vận hành. | Tốn lao động thủ công cho từng đơn; nếu tồn kho không sync realtime (docs/analysis/03:109-111) thì số đếm tay cũng chạy theo dữ liệu cũ — vừa chậm vừa không đáng tin. | Tích hợp API inventory sync realtime giữa hệ thống kho seller và sàn (docs/analysis/03:131-132) để bỏ hẳn bước đếm tay; chỉ cảnh báo ngoại lệ khi số liệu lệch. |
+| 4 | Bấm nút 'Xác nhận đơn' trong Seller Center | **BVA** | Thao tác chốt cam kết của seller: chỉ hàng có thực mới đi tiếp vào luồng xử lý, bảo vệ kỳ vọng của khách hàng và giữ tồn kho chính xác. | Mỗi đơn phát sinh thêm một thao tác thủ công; seller chậm bấm sẽ kẹp toàn bộ luồng phía sau trong trạng thái Hold từ 2-24h (docs/analysis/03:64). | Auto-accept sau 2h cho shop uy tín; seller chỉ còn xử lý ngoại lệ (từ chối khi thực sự hết hàng) — đưa bước này về tần suất hiếm gặp. |
+| 5 | Lấy sản phẩm từ kệ / kho theo lệnh đơn (picking) | **BVA** | Biến tồn kho thành dòng hàng thực, là nền tảng cho mọi bước sau; lấy đúng SKU quyết định trực tiếp chất lượng giao hàng của đơn. | Picking thủ công hiện chỉ đạt accuracy 95% so với benchmark 98% (docs/analysis/03:241) — lấy nhầm SKU sẽ kéo theo giao sai, hoàn trả và khiếu nại tốn chi phí. | Quét mã vạch xác nhận SKU ngay lúc lấy hàng để đạt mục tiêu 99,5% (docs/analysis/03:241); danh sách lấy hàng tối ưu đường đi trong kho cho seller. |
+| 6 | Rà soát lại SKU / số lượng / màu sắc lần nữa trước khi gói | **NVA** | Lớp bảo hiểm cuối cùng chống sai hàng trước khi niêm phong — người bán có tâm lý yên tâm hơn khi gửi kiện đi. | Tốn thời gian trên từng đơn mà kết quả vẫn phụ thuộc mắt người: Packaging Error Rate 5% so với benchmark 1-2% (docs/analysis/03:237) chứng tỏ bước này không hiệu quả. | Thay rà soát tay bằng quy chuẩn đóng gói + chụp ảnh xác nhận sản phẩm trước khi niêm phong (docs/analysis/03:65) — ảnh làm bằng chứng, lỗi quy về khâu lấy hàng quét mã. |
+| 7 | In phiếu giao hàng (packing slip) kèm kiện | **BVA** | Phiếu ghi rõ thông tin đơn, người nhận và mã kiện — giúp shipper định danh kiện khi gom và khách đối chiếu lúc nhận hàng. | Tốn giấy và mực trên mỗi đơn; nếu in từ dữ liệu nhập tay thì còn nối tiếp thêm một lần nhập liệu, tăng rủi ro sai lệch. | Gộp phiếu giao hàng vào nhãn vận đơn QR số hóa in một lần (docs/analysis/03:55), giảm giấy tờ và bỏ in rời. |
+| 8 | Chuẩn bị hộp carton, xốp nổ, băng dính (vật tư đóng gói) | **BVA** | Chuẩn bị đủ vật tư giúp quá trình đóng gói liên tục, không gián đoạn giữa chừng khi đang dở kiện. | Seller nhỏ mua vật tư lẻ thường đắt hơn mua tập trung; chọn sai cỡ hộp dẫn đến lãng phí xốp nổ, băng keo và tăng chi phí đóng gói 5.000 VNĐ/đơn (docs/analysis/03:223). | Bộ tiêu chuẩn quy cách bao bì theo nhóm sản phẩm (docs/analysis/03:65) + gợi ý tự động cỡ hộp theo SKU; seller FBL dùng vật tư tập trung của Lazada. |
+| 9 | Đặt sản phẩm vào hộp, chèn lót chống sốc | **VA** | Tạo ra giá trị cảm nhận trực tiếp: khách nhận hàng nguyên vẹn không vỡ/móp, giảm khiếu nại, đổi trả và chi phí dự phòng giao hỏng 3.500 VNĐ/đơn (docs/analysis/03:224). | Hoàn toàn thủ công, phụ thuộc tay nghề và chiếm phần lớn thời gian đóng gói trung bình 1h/đơn (docs/analysis/03:166) — năng suất thấp khi khối lượng lớn. | Chuẩn hóa quy cách bao bì (DOAN:567); seller FBL dùng máy đóng gói bán tự động; chụp ảnh xác nhận kiện sau khi đóng (docs/analysis/03:65). |
+| 10 | Dán băng keo niêm phong kiện hàng | **VA** | Niêm phong chống mở/tráo hàng giữa đường, tạo niềm tin khi bàn giao kiện cho bên vận chuyển thứ ba. | Nếu dán không chắc hoặc bỏ sót, kiện bung trong vận chuyển gây tổn thất và khiếu nại — một nguồn của chi phí dự phòng giao hỏng/COD refusal 3.500 VNĐ (docs/analysis/03:224). | Dùng băng keo định chuẩn theo quy cách + băng keo chống mở (tamper-evident) cho đơn giá trị cao. |
+| 11 | Chép tay mã vận đơn / số tracking vào sổ theo dõi hoặc Excel | **NVA** | Giúp seller có sổ đối soát kiện đã gửi khi xảy ra tranh chấp thất lạc với 3PL — một dạng bằng chứng phòng thủ. | Tốn thời gian mỗi đơn và sai một ký tự tracking là mất dấu kiện; dữ liệu vốn đã nằm sẵn trên Seller Center nên bước này chỉ thêm rủi ro. | API auto-sync tracking giữa sàn – seller – 3PL (docs/analysis/03:66); bỏ nhập tay, sổ tay thay bằng báo cáo hệ thống tự động. |
+| 12 | Dán nhãn vận đơn lên kiện hàng | **BVA** | Kiện được 'số hóa' bằng mã nhãn: shipper quét một lần là biết đích đến, giảm thao tác đọc tay và sai sót định tuyến. | Nhãn dán nhăn, lệch hoặc mờ khiến máy quét lỗi → kiện bị giữ lại tại hub, chậm trễ và phát sinh thao tác xử lý lại. | Chuẩn hóa kích thước và vị trí dán nhãn QR (docs/analysis/03:55); dùng máy in nhãn chuyên dụng thay in giấy A4 để nhãn bền, dễ quét. |
+| 13 | Xếp kiện vào khu vực chờ và chờ shipper LEX/3PL tới lấy (theo lịch chuyến) | **NVA** | Gom kiện theo lịch chuyến giúp 3PL tối ưu tuyến gom hàng, giảm số lần dừng đón và chi phí pickup (5.500 VNĐ/đơn, docs/analysis/03:221). | Thời gian chờ 30 phút–2 giờ mỗi đơn (docs/analysis/03:168); lỡ lịch chuyến thì kiện nằm qua đêm, kéo dài thêm 14 giờ WT của giai đoạn xác nhận & đóng gói (DOAN:666). | Tự động lên lịch lấy hàng với 3PL và thông báo khung giờ pickup (docs/analysis/03:68); seller FBL chuyển hẳn khâu này cho kho Lazada. |
+| 14 | Bàn giao kiện cho shipper: đếm kiện, quét mã vận đơn xác nhận pickup | **BVA** | Quét một lần khớp số kiện và chuyển trách nhiệm sang 3PL — là cơ sở truy vết kiện và phân định trách nhiệm khi xảy ra thất lạc. | Nếu seller không đếm chéo, thiếu kiện chỉ được phát hiện muộn tại hub; shipper phải dừng chờ đếm ở từng điểm gom, góp phần vào 20 phút pickup trung bình (docs/analysis/03:169). | Bàn giao bằng scan cả lô (batch scan) + biên bản điện tử; tự động lên lịch gom để shipper không phải chờ đếm từng kiện (docs/analysis/03:68). |
+
+**Kết quả:** VA **2/14 (14%)**, BVA **6/14 (43%)**, NVA **6/14 (43%)** — phân rã 14 vi mô-bước từ 4 activity trên BPMN (`Task_ConfirmOrder → Task_PackageGoods → Task_Handover3PL → Task_Pickup`).
+
+> **Giải thích theo yêu cầu GVHD:** Đúng như lời thầy dạy (Buổi 10): 'thầy xét một cái hoạt động nó có các bước... mình phải chi tiết từng bước vô nữa mình mới ra được' — ở mức hoạt động, Bảng 3.2 chỉ xếp 'In phiếu & Đóng gói hàng' là VA và 'Gửi hàng tại bưu cục/Pickup' là BVA (DOAN:567-568), nhưng khi phân rã cụm BPMN Task_ConfirmOrder → Task_PackageGoods → Task_Handover3PL → Task_Pickup thành 14 micro-step, hoạt động 'một hộp' này lộ ra 2 bước VA thật sự (đặt hàng vào hộp, niêm phong), 6 bước BVA (xác nhận, picking, vật tư, in/dán nhãn, bàn giao) và đến 6 bước NVA (chờ 48h, tự mở app, đối chiếu, rà soát trùng, chép tay tracking, xếp kiện chờ pickup) — chứng minh một hoạt động chứa đồng thời các bước tạo giá trị (đóng gói thực tế) lẫn các bước lãng phí (gõ lại dữ liệu, chờ đợi, kiểm tra lại) mà phân tích ở mức activity không thể thấy.
+
 ---
 
 ### 3.4.2. Phân tích Lãng phí (Waste Analysis: Move / Hold / Overdo)
@@ -885,6 +908,26 @@ flowchart TD
 
 **Tỷ lệ VA/BVA/NVA:** VA **6/13 (46%)**, BVA **5/13 (39%)**, NVA **2/13 (15%)** — NVA tập trung ở kiểm định kho thủ công và kích hoạt lệnh hoàn tiền thủ công, đúng 2 hoạt động mà mô hình TO-BE tự động hóa (Mục 3.15.2), đưa NVA về gần 0.
 
+**Bảng 3.8b: Phân tích VA/BVA/NVA THEO TỪNG BƯỚC (micro-steps) — hoạt động 'Kiểm định hàng hoàn tại kho (≤12h)' của quy trình Hoàn trả & Hoàn tiền**
+
+| # | Vi mô-bước (Micro-step) | Phân loại | Góc nhìn Tích cực (+) | Góc nhìn Tiêu cực (−) | Đề xuất TO-BE |
+|---|------------------------|-----------|-----------------------|-----------------------|---------------|
+| 1 | Tiếp nhận kiện hàng hoàn từ LEX/3PL tại Return Center (dỡ xe, xác nhận số lượng kiện) | **BVA** | Xác nhận hàng về thực tế, kiện được ghi nhận vào sổ nhập kho, đảm bảo không thất lạc kiện — khách hàng biết hàng đã tới nơi, gần đích hoàn tiền. | Nếu xe 3PL đến trễ hoặc dỡ hàng thủ công từng kiện, đây là điểm tạo Hold đầu tiên trong SLA 12h; mỗi giờ chậm ở đây đều ăn vào cam kết 12h (Inspection SLA compliance hiện chỉ 80% vs 95%). | 3PL gửi digital manifest + ETA trước khi xe tới; khu dỡ hàng có camera nhận diện biển số/kiện tự động, container scan hàng loạt để giảm thời gian tiếp nhận từ giờ xuống phút. |
+| 2 | Quét mã vận đơn/QR từng kiện để liên kết với hồ sơ hoàn trả trong hệ thống | **BVA** | Gắn kiện vật lý với đơn hoàn trả số hóa — từ đây mọi thao tác tiếp theo đều đối chiếu được với hồ sơ, chống thất lạc và nhầm lẫn kiện. | Mỗi kiện mất 3-5 giây thao tác tay (ước tính vận hành) + thiết bị scan; khi QR lỗi/không đọc được phải nhập tay mã vận đơn — với ~880.000 kiện/tháng (80% cần kiểm định × ~1,1 triệu returns/tháng, docs/analysis/04:170,190), tổng thời gian quét là đáng kể trong 8h inspection (docs/analysis/04:172). | Auto-scan hàng loạt bằng camera trên băng chuyền đọc mã QR/DataMatrix được chuẩn hóa từ bước bàn giao (drop-off point + QR code) — nhân viên chỉ xử lý kiện không đọc được mã. |
+| 3 | Đối chiếu phiếu trả hàng với hồ sơ yêu cầu hoàn trả (đúng người, đúng đơn, đúng sản phẩm) | **BVA** | Đảm bảo hoàn tiền đúng người, đúng đơn — chặn fraud và hàng 'đánh tráo', giữ công bằng cho cả buyer lẫn seller khi xảy ra tranh chấp. | Nhân viên phải mở màn hình, so sánh thủ công tên/địa chỉ/mã SKU — là 'move' lãng phí khi QR đã chứa sẵn thông tin này; lỗi đối chiếu bằng mắt dẫn tới pass nhầm kiện sai hiện trạng. | Hệ thống tự đối chiếu khi auto-scan (matching engine: đơn, SKU, số kiện, ảnh bàn giao); nhân viên chỉ can thiệp khi hệ thống báo mismatch — xóa hẳn việc so sánh thủ công. |
+| 4 | Mở kiện, kiểm tra bao bì, phụ kiện và chứng từ bên trong | **VA** | Phát hiện thiếu phụ kiện/bao bì hư hại ngay tại kho — hàng còn nguyên giá trị bán lại, seller không bị thiệt; buyer cũng được công bằng nếu hàng thực sự nguyên vẹn. | Mở từng kiện, lục tìm phụ kiện tốn thời gian/kiện; với đơn giá trị thấp, chi phí nhân công kiểm tra (15.000 VNĐ/kiện allocated 8h) có thể vượt giá trị hàng — fishbone chỉ ra thiếu hướng dẫn return packaging từ trước làm tăng tỷ lệ thiếu bao bì. | Return-less refund cho đơn <200k & buyer tín nhiệm cao (docs/analysis/04:108 — bỏ hẳn hoặc tự động hóa bước này cho nhóm đơn rủi ro thấp); phần còn lại kiểm tra theo checklist chuẩn hóa + hướng dẫn đóng gói gửi buyer từ bước phê duyệt để giảm thiếu phụ kiện. |
+| 5 | Kiểm tra tình trạng hàng hóa, so sánh với bằng chứng ảnh/video của buyer | **VA** | Quyết định pass/fail dựa trên hiện trạng thực — bảo vệ quỹ hoàn tiền khỏi hàng sai hiện trạng (10% hư hao không bán lại được đã tính vào chi phí), giảm tranh chấp leo thang (escalation hiện 20%). | Phụ thuộc mắt thường + kinh nghiệm từng nhân viên, thiếu image baseline từ lúc bán nên không có chuẩn để so — kiểm thủ công 100% kiện (~880.000 kiện/tháng theo tỷ lệ 80% cần kiểm định) dù phần lớn kiện sẽ pass; đây chính là lý do inspection chiếm 384/3.291 phút cycle kỳ vọng ≈ 12% tổng chu kỳ (docs/analysis/04:172,176). | AI image analysis tự so sánh ảnh kiện hiện tại với baseline ảnh lúc bán/ảnh bàn giao, chấm điểm tình trạng tự động — nhân viên chỉ xác nhận kiện AI đánh 'exception', rút thời gian kiểm từ 8h → 2h (-75%). |
+| 6 | Chụp ảnh/video bằng chứng kiểm định từng sản phẩm để lưu hồ sơ | **BVA** | Hồ sơ ảnh trung thực giúp xử lý khiếu nại/kháng nghị nhanh, giảm leo thang lên CS — minh bạch cho cả hai phía. | Nhân viên tự chụp, góc/độ sáng không chuẩn nên ảnh khó dùng để so sánh; thời gian chụp lặp lại từng kiện/lần — trùng lặp dữ liệu mà AI hoặc camera cố định chụp được tốt hơn và nhanh hơn. | Trạm chụp cố định (photo booth) tự động chụp 6-8 góc khi kiện đi qua băng chuyền; AI chuẩn hóa ảnh trước khi lưu hồ sơ — nhân viên không phải cầm máy. |
+| 7 | Nhập kết quả kiểm định vào hệ thống (lý do pass/fail, số lượng, ghi chú) | **NVA** | (Không có giá trị riêng) Dữ liệu nhập là điều kiện để hệ thống xử lý bước tiếp theo — nhưng giá trị này đến từ việc 'hệ thống biết kết quả', không phải từ chính thao tác gõ phím. | Mỗi kiện mất hàng chục phút chọn dropdown, điền lý do, mô tả (ước tính vận hành) — với ~1,1 triệu returns/tháng (docs/analysis/04:190) đây là khối lượng thao tác khổng lồ; lỗi nhập (sai mã lý do) dẫn tới phải sửa lại ở khâu hoàn tiền. | Kết quả tự sinh từ AI classification ở bước kiểm tra (auto-generate reason code + quantity từ ảnh); nhân viên chỉ xác nhận/xuất ngoại lệ — xóa hẳn bước gõ phím, feed trực tiếp xuống refund engine. |
+| 8 | Xử lý ngoại lệ: hàng sai hiện trạng/thiếu phụ kiện/hư hỏng — lập biên bản, tạo yêu cầu dispute | **BVA** | Có quy trình rõ ràng cho kiện không đạt — seller được bảo vệ, buyer nhận thông báo từ chối có căn cứ, giảm tranh cãi và khiếu nại leo thang lên CS (escalation 20% cần giảm xuống 5-8%). | Lập biên bản tay, đính kèm ảnh rời rạc, tạo ticket thủ công — mỗi ngoại lệ kéo dài thêm hàng giờ; kiện ngoại lệ thường là kiện gây tranh cãi nhiều nhất (hàng sai hiện trạng/thiếu phụ kiện — main gate 'Hàng hoàn đúng hiện trạng & đủ phụ kiện?' trong BPMN 04). | AI gợi ý quyết định và tự lập biên bản từ bộ ảnh chuẩn hóa (auto-generate dispute dossier); seller được xem bằng chứng online và phản hồi trực tuyến thay vì chờ kho liên hệ. |
+| 9 | Chờ phê duyệt ngoại lệ từ cấp trên/QA (approval chain) [bước phân rã bổ sung của nhóm — không có task tương ứng trong BPMN; nhóm tách ra từ thực tế xử lý ngoại lệ] | **NVA** | Kiểm soát phê duyệt chống lạm dụng nội bộ, ngăn NV duyệt sai bừa bãi — một lớp kiểm soát quản trị. | Chờ cấp trên bận việc duyệt có thể kéo dài nhiều giờ, đẩy kiện vượt SLA 12h (inspection SLA compliance hiện chỉ 80%, docs/analysis/04:200) và làm chậm hoàn tiền 1-6h tiếp theo ở bước kích hoạt — đây là bước Hold thuần túy không có bất kỳ biến đổi nào xảy ra. | Auto-approve theo ngưỡng rủi ro (đơn < ngưỡng & buyer tốt tự duyệt; phân quyền duyệt theo giá trị đơn) — chỉ kiện giá trị cao mới vào chuỗi duyệt người, xóa Hold khỏi 80% kiện. |
+| 10 | Chuyển kiện đạt sang khu lưu kho bán lại / kiện không đạt sang khu xử lý hủy | **BVA** | Hàng đạt nhanh chóng quay lại kệ bán (giảm hư hao 10% giá trị hàng tồn), hàng hỏng được tách riêng xử lý đúng quy trình — duy trì chất lượng tồn kho. | Khuân vác/đẩy thùng thủ công giữa các khu, tốn thời gian và sức lao động — cùng một kiện bị di chuyển nhiều lần trong kho nếu quy hoạch khu không hợp lý. | Băng chuyền tự động phân luồng theo kết quả AI (auto-sorting), tích hợp WMS để cập nhật vị trí kệ tự động — giảm move thủ công và thất lạc kiện. |
+| 11 | Cập nhật trạng thái kiểm định trên hệ thống và kích hoạt luồng hoàn tiền | **NVA** | Đảm bảo hệ thống chuyển trạng thái 'đã kiểm định' → sẵn sàng hoàn tiền, buyer nhận thông báo tiến độ — minh bạch cuối chuỗi kiểm định. | Nhân viên phải mở module khác gõ/bấm lại trạng thái đã nhập — trùng lặp, dễ quên hoặc quên trigger khiến kiện 'kẹt' giữa kho và hệ thống, hoàn tiền trễ thêm giờ (kích hoạt thủ công hiện tốn 1-6h/đơn). | Sự kiện tự động: hệ thống đọc kết quả AI → tự cập nhật trạng thái → tự trigger payment gateway ngay khi kiểm định pass (auto-execute refund), xóa hẳn bước nhập/bấm trùng lặp và nối thẳng vào chuỗi hoàn tiền. |
+
+**Kết quả:** VA **2/11 (18%)**, BVA **6/11 (55%)**, NVA **3/11 (27%)** — phân rã 11 vi mô-bước từ activity kiểm định kho trên BPMN 04 (8 bước trực tiếp + 3 bước phân rã bổ sung: 7, 9, 11).
+
+> **Giải thích theo yêu cầu GVHD:** Đúng quan điểm thầy Buổi 10: một activity box trên BPMN chứa nhiều micro-steps — bảng 3.8 xếp cả hoạt động 'Kiểm định hàng hoàn tại kho (≤12h)' là NVA vì kiểm thủ công có thể bỏ qua bằng return-less (docs/analysis/04:51), nhưng khi phân rã cấp bước (11 micro-steps, gồm cả bước do nhóm phân rã bổ sung không có task riêng trong BPMN), bên trong nó vừa có bước tạo giá trị thật (2 VA: mở kiện kiểm phụ kiện + so hiện trạng với bằng chứng buyer — quyết định pass/fail), bước hỗ trợ cần thiết (6 BVA: tiếp nhận, quét QR, đối chiếu, chụp ảnh, xử lý ngoại lệ, phân luồng) lẫn bước lãng phí thuần (3 NVA: nhập liệu tay, chờ phê duyệt, cập nhật trạng thái 2 lần) — chứng minh một hoạt động xếp NVA cấp activity vẫn chứa 18% VA + 55% BVA khi soi từng bước, minh họa trực tiếp lời thầy 'mình phải chi tiết từng bước vô nữa mình mới ra được'.
+
 **Bảng 3.9: Bảng tính toán Thời gian chu kỳ và Chi phí xử lý 1 đơn Hoàn trả (Refund Unit Economics)**
 
 | Chỉ số Định lượng | Giá trị hiện tại (AS-IS) | Giá trị mục tiêu (TO-BE) | Mức cải thiện |
@@ -1101,6 +1144,28 @@ Quy trình logistics quản lý pickup → phân loại hub → vận chuyển �
 
 > **Phân bổ Pareto:** 5 lãng phí lớn nhất (≈354 tỷ VND/tháng): ① Giao lại nhiều lần 24,0% (85 tỷ); ② Return/hoàn về kho 25,4% (90 tỷ); ③ Sort Hub inefficiency 15,5% (55 tỷ); ④ Tracking không realtime 11,4% (40,5 tỷ); ⑤ Chi phí last-mile cao 23,6% (83,5 tỷ). TO-BE: ~246 tỷ VND/tháng (−108 tỷ, −31%).
 
+**Bảng 3.13b: Phân tích VA/BVA/NVA THEO TỪNG BƯỚC (micro-steps) — hoạt động 'Giao hàng chặng cuối (Last-mile Delivery)' của quy trình Logistics & Giao nhận**
+
+| # | Vi mô-bước (Micro-step) | Phân loại | Góc nhìn Tích cực (+) | Góc nhìn Tiêu cực (−) | Đề xuất TO-BE |
+|---|------------------------|-----------|-----------------------|-----------------------|---------------|
+| 1 | Nhận hàng & kiểm tra kiện tại Hub (xuất kho, out for delivery) | **BVA** | Đảm bảo shipper cầm đúng kiện, đúng AWB, đúng tuyến — ngăn giao nhầm hàng ngay từ đầu (doc: 'Phân loại chính xác (số AWB khớp)?'). | Tốn thời gian thủ công tại Hub — hoạt động 'Hàng xuất kho — shipper nhận giao' trung bình 1 giờ; nhân viên ghi nhận tay dễ sai lệch, kéo dài Hold tại Hub. | Scan AWB bằng thiết bị di động + xác nhận tự động trên app shipper; TO-BE Smart Hub Sorting giảm sort 2-6 giờ xuống 1-2 giờ; phân bổ kiện theo tuyến sẵn để shipper lấy hàng ngay. |
+| 2 | Sắp xếp tuyến đường giao trong ngày (route planning) | **BVA** | Giúp shipper gom kiện theo khu vực, giảm quãng đường quay lại — lộ trình hợp lý là nền tảng để giao đúng khung giờ. | Không dùng AI routing: tuyến vòng, hao nhiên liệu + nhân công; chi phí last-mile 83,5 tỷ VND/tháng (23,6%), trong đó transit delay khoảng 40 tỷ (doc dòng 273). | AI Route Optimization realtime theo traffic/khoảng cách/ưu tiên — giảm chi phí last-mile 15% (-30 tỷ VND/tháng) và nâng first-attempt success 75-80% → 92% (doc dòng 299). |
+| 3 | Liên hệ Buyer xác nhận trước khi giao (gọi trước) | **BVA** | Xác nhận địa chỉ + thời điểm bên nhà giúp tránh sốc lịch trình và giảm thiểu khả năng giao thất bại (doc: giải pháp 'Slot hẹn giờ + gọi trước 15 phút' cho hoạt động giao cốt lõi). | AS-IS thiếu slot hẹn giờ và ETA chính xác nên gọi trước vẫn không cứu được 20-25% đơn thất bại lần đầu do Buyer vắng nhà — nguyên nhân gốc theo 5-Why (doc dòng 160). | Tích hợp gọi trước 15 phút với slot hẹn giờ + Predictive ETA ML (±1 ngày → ±3 giờ): Buyer biết chính xác giờ giao, giảm giao lại 85 tỷ VND/tháng (-25 tỷ từ Predictive ETA, doc dòng 299-305). |
+| 4 | Di chuyển đến địa chỉ Buyer | **VA** | Đưa hàng hóa từ Hub đến đúng vị trí Buyer — giá trị 'đưa sản phẩm đến tay khách' mà Buyer sẵn sàng trả chi phí vận chuyển. | Lộ trình tay nghề + traffic không dự báo làm kéo dài thời gian; chi phí giao cuối 8.000 VND metro / 12.000-15.000 VND province (doc dòng 235) cao hơn benchmark 30-35k/kiện ở province. | AI Route Optimization + real-time GPS Tracking cho mọi LEX/3PL; province 5-7 ngày → 3-5 ngày; cân nhắc Drone Delivery Pilot cho vùng xa (-5 tỷ, dài hạn) (doc dòng 299-302). |
+| 5 | Xác nhận người nhận tại chỗ (gọi lại khi chưa gặp) | **BVA** | Giảm gian lận/giao nhầm và tạo điều kiện cho Buyer có mặt đúng lúc; gọi lại là cơ hội cuối để cứu giao thành công lần đầu. | Nếu Buyer không nghe máy, thao tác gọi lặp lại tốn thời gian không productive; trong khi chờ, shipper không thể phục vụ kiện khác. | App shipper nhắc gọi tự động + hiển thị bấm giờ chờ; tích hợp OTP/xác nhận ảo khi giao thành công để giảm thao tác thủ công; thông báo đẩy cho Buyer trước khi shipper đến. |
+| 6 | Chờ Buyer ra nhận hàng (Buyer vắng mặt) | **NVA** | Chờ đợi là nỗ lực khoan dung giúp cứu đơn khỏi lần giao thất bại, nếu Buyer chỉ trễ vài phút. | Hold chiếm ưu thế trong toàn quy trình (6/7 hoạt động waste có Hold, doc dòng 93); mỗi đơn vắng mặt buộc giao lại 1-3 ngày sau với chi phí 15.000-25.000 VND/lần (dòng 269). | Đặt lịch hẹn giao (slot) + gọi trước 15 phút để Buyer chủ động ở nhà; phương án dự phòng: giao tại điểm nhận (self-pickup locker / điểm giao nhận đối tác) thay vì chờ tại nhà. |
+| 7 | Giao không thành công lần đầu → liên hệ lại & hẹn giao lại (redelivery) | **NVA** | Retry tối đa 3 lần là chính sách an toàn giúp đơn hàng không mất ngay khi gặp khách vắng nhà lần đầu. | 20-25% đơn cần giao lại lần đầu, mỗi lần 15.000-25.000 VND nhiên liệu+nhân công, chờ 1-3 ngày — chi phí giao lại 85 tỷ VND/tháng (24,0% Pareto, dòng 269); 3 lần thất bại → hoàn hàng tốn kém hơn. | Giảm retry tối đa còn 2 lần + address validation realtime + GPS pickup verification; gộp nhu cầu Singapore: slot hẹn giờ + Predictive ETA giúp cứu đơn ngay lần đầu (85 tỷ gần bằng mức giảm net -89 tỷ TO-BE, doc dòng 283). |
+| 8 | Trao hàng cho Buyer tại địa chỉ | **VA** | Buyer nhận đúng kiện, đúng thời điểm — hoàn thành cam kết giao hàng, tạo trải nghiệm quyết định đánh giá lại shop/lazada. | Nếu trao vội khi chưa xác minh đúng người hoặc hàng hư hỏng, rủi ro tranh chấp vận chuyển; thao tác thủ công nếu thiếu kiểm tra còn sót rủi ro giao nhầm. | Giữ nguyên (giá trị cốt lõi), chuẩn hóa bằng OTP xác nhận người nhận + hướng dẫn mở kiện kiểm tra; bổ sung tùy chọn 'nhận tại locker' cho đơn hàng giá trị thấp. |
+| 9 | Thu tiền COD (nếu đơn COD) & đối soát | **BVA** | Thu tiền mặt tại chỗ giúp Seller và Lazada hoàn thành đối soát dòng tiền; COD collection rate 95% là kênh thanh toán chính của khách chưa có thẻ (dòng 259). | Thao tác đếm tiền/thối lại tốn thời gian; khách không đủ tiền mặt là nguyên nhân phổ biến dẫn đến refusal/hoàn hàng — 'tỷ lệ COD refusal cao' (FINAL dòng 584), đẩy chi phí reverse 90 tỷ. | Đẩy mạnh các phương thức số (e-wallet, COD online) trước giao để giảm đối soát tiền mặt; app shipper ghi nhận COD realtime, tự động cập nhật đối soát (doc xếp 'Cập nhật trạng thái COD' là BVA → auto-update realtime). |
+| 10 | Buyer kiểm tra hàng & xác nhận đã nhận (POD) | **VA** | Buyer chứng thực hàng đúng mô tả, còn nguyên vẹn — POD là bằng chứng hoàn tất, chấm dứt trách nhiệm vận chuyển, tạo dữ liệu đánh giá trải nghiệm. | Thao tác ký/scan thủ công kéo dài 2-10 phút (avg 5 phút, dòng 191); nếu POD ghi nhận muộn/sai, tracking không realtime (chỉ 90% vs benchmark 98%) làm tăng 40,5 tỷ chi phí CS queries (dòng 271). | Digital POD + chữ ký điện tử/OTP ngay trên app shipper — thời gian 2 phút; kết nối realtime với Real-time GPS Tracking để Buyer thấy trạng thái ngay (-15 tỷ, giảm CS queries 40%, dòng 300). |
+| 11 | Xử lý Buyer từ chối nhận hàng (refusal, kèm ghi lý do) | **NVA** | Ghi nhận lý do từ chối (hư hỏng, sai đơn, không còn nhu cầu) là dữ liệu quý để truy suất trách nhiệm giữa Seller/3PL và cải tiến quy trình. | Từ chối lặp lại toàn bộ công việc giao + kích hoạt reverse 2-5 ngày; góp phần return rate 8-12% → chi phí hoàn về 90 tỷ VND/tháng (25,4% — cao nhất Pareto, dòng 270). | Xử lý trước nguyên nhân: address validation + ảnh xác thực kiện lúc pickup (GPS pickup verification); SMS nhắc nhở + khung giờ hẹn để giảm refusal; mục tiêu return 8-12% → 4-7% (-40%). |
+| 12 | Cập nhật trạng thái giao hàng trên app (tracking) | **BVA** | POD + trạng thái cập nhật là dữ liệu nền cho ETA, đối soát 3PL và đổi trả — minh bạch giúp Buyer yên tâm, giảm CS queries. | Shipper nhập tay/trễ 5-15 phút khiến tracking chỉ đạt 90% độ chính xác (vị trí trễ do 3PL chưa tích hợp GPS API đầy đủ) — chi phí 40,5 tỷ VND/tháng (dòng 271). | Tự động hóa: scan AWB + GPS sync khi 'giao thành công/thất bại' — tracking accuracy 90% → 98%; Real-time GPS Tracking hiển thị vị trí live cho Buyer (-15 tỷ VND/tháng). |
+| 13 | Trả hàng chưa giao được về Hub (giao thất bại ≥3 lần / hoàn về) | **NVA** | Quy định hoàn sau 3 lần thất bại giữ ranh giới trách nhiệm rõ ràng giữa 3PL và Seller, tránh giữ hàng vô hạn tại Hub. | Hàng quay lại điểm xuất phát, chờ 3-7 ngày, chi phí reverse + mất giá trị hàng hóa = 90 tỷ VND/tháng (25,4% Pareto); ngoài ra còn kéo theo repack 45 phút và chuỗi NVA kế tiếp (dòng 270). | Giảm retry xuống tối đa 2 lần + đánh giá trước khi hoàn (hàng giá trị cao thì giao qua locker/điểm nhận thay vì hủy); kèm vòng lặp TO-BE: slot hẹn giờ ngay từ đầu để không rơi vào kịch bản hoàn hàng. |
+
+**Kết quả:** VA **3/13 (23%)**, BVA **6/13 (46%)**, NVA **4/13 (31%)** — phân rã 13 vi mô-bước từ cum activity giao hàng chặng cuối trên BPMN 09, khớp tỷ lệ VA 38% / BVA 32% / NVA 30% toàn quy trình theo thời gian.
+
+> **Giải thích theo yêu cầu GVHD:** Theo bài giảng Buổi 10 (thầy hướng dẫn tách 1 activity thành micro-steps và phân loại từng bước), một hoạt động duy nhất chứa cả micro-step tạo giá trị lẫn micro-step lãng phí: trao hàng, di chuyển và POD xác nhận tạo giá trị thực cho Buyer (VA); sắp tuyến, gọi trước, thu COD, cập nhật app là điều kiện hỗ trợ cần thiết (BVA); còn chờ Buyer vắng mặt, giao lại, từ chối nhận và trả hàng về Hub tiêu hao thời gian/chi phí không tạo giá trị (NVA) — phù hợp tỷ lệ toàn quy trình theo thời gian VA 38% / BVA 32% / NVA 30% (docs/analysis/09-logistics-delivery.md dòng 76, FINAL §3.13.2: NVA logistics là gánh nặng lớn nhất trong 10 quy trình).
+
 ### 3.13.3. BPMN AS-IS
 ![BPMN AS-IS Logistics & Giao nhận](docs/screenshots/09-logistics-delivery-asis.png)  
 **Hình 3.19: Sơ đồ BPMN quy trình logistics & giao nhận (AS-IS)**
@@ -1268,12 +1333,33 @@ Sơ đồ TO-BE gồm **5 Lanes (Customer, Chatbot AI, CS Tier 1, CS Tier 2, Sys
 
 ## A. 10 Câu hỏi ĐỊNH TÍNH
 
-### A1. 5 câu CẤU TRÚC (Thang đo Likert 1-5)
-- **Q1:** Mức độ hài lòng chung của Anh/Chị đối với quy trình xử lý đơn hàng trên Lazada? (1: Rất không hài lòng --> 5: Rất hài lòng)
-- **Q2:** Mức độ thuận tiện khi thực hiện thao tác quản lý đơn hàng trên Seller Center Lazada? (1: Rất bất tiện --> 5: Rất thuận tiện)
-- **Q3:** Đánh giá tính hữu ích của Chatbot Lazzie trong việc hỗ trợ giải đáp vấn đề nhanh chóng? (1: Không hữu ích --> 5: Rất hữu ích)
-- **Q4:** Mức độ hợp lý của thời gian quy định cho Seller xác nhận đơn hàng (24-48 giờ)? (1: Rất không hợp lý --> 5: Rất hợp lý)
-- **Q5:** Mức độ công bằng và minh bạch của quy trình xử lý khiếu nại Hoàn trả/Hoàn tiền của Lazada? (1: Rất thiếu công bằng --> 5: Rất công bằng)
+### A1. 5 câu CẤU TRÚC (Chọn đáp án A/B/C/D)
+*(Theo yêu cầu GVHD: "cấu trúc là mình phải có đáp án A, B, C, D cho người ta lựa chọn chứ" — thay thang Likert 1-5 bằng 4 phương án định tính; thứ bậc ngữ nghĩa bảo toàn để vẫn mã hóa được 4/3/2/1 khi tổng hợp định lượng.*)
+- **Q1:** Mức độ hài lòng chung của Anh/Chị đối với quy trình xử lý đơn hàng trên Lazada?
+  - **A.** Rất hài lòng — trải nghiệm xử lý đơn mượt mà trong hầu hết các lần
+  - **B.** Hài lòng — ổn định, thỉnh thoảng có chậm trễ nhỏ
+  - **C.** Không hài lòng — thường xuyên gặp trục trặc hoặc chậm trễ
+  - **D.** Rất không hài lòng — liên tục gặp lỗi, phải can thiệp thủ công
+- **Q2:** Mức độ thuận tiện khi thực hiện thao tác quản lý đơn hàng trên Seller Center Lazada?
+  - **A.** Rất thuận tiện — mọi thao tác nhanh, gọn, dễ tìm chức năng
+  - **B.** Thuận tiện — cơ bản dễ dùng, một vài bước còn rườm rà
+  - **C.** Bất tiện — nhiều thao tác phức tạp, mất nhiều thời gian
+  - **D.** Rất bất tiện — thường xuyên gặp lỗi, khó tìm chức năng
+- **Q3:** Đánh giá tính hữu ích của Chatbot Lazzie trong việc hỗ trợ giải đáp vấn đề nhanh chóng?
+  - **A.** Rất hữu ích — giải quyết nhanh hầu hết các vấn đề gặp phải
+  - **B.** Hữu ích — giải đáp được phần lớn câu hỏi đơn giản
+  - **C.** Ít hữu ích — trả lời chung chung, phải chuyển nhân viên hỗ trợ
+  - **D.** Vô dụng — không hiểu yêu cầu, chỉ liên hệ CSKH mới giải quyết
+- **Q4:** Mức độ hợp lý của thời gian quy định cho Seller xác nhận đơn hàng (24-48 giờ)?
+  - **A.** Rất hợp lý — thời gian đủ để xác nhận mọi loại đơn hàng
+  - **B.** Hợp lý — chấp nhận được với khối lượng đơn hiện tại
+  - **C.** Không hợp lý — hơi ngắn, đôi khi không kịp xác nhận đúng hạn
+  - **D.** Rất không hợp lý — quá ngắn, đơn thường xuyên bị auto-cancel
+- **Q5:** Mức độ công bằng và minh bạch của quy trình xử lý khiếu nại Hoàn trả/Hoàn tiền của Lazada?
+  - **A.** Rất công bằng — phán quyết dựa trên bằng chứng, minh bạch rõ ràng
+  - **B.** Công bằng — phần lớn hợp lý, một số trường hợp chưa rõ căn cứ
+  - **C.** Thiếu công bằng — thường nghiêng về người mua, khó phản hồi
+  - **D.** Rất thiếu công bằng — phán quyết thiếu minh bạch, khó kháng nghị
 
 ### A2. 5 câu KHÔNG CẤU TRÚC (Câu hỏi mở Open-ended)
 - **Q6:** Anh/Chị hãy mô tả chi tiết các bước thực tế từ lúc nhận thông báo đơn mới đến khi giao thành công bưu kiện cho LEX/3PL?
@@ -1284,12 +1370,32 @@ Sơ đồ TO-BE gồm **5 Lanes (Customer, Chatbot AI, CS Tier 1, CS Tier 2, Sys
 
 ## B. 10 Câu hỏi ĐỊNH LƯỢNG
 
-### B1. 5 câu CẤU TRÚC (Trắc nghiệm nhiều lựa chọn)
-- **Q11:** Trung bình gian hàng của Anh/Chị xử lý bao nhiêu đơn hàng mỗi ngày? (<10 đơn / 10-50 đơn / 50-100 đơn / >100 đơn)
-- **Q12:** Thời gian trung bình để hoàn tất đóng gói 1 bưu kiện là bao lâu? (<5 phút / 5-15 phút / 15-30 phút / >30 phút)
-- **Q13:** Tỷ lệ đơn hàng bị trả về / hoàn tiền trên tổng số đơn của gian hàng là bao nhiêu %? (<2% / 2-5% / 5-10% / >10%)
-- **Q14:** Tần suất LEX/3PL đến kho gom hàng trung bình bao nhiêu lần một ngày? (1 lần / 2 lần / >2 lần)
-- **Q15:** Chi phí vật tư đóng gói trung bình cho 1 đơn hàng tiêu chuẩn là bao nhiêu VNĐ? (<3.000 / 3.000-5.000 / >5.000 VNĐ)
+### B1. 5 câu CẤU TRÚC (Chọn đáp án A/B/C/D)
+- **Q11:** Trung bình gian hàng của Anh/Chị xử lý bao nhiêu đơn hàng mỗi ngày?
+  - **A.** < 10 đơn
+  - **B.** 10-50 đơn
+  - **C.** 50-100 đơn
+  - **D.** > 100 đơn
+- **Q12:** Thời gian trung bình để hoàn tất đóng gói 1 bưu kiện là bao lâu?
+  - **A.** < 5 phút
+  - **B.** 5-15 phút
+  - **C.** 15-30 phút
+  - **D.** > 30 phút
+- **Q13:** Tỷ lệ đơn hàng bị trả về / hoàn tiền trên tổng số đơn của gian hàng là bao nhiêu %?
+  - **A.** < 2%
+  - **B.** 2-5%
+  - **C.** 5-10%
+  - **D.** > 10%
+- **Q14:** Tần suất LEX/3PL đến kho gom hàng trung bình bao nhiêu lần một ngày?
+  - **A.** 1 lần/ngày
+  - **B.** 2 lần/ngày
+  - **C.** 3-5 lần/ngày
+  - **D.** > 5 lần/ngày
+- **Q15:** Chi phí vật tư đóng gói trung bình cho 1 đơn hàng tiêu chuẩn là bao nhiêu VNĐ?
+  - **A.** < 3.000 VNĐ
+  - **B.** 3.000-5.000 VNĐ
+  - **C.** 5.000-10.000 VNĐ
+  - **D.** > 10.000 VNĐ
 
 ### B2. 5 câu KHÔNG CẤU TRÚC (Nhập số liệu thực tế)
 - **Q16:** Thời gian trung bình từ lúc đơn hàng phát sinh đến khi bưu kiện được LEX/3PL quét mã nhận hàng là bao nhiêu giờ?

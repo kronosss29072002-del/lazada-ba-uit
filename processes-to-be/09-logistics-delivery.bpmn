@@ -1,281 +1,281 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_LogisticsDeliveryTOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
-  <bpmn:process id="Process_LogisticsDeliveryTOBE" name="Quy trình Logistics &amp; Giao nhận TO-BE" isExecutable="true">
-    <bpmn:laneSet id="LaneSet_1">
-      <bpmn:lane id="Lane_Seller" name="Seller">
-        <bpmn:flowNodeRef>StartEvent_OrderConfirmed</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_PackGoods</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_SchedulePickup</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_PickupResult</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReworkPackage</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_PackGoods_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_SchedulePickup_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_AI" name="AI Route &amp; Fleet System">
-        <bpmn:flowNodeRef>Task_RouteOptimize</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_PredictDelivery</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_DroneEligible</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_DroneDelivery</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_StandardRouting</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Split_Task_DroneDelivery_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Split_Task_RouteOptimize_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_3PL" name="LEX / 3PL Partner">
-        <bpmn:flowNodeRef>Task_SortHub</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_HubSortOK</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Transit</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_OutForDelivery</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_DeliveryAttempt</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Split_Task_OutForDelivery_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_SortHub_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_Transit_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Buyer" name="Buyer">
-        <bpmn:flowNodeRef>Task_ReceiveDelivery</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_AcceptGoods</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ConfirmAccept</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReportIssue</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_Delivered</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_ReceiveDelivery_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_System" name="Lazada System">
-        <bpmn:flowNodeRef>Task_GenerateAWB</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_RealTimeTracking</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_NotifyBuyer</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReturnToSeller</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_RetryLimit</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_Returned</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Split_Task_GenerateAWB_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_NotifyBuyer_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_RealTimeTracking_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-    </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_OrderConfirmed" name="Đơn hàng đã được xác nhận">
-      <bpmn:outgoing>Flow_S1_Pack</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:exclusiveGateway id="Join_Task_PackGoods_1" name="Gom luồng trước khi Đóng gói hàng hóa đạt chuẩn">
-      <bpmn:incoming>Flow_S1_Pack</bpmn:incoming>
-      <bpmn:incoming>Flow_Rework_Pack</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_PackGoods_1_to_Task_PackGoods</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_Task_SchedulePickup_1" name="Gom luồng trước khi Yêu cầu auto-scheduling lấy hàng">
-      <bpmn:incoming>Flow_Pack_Schedule</bpmn:incoming>
-      <bpmn:incoming>Flow_RetryNo_Reschedule</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_PackGoods" name="Đóng gói hàng hóa đạt chuẩn">
-      <bpmn:incoming>Flow_Join_Task_PackGoods_1_to_Task_PackGoods</bpmn:incoming>
-      <bpmn:outgoing>Flow_Pack_Schedule</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_SchedulePickup" name="Yêu cầu auto-scheduling lấy hàng">
-      <bpmn:incoming>Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup</bpmn:incoming>
-      <bpmn:outgoing>Flow_Schedule_PickupGate</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_PickupResult" name="Lấy hàng thành công?">
-      <bpmn:incoming>Flow_Schedule_PickupGate</bpmn:incoming>
-      <bpmn:outgoing>Flow_PickupYes_Route</bpmn:outgoing>
-      <bpmn:outgoing>Flow_PickupNo_Rework</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_ReworkPackage" name="Đóng gói lại / đính chính thông tin">
-      <bpmn:incoming>Flow_PickupNo_Rework</bpmn:incoming>
-      <bpmn:outgoing>Flow_Rework_Pack</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Split_Task_RouteOptimize_1" name="Phân luồng sau AI tối ưu lộ trình giao hàng real-time">
-      <bpmn:incoming>Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_Route_Predict</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Route_GenAWB</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_RouteOptimize" name="AI tối ưu lộ trình giao hàng real-time">
-      <bpmn:incoming>Flow_PickupYes_Route</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_PredictDelivery" name="Dự báo thời gian giao hàng chính xác (ETA ML)">
-      <bpmn:incoming>Flow_Route_Predict</bpmn:incoming>
-      <bpmn:outgoing>Flow_Predict_GateDrone</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Join_Task_SortHub_1" name="Gom luồng trước khi Phân loại hàng tại Hub trung chuyển">
-      <bpmn:incoming>Flow_Drone_Sort</bpmn:incoming>
-      <bpmn:incoming>Flow_Standard_Sort</bpmn:incoming>
-      <bpmn:incoming>Flow_ReRouteNo_Resort</bpmn:incoming>
-      <bpmn:incoming>Flow_GenAWB_Sort</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_SortHub_1_to_Task_SortHub</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_DroneEligible" name="Đủ điều kiện giao bằng Drone?">
-      <bpmn:incoming>Flow_Predict_GateDrone</bpmn:incoming>
-      <bpmn:outgoing>Flow_DroneYes_Drone</bpmn:outgoing>
-      <bpmn:outgoing>Flow_DroneNo_Standard</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_DroneDelivery" name="Phân bổ Drone Express giao hàng">
-      <bpmn:incoming>Flow_DroneYes_Drone</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Join_Task_Transit_1" name="Gom luồng trước khi Vận chuyển liên tỉnh / đường hàng không">
-      <bpmn:incoming>Flow_SortOK_Transit</bpmn:incoming>
-      <bpmn:incoming>Flow_ReRouteYes_Transit</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_Transit_1_to_Task_Transit</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Split_Task_DroneDelivery_1" name="Phân luồng sau Phân bổ Drone Express giao hàng">
-      <bpmn:incoming>Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_Drone_Sort</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Drone_Receive</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Drone_Notify</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_StandardRouting" name="Phân bổ tuyến đường 3PL tiêu chuẩn">
-      <bpmn:incoming>Flow_DroneNo_Standard</bpmn:incoming>
-      <bpmn:outgoing>Flow_Standard_Sort</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_SortHub" name="Phân loại hàng tại Hub trung chuyển">
-      <bpmn:incoming>Flow_Join_Task_SortHub_1_to_Task_SortHub</bpmn:incoming>
-      <bpmn:outgoing>Flow_Sort_GateOK</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_HubSortOK" name="Phân loại đúng Hub?">
-      <bpmn:incoming>Flow_Sort_GateOK</bpmn:incoming>
-      <bpmn:outgoing>Flow_SortOK_Transit</bpmn:outgoing>
-      <bpmn:outgoing>Flow_SortFail_ReRoute</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_ReRoute" name="Có hub thay thế gần nhất?">
-      <bpmn:incoming>Flow_SortFail_ReRoute</bpmn:incoming>
-      <bpmn:outgoing>Flow_ReRouteYes_Transit</bpmn:outgoing>
-      <bpmn:outgoing>Flow_ReRouteNo_Resort</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_Transit" name="Vận chuyển liên tỉnh / đường hàng không">
-      <bpmn:incoming>Flow_Join_Task_Transit_1_to_Task_Transit</bpmn:incoming>
-      <bpmn:outgoing>Flow_Transit_Out</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Join_Task_ReceiveDelivery_1" name="Gom luồng trước khi Nhận hàng &amp; kiểm tra trực tiếp">
-      <bpmn:incoming>Flow_AttemptOK_Receive</bpmn:incoming>
-      <bpmn:incoming>Flow_Notify_Receive</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Split_Task_OutForDelivery_1" name="Phân luồng sau Shipper nhận kiện hàng — đi giao">
-      <bpmn:incoming>Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_Out_DeliverGate</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Out_Notify</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_OutForDelivery" name="Shipper nhận kiện hàng — đi giao">
-      <bpmn:incoming>Flow_Transit_Out</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_DeliveryAttempt" name="Giao hàng lần đầu thành công?">
-      <bpmn:incoming>Flow_Out_DeliverGate</bpmn:incoming>
-      <bpmn:outgoing>Flow_AttemptOK_Receive</bpmn:outgoing>
-      <bpmn:outgoing>Flow_AttemptFail_RetryGate</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_ReceiveDelivery" name="Nhận hàng &amp; kiểm tra trực tiếp">
-      <bpmn:incoming>Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery</bpmn:incoming>
-      <bpmn:outgoing>Flow_Receive_GateAccept</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_AcceptGoods" name="Buyer chấp nhận hàng?">
-      <bpmn:incoming>Flow_Receive_GateAccept</bpmn:incoming>
-      <bpmn:outgoing>Flow_AcceptYes_Confirm</bpmn:outgoing>
-      <bpmn:outgoing>Flow_AcceptNo_Report</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_ConfirmAccept" name="Xác nhận đã nhận hàng trên App">
-      <bpmn:incoming>Flow_AcceptYes_Confirm</bpmn:incoming>
-      <bpmn:outgoing>Flow_Confirm_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_ReportIssue" name="Báo lỗi / yêu cầu đổi trả">
-      <bpmn:incoming>Flow_AcceptNo_Report</bpmn:incoming>
-      <bpmn:outgoing>Flow_Report_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Join_Task_RealTimeTracking_1" name="Gom luồng trước khi Cập nhật vị trí real-time GPS cho Buyer">
-      <bpmn:incoming>Flow_GenAWB_Track</bpmn:incoming>
-      <bpmn:incoming>Flow_Out_Notify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_End_Event_Delivered_1" name="Gom nhánh kết thúc">
-      <bpmn:incoming>Flow_Confirm_End</bpmn:incoming>
-      <bpmn:incoming>Flow_Report_End</bpmn:incoming>
-      <bpmn:incoming>Flow_Drone_Receive</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:endEvent id="EndEvent_Delivered" name="Đơn hàng đã giao thành công">
-      <bpmn:incoming>Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:exclusiveGateway id="Split_Task_GenerateAWB_1" name="Phân luồng sau Tạo AWB tự động + Push tracking info">
-      <bpmn:incoming>Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_GenAWB_Sort</bpmn:outgoing>
-      <bpmn:outgoing>Flow_GenAWB_Track</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_Task_NotifyBuyer_1" name="Gom luồng trước khi Push thông báo lịch giao + SMS/In-app alert">
-      <bpmn:incoming>Flow_Track_Notify</bpmn:incoming>
-      <bpmn:incoming>Flow_Drone_Notify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_GenerateAWB" name="Tạo AWB tự động + Push tracking info">
-      <bpmn:incoming>Flow_Route_GenAWB</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_RealTimeTracking" name="Cập nhật vị trí real-time GPS cho Buyer">
-      <bpmn:incoming>Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking</bpmn:incoming>
-      <bpmn:outgoing>Flow_Track_Notify</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_NotifyBuyer" name="Push thông báo lịch giao + SMS/In-app alert">
-      <bpmn:incoming>Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer</bpmn:incoming>
-      <bpmn:outgoing>Flow_Notify_Receive</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_RetryLimit" name="Đã thử giao ≥ 3 lần?">
-      <bpmn:incoming>Flow_AttemptFail_RetryGate</bpmn:incoming>
-      <bpmn:outgoing>Flow_RetryNo_Reschedule</bpmn:outgoing>
-      <bpmn:outgoing>Flow_RetryYes_Return</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_ReturnToSeller" name="Hàng hoàn về kho — cập nhật hệ thống">
-      <bpmn:incoming>Flow_RetryYes_Return</bpmn:incoming>
-      <bpmn:outgoing>Flow_Return_End</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:endEvent id="EndEvent_Returned" name="Đơn hàng đã hoàn về Seller">
-      <bpmn:incoming>Flow_Return_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_S1_Pack" sourceRef="StartEvent_OrderConfirmed" targetRef="Join_Task_PackGoods_1" />
-    <bpmn:sequenceFlow id="Flow_Pack_Schedule" sourceRef="Task_PackGoods" targetRef="Join_Task_SchedulePickup_1" />
-    <bpmn:sequenceFlow id="Flow_Schedule_PickupGate" sourceRef="Task_SchedulePickup" targetRef="Gate_PickupResult" />
-    <bpmn:sequenceFlow id="Flow_PickupYes_Route" name="Thành công" sourceRef="Gate_PickupResult" targetRef="Task_RouteOptimize" />
-    <bpmn:sequenceFlow id="Flow_PickupNo_Rework" name="Thất bại" sourceRef="Gate_PickupResult" targetRef="Task_ReworkPackage" />
-    <bpmn:sequenceFlow id="Flow_Rework_Pack" sourceRef="Task_ReworkPackage" targetRef="Join_Task_PackGoods_1" />
-    <bpmn:sequenceFlow id="Flow_Route_Predict" sourceRef="Split_Task_RouteOptimize_1" targetRef="Task_PredictDelivery" />
-    <bpmn:sequenceFlow id="Flow_Predict_GateDrone" sourceRef="Task_PredictDelivery" targetRef="Gate_DroneEligible" />
-    <bpmn:sequenceFlow id="Flow_DroneYes_Drone" name="Drone Express" sourceRef="Gate_DroneEligible" targetRef="Task_DroneDelivery" />
-    <bpmn:sequenceFlow id="Flow_DroneNo_Standard" name="3PL tiêu chuẩn" sourceRef="Gate_DroneEligible" targetRef="Task_StandardRouting" />
-    <bpmn:sequenceFlow id="Flow_Drone_Sort" sourceRef="Split_Task_DroneDelivery_1" targetRef="Join_Task_SortHub_1" />
-    <bpmn:sequenceFlow id="Flow_Standard_Sort" sourceRef="Task_StandardRouting" targetRef="Join_Task_SortHub_1" />
-    <bpmn:sequenceFlow id="Flow_Sort_GateOK" sourceRef="Task_SortHub" targetRef="Gate_HubSortOK" />
-    <bpmn:sequenceFlow id="Flow_SortOK_Transit" name="Đúng Hub" sourceRef="Gate_HubSortOK" targetRef="Join_Task_Transit_1" />
-    <bpmn:sequenceFlow id="Flow_SortFail_ReRoute" name="Sai Hub" sourceRef="Gate_HubSortOK" targetRef="Gate_ReRoute" />
-    <bpmn:sequenceFlow id="Flow_ReRouteYes_Transit" name="Có hub khác" sourceRef="Gate_ReRoute" targetRef="Join_Task_Transit_1" />
-    <bpmn:sequenceFlow id="Flow_ReRouteNo_Resort" name="Không — phân loại lại" sourceRef="Gate_ReRoute" targetRef="Join_Task_SortHub_1" />
-    <bpmn:sequenceFlow id="Flow_Transit_Out" sourceRef="Task_Transit" targetRef="Task_OutForDelivery" />
-    <bpmn:sequenceFlow id="Flow_Out_DeliverGate" sourceRef="Split_Task_OutForDelivery_1" targetRef="Gate_DeliveryAttempt" />
-    <bpmn:sequenceFlow id="Flow_AttemptOK_Receive" name="Giao thành công" sourceRef="Gate_DeliveryAttempt" targetRef="Join_Task_ReceiveDelivery_1" />
-    <bpmn:sequenceFlow id="Flow_AttemptFail_RetryGate" name="Giao thất bại" sourceRef="Gate_DeliveryAttempt" targetRef="Gate_RetryLimit" />
-    <bpmn:sequenceFlow id="Flow_Receive_GateAccept" sourceRef="Task_ReceiveDelivery" targetRef="Gate_AcceptGoods" />
-    <bpmn:sequenceFlow id="Flow_AcceptYes_Confirm" name="Chấp nhận" sourceRef="Gate_AcceptGoods" targetRef="Task_ConfirmAccept" />
-    <bpmn:sequenceFlow id="Flow_AcceptNo_Report" name="Từ chối" sourceRef="Gate_AcceptGoods" targetRef="Task_ReportIssue" />
-    <bpmn:sequenceFlow id="Flow_Confirm_End" sourceRef="Task_ConfirmAccept" targetRef="Join_End_Event_Delivered_1" />
-    <bpmn:sequenceFlow id="Flow_Report_End" sourceRef="Task_ReportIssue" targetRef="Join_End_Event_Delivered_1" />
-    <bpmn:sequenceFlow id="Flow_Drone_Receive" sourceRef="Split_Task_DroneDelivery_1" targetRef="Join_End_Event_Delivered_1" />
-    <bpmn:sequenceFlow id="Flow_Route_GenAWB" sourceRef="Split_Task_RouteOptimize_1" targetRef="Task_GenerateAWB" />
-    <bpmn:sequenceFlow id="Flow_GenAWB_Sort" sourceRef="Split_Task_GenerateAWB_1" targetRef="Join_Task_SortHub_1" />
-    <bpmn:sequenceFlow id="Flow_GenAWB_Track" sourceRef="Split_Task_GenerateAWB_1" targetRef="Join_Task_RealTimeTracking_1" />
-    <bpmn:sequenceFlow id="Flow_Out_Notify" sourceRef="Split_Task_OutForDelivery_1" targetRef="Join_Task_RealTimeTracking_1" />
-    <bpmn:sequenceFlow id="Flow_Track_Notify" sourceRef="Task_RealTimeTracking" targetRef="Join_Task_NotifyBuyer_1" />
-    <bpmn:sequenceFlow id="Flow_Drone_Notify" sourceRef="Split_Task_DroneDelivery_1" targetRef="Join_Task_NotifyBuyer_1" />
-    <bpmn:sequenceFlow id="Flow_Notify_Receive" sourceRef="Task_NotifyBuyer" targetRef="Join_Task_ReceiveDelivery_1" />
-    <bpmn:sequenceFlow id="Flow_RetryNo_Reschedule" name="Chưa đủ 3 lần — hẹn lại" sourceRef="Gate_RetryLimit" targetRef="Join_Task_SchedulePickup_1" />
-    <bpmn:sequenceFlow id="Flow_RetryYes_Return" name="≥ 3 lần — hoàn hàng" sourceRef="Gate_RetryLimit" targetRef="Task_ReturnToSeller" />
-    <bpmn:sequenceFlow id="Flow_Return_End" sourceRef="Task_ReturnToSeller" targetRef="EndEvent_Returned" />
-    <bpmn:sequenceFlow id="Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered" sourceRef="Join_End_Event_Delivered_1" targetRef="EndEvent_Delivered" name="" />
-    <bpmn:sequenceFlow id="Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1" sourceRef="Task_DroneDelivery" targetRef="Split_Task_DroneDelivery_1" name="" />
-    <bpmn:sequenceFlow id="Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1" sourceRef="Task_GenerateAWB" targetRef="Split_Task_GenerateAWB_1" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer" sourceRef="Join_Task_NotifyBuyer_1" targetRef="Task_NotifyBuyer" name="" />
-    <bpmn:sequenceFlow id="Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1" sourceRef="Task_OutForDelivery" targetRef="Split_Task_OutForDelivery_1" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_PackGoods_1_to_Task_PackGoods" sourceRef="Join_Task_PackGoods_1" targetRef="Task_PackGoods" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking" sourceRef="Join_Task_RealTimeTracking_1" targetRef="Task_RealTimeTracking" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery" sourceRef="Join_Task_ReceiveDelivery_1" targetRef="Task_ReceiveDelivery" name="" />
-    <bpmn:sequenceFlow id="Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1" sourceRef="Task_RouteOptimize" targetRef="Split_Task_RouteOptimize_1" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup" sourceRef="Join_Task_SchedulePickup_1" targetRef="Task_SchedulePickup" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_SortHub_1_to_Task_SortHub" sourceRef="Join_Task_SortHub_1" targetRef="Task_SortHub" name="" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_Transit_1_to_Task_Transit" sourceRef="Join_Task_Transit_1" targetRef="Task_Transit" name="" />
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_LogisticsDeliveryTOBE"><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="140" width="7100" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_AI_di" bpmnElement="Lane_AI"><dc:Bounds x="30" y="350" width="7100" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_3PL_di" bpmnElement="Lane_3PL"><dc:Bounds x="30" y="602" width="7100" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><dc:Bounds x="30" y="812" width="7100" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="1064" width="7100" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_OrderConfirmed_di" bpmnElement="StartEvent_OrderConfirmed"><dc:Bounds x="212" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_PackGoods_1_di" bpmnElement="Join_Task_PackGoods_1"><dc:Bounds x="1645" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_SchedulePickup_1_di" bpmnElement="Join_Task_SchedulePickup_1"><dc:Bounds x="685" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PackGoods_di" bpmnElement="Task_PackGoods"><dc:Bounds x="1848" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SchedulePickup_di" bpmnElement="Task_SchedulePickup"><dc:Bounds x="888" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PickupResult_di" bpmnElement="Gate_PickupResult"><dc:Bounds x="1165" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReworkPackage_di" bpmnElement="Task_ReworkPackage"><dc:Bounds x="1368" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_RouteOptimize_1_di" bpmnElement="Split_Task_RouteOptimize_1"><dc:Bounds x="1645" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_RouteOptimize_di" bpmnElement="Task_RouteOptimize"><dc:Bounds x="1368" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PredictDelivery_di" bpmnElement="Task_PredictDelivery"><dc:Bounds x="1848" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_SortHub_1_di" bpmnElement="Join_Task_SortHub_1"><dc:Bounds x="2845" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_DroneEligible_di" bpmnElement="Gate_DroneEligible"><dc:Bounds x="2125" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_DroneDelivery_di" bpmnElement="Task_DroneDelivery"><dc:Bounds x="2328" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_Transit_1_di" bpmnElement="Join_Task_Transit_1"><dc:Bounds x="3805" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_DroneDelivery_1_di" bpmnElement="Split_Task_DroneDelivery_1"><dc:Bounds x="2605" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_StandardRouting_di" bpmnElement="Task_StandardRouting"><dc:Bounds x="2328" y="488" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_SortHub_di" bpmnElement="Task_SortHub"><dc:Bounds x="3048" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_HubSortOK_di" bpmnElement="Gate_HubSortOK"><dc:Bounds x="3325" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ReRoute_di" bpmnElement="Gate_ReRoute"><dc:Bounds x="3565" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Transit_di" bpmnElement="Task_Transit"><dc:Bounds x="4008" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ReceiveDelivery_1_di" bpmnElement="Join_Task_ReceiveDelivery_1"><dc:Bounds x="5725" y="865" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_OutForDelivery_1_di" bpmnElement="Split_Task_OutForDelivery_1"><dc:Bounds x="4525" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_OutForDelivery_di" bpmnElement="Task_OutForDelivery"><dc:Bounds x="4248" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_DeliveryAttempt_di" bpmnElement="Gate_DeliveryAttempt"><dc:Bounds x="205" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReceiveDelivery_di" bpmnElement="Task_ReceiveDelivery"><dc:Bounds x="5928" y="854" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_AcceptGoods_di" bpmnElement="Gate_AcceptGoods"><dc:Bounds x="6205" y="865" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfirmAccept_di" bpmnElement="Task_ConfirmAccept"><dc:Bounds x="6408" y="854" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReportIssue_di" bpmnElement="Task_ReportIssue"><dc:Bounds x="6408" y="950" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_RealTimeTracking_1_di" bpmnElement="Join_Task_RealTimeTracking_1"><dc:Bounds x="4765" y="1144" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_End_Event_Delivered_1_di" bpmnElement="Join_End_Event_Delivered_1"><dc:Bounds x="6685" y="220" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Delivered_di" bpmnElement="EndEvent_Delivered"><dc:Bounds x="6932" y="872" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_GenerateAWB_1_di" bpmnElement="Split_Task_GenerateAWB_1"><dc:Bounds x="2125" y="1144" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_NotifyBuyer_1_di" bpmnElement="Join_Task_NotifyBuyer_1"><dc:Bounds x="5245" y="1144" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_GenerateAWB_di" bpmnElement="Task_GenerateAWB"><dc:Bounds x="1848" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_RealTimeTracking_di" bpmnElement="Task_RealTimeTracking"><dc:Bounds x="4968" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifyBuyer_di" bpmnElement="Task_NotifyBuyer"><dc:Bounds x="5448" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_RetryLimit_di" bpmnElement="Gate_RetryLimit"><dc:Bounds x="445" y="1144" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReturnToSeller_di" bpmnElement="Task_ReturnToSeller"><dc:Bounds x="648" y="1133" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Returned_di" bpmnElement="EndEvent_Returned"><dc:Bounds x="932" y="1151" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_AttemptFail_RetryGate_di" bpmnElement="Flow_AttemptFail_RetryGate"><di:waypoint x="255" y="707" /><di:waypoint x="310" y="707" /><di:waypoint x="310" y="812" /><di:waypoint x="310" y="1169" /><di:waypoint x="445" y="1169" /><bpmndi:BPMNLabel><dc:Bounds x="320" y="984" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AttemptOK_Receive_di" bpmnElement="Flow_AttemptOK_Receive"><di:waypoint x="255" y="707" /><di:waypoint x="310" y="707" /><di:waypoint x="310" y="812" /><di:waypoint x="5590" y="812" /><di:waypoint x="5590" y="890" /><di:waypoint x="5725" y="890" /><bpmndi:BPMNLabel><dc:Bounds x="2915" y="788" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_S1_Pack_di" bpmnElement="Flow_S1_Pack"><di:waypoint x="248" y="245" /><di:waypoint x="310" y="245" /><di:waypoint x="310" y="197" /><di:waypoint x="1510" y="197" /><di:waypoint x="1510" y="245" /><di:waypoint x="1645" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_RetryNo_Reschedule_di" bpmnElement="Flow_RetryNo_Reschedule"><di:waypoint x="495" y="1169" /><di:waypoint x="550" y="1169" /><di:waypoint x="550" y="350" /><di:waypoint x="550" y="245" /><di:waypoint x="685" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="560" y="752" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_RetryYes_Return_di" bpmnElement="Flow_RetryYes_Return"><di:waypoint x="495" y="1169" /><di:waypoint x="648" y="1169" /><bpmndi:BPMNLabel><dc:Bounds x="536" y="1145" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup_di" bpmnElement="Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup"><di:waypoint x="735" y="245" /><di:waypoint x="888" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Return_End_di" bpmnElement="Flow_Return_End"><di:waypoint x="772" y="1169" /><di:waypoint x="932" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Schedule_PickupGate_di" bpmnElement="Flow_Schedule_PickupGate"><di:waypoint x="1012" y="245" /><di:waypoint x="1165" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PickupNo_Rework_di" bpmnElement="Flow_PickupNo_Rework"><di:waypoint x="1215" y="245" /><di:waypoint x="1368" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="1256" y="221" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PickupYes_Route_di" bpmnElement="Flow_PickupYes_Route"><di:waypoint x="1215" y="245" /><di:waypoint x="1270" y="245" /><di:waypoint x="1270" y="350" /><di:waypoint x="1270" y="428" /><di:waypoint x="1368" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="1280" y="290" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Rework_Pack_di" bpmnElement="Flow_Rework_Pack"><di:waypoint x="1492" y="245" /><di:waypoint x="1645" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1_di" bpmnElement="Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1"><di:waypoint x="1492" y="428" /><di:waypoint x="1645" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_PackGoods_1_to_Task_PackGoods_di" bpmnElement="Flow_Join_Task_PackGoods_1_to_Task_PackGoods"><di:waypoint x="1695" y="245" /><di:waypoint x="1848" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Route_GenAWB_di" bpmnElement="Flow_Route_GenAWB"><di:waypoint x="1695" y="428" /><di:waypoint x="1750" y="428" /><di:waypoint x="1750" y="602" /><di:waypoint x="1750" y="1169" /><di:waypoint x="1848" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Route_Predict_di" bpmnElement="Flow_Route_Predict"><di:waypoint x="1695" y="428" /><di:waypoint x="1848" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pack_Schedule_di" bpmnElement="Flow_Pack_Schedule"><di:waypoint x="1972" y="245" /><di:waypoint x="1990" y="245" /><di:waypoint x="1990" y="1356" /><di:waypoint x="550" y="1356" /><di:waypoint x="550" y="245" /><di:waypoint x="685" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Predict_GateDrone_di" bpmnElement="Flow_Predict_GateDrone"><di:waypoint x="1972" y="428" /><di:waypoint x="2125" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1_di" bpmnElement="Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1"><di:waypoint x="1972" y="1169" /><di:waypoint x="2125" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_DroneNo_Standard_di" bpmnElement="Flow_DroneNo_Standard"><di:waypoint x="2175" y="428" /><di:waypoint x="2230" y="428" /><di:waypoint x="2230" y="476" /><di:waypoint x="2230" y="524" /><di:waypoint x="2328" y="524" /><bpmndi:BPMNLabel><dc:Bounds x="2244" y="500" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_DroneYes_Drone_di" bpmnElement="Flow_DroneYes_Drone"><di:waypoint x="2175" y="428" /><di:waypoint x="2328" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="2216" y="404" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_GenAWB_Sort_di" bpmnElement="Flow_GenAWB_Sort"><di:waypoint x="2175" y="1169" /><di:waypoint x="2230" y="1169" /><di:waypoint x="2230" y="812" /><di:waypoint x="2710" y="812" /><di:waypoint x="2710" y="707" /><di:waypoint x="2845" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_GenAWB_Track_di" bpmnElement="Flow_GenAWB_Track"><di:waypoint x="2175" y="1169" /><di:waypoint x="4765" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Standard_Sort_di" bpmnElement="Flow_Standard_Sort"><di:waypoint x="2452" y="524" /><di:waypoint x="2470" y="524" /><di:waypoint x="2470" y="602" /><di:waypoint x="2710" y="602" /><di:waypoint x="2710" y="707" /><di:waypoint x="2845" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1_di" bpmnElement="Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1"><di:waypoint x="2452" y="428" /><di:waypoint x="2605" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Drone_Notify_di" bpmnElement="Flow_Drone_Notify"><di:waypoint x="2655" y="428" /><di:waypoint x="2710" y="428" /><di:waypoint x="2710" y="602" /><di:waypoint x="5110" y="602" /><di:waypoint x="5110" y="1169" /><di:waypoint x="5245" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Drone_Receive_di" bpmnElement="Flow_Drone_Receive"><di:waypoint x="2655" y="428" /><di:waypoint x="2710" y="428" /><di:waypoint x="2710" y="350" /><di:waypoint x="6550" y="350" /><di:waypoint x="6550" y="245" /><di:waypoint x="6685" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Drone_Sort_di" bpmnElement="Flow_Drone_Sort"><di:waypoint x="2655" y="428" /><di:waypoint x="2710" y="428" /><di:waypoint x="2710" y="602" /><di:waypoint x="2710" y="707" /><di:waypoint x="2845" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_SortHub_1_to_Task_SortHub_di" bpmnElement="Flow_Join_Task_SortHub_1_to_Task_SortHub"><di:waypoint x="2895" y="707" /><di:waypoint x="3048" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Sort_GateOK_di" bpmnElement="Flow_Sort_GateOK"><di:waypoint x="3172" y="707" /><di:waypoint x="3325" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SortFail_ReRoute_di" bpmnElement="Flow_SortFail_ReRoute"><di:waypoint x="3375" y="707" /><di:waypoint x="3430" y="707" /><di:waypoint x="3430" y="350" /><di:waypoint x="3430" y="245" /><di:waypoint x="3565" y="245" /><bpmndi:BPMNLabel><dc:Bounds x="3440" y="522" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SortOK_Transit_di" bpmnElement="Flow_SortOK_Transit"><di:waypoint x="3375" y="707" /><di:waypoint x="3805" y="707" /><bpmndi:BPMNLabel><dc:Bounds x="3555" y="683" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ReRouteNo_Resort_di" bpmnElement="Flow_ReRouteNo_Resort"><di:waypoint x="3615" y="245" /><di:waypoint x="3670" y="245" /><di:waypoint x="3670" y="1420" /><di:waypoint x="2710" y="1420" /><di:waypoint x="2710" y="707" /><di:waypoint x="2845" y="707" /><bpmndi:BPMNLabel><dc:Bounds x="3680" y="826" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ReRouteYes_Transit_di" bpmnElement="Flow_ReRouteYes_Transit"><di:waypoint x="3615" y="245" /><di:waypoint x="3670" y="245" /><di:waypoint x="3670" y="350" /><di:waypoint x="3670" y="707" /><di:waypoint x="3805" y="707" /><bpmndi:BPMNLabel><dc:Bounds x="3680" y="522" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_Transit_1_to_Task_Transit_di" bpmnElement="Flow_Join_Task_Transit_1_to_Task_Transit"><di:waypoint x="3855" y="707" /><di:waypoint x="4008" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Transit_Out_di" bpmnElement="Flow_Transit_Out"><di:waypoint x="4132" y="707" /><di:waypoint x="4248" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1_di" bpmnElement="Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1"><di:waypoint x="4372" y="707" /><di:waypoint x="4525" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Out_DeliverGate_di" bpmnElement="Flow_Out_DeliverGate"><di:waypoint x="4575" y="707" /><di:waypoint x="4630" y="707" /><di:waypoint x="4630" y="1308" /><di:waypoint x="70" y="1308" /><di:waypoint x="70" y="707" /><di:waypoint x="205" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Out_Notify_di" bpmnElement="Flow_Out_Notify"><di:waypoint x="4575" y="707" /><di:waypoint x="4630" y="707" /><di:waypoint x="4630" y="812" /><di:waypoint x="4630" y="1169" /><di:waypoint x="4765" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking_di" bpmnElement="Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking"><di:waypoint x="4815" y="1169" /><di:waypoint x="4968" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Track_Notify_di" bpmnElement="Flow_Track_Notify"><di:waypoint x="5092" y="1169" /><di:waypoint x="5245" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer_di" bpmnElement="Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer"><di:waypoint x="5295" y="1169" /><di:waypoint x="5448" y="1169" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_Receive_di" bpmnElement="Flow_Notify_Receive"><di:waypoint x="5572" y="1169" /><di:waypoint x="5590" y="1169" /><di:waypoint x="5590" y="1064" /><di:waypoint x="5590" y="890" /><di:waypoint x="5725" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery_di" bpmnElement="Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery"><di:waypoint x="5775" y="890" /><di:waypoint x="5928" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Receive_GateAccept_di" bpmnElement="Flow_Receive_GateAccept"><di:waypoint x="6052" y="890" /><di:waypoint x="6205" y="890" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AcceptNo_Report_di" bpmnElement="Flow_AcceptNo_Report"><di:waypoint x="6255" y="890" /><di:waypoint x="6310" y="890" /><di:waypoint x="6310" y="938" /><di:waypoint x="6310" y="986" /><di:waypoint x="6408" y="986" /><bpmndi:BPMNLabel><dc:Bounds x="6324" y="962" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AcceptYes_Confirm_di" bpmnElement="Flow_AcceptYes_Confirm"><di:waypoint x="6255" y="890" /><di:waypoint x="6408" y="890" /><bpmndi:BPMNLabel><dc:Bounds x="6296" y="866" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_End_di" bpmnElement="Flow_Confirm_End"><di:waypoint x="6532" y="890" /><di:waypoint x="6550" y="890" /><di:waypoint x="6550" y="350" /><di:waypoint x="6550" y="245" /><di:waypoint x="6685" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Report_End_di" bpmnElement="Flow_Report_End"><di:waypoint x="6532" y="986" /><di:waypoint x="6550" y="986" /><di:waypoint x="6550" y="350" /><di:waypoint x="6550" y="245" /><di:waypoint x="6685" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered_di" bpmnElement="Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered"><di:waypoint x="6735" y="245" /><di:waypoint x="6790" y="245" /><di:waypoint x="6790" y="350" /><di:waypoint x="6790" y="890" /><di:waypoint x="6932" y="890" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
-</bpmn:definitions>
+<ns0:definitions xmlns:ns0="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:ns1="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:ns2="http://www.omg.org/spec/DD/20100524/DC" xmlns:ns3="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_LogisticsDeliveryTOBE" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <ns0:process id="Process_LogisticsDeliveryTOBE" name="Quy trình Logistics &amp; Giao nhận TO-BE" isExecutable="true">
+    <ns0:laneSet id="LaneSet_1">
+      <ns0:lane id="Lane_Seller" name="Seller">
+        <ns0:flowNodeRef>StartEvent_OrderConfirmed</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_PackGoods</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_SchedulePickup</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_PickupResult</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReworkPackage</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_PackGoods_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_SchedulePickup_1</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_AI" name="AI Route &amp; Fleet System">
+        <ns0:flowNodeRef>Task_RouteOptimize</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_PredictDelivery</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_DroneEligible</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_DroneDelivery</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_StandardRouting</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Split_Task_DroneDelivery_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Split_Task_RouteOptimize_1</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_3PL" name="LEX / 3PL Partner">
+        <ns0:flowNodeRef>Task_SortHub</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_HubSortOK</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Transit</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_OutForDelivery</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_DeliveryAttempt</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Split_Task_OutForDelivery_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_SortHub_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_Transit_1</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Buyer" name="Buyer">
+        <ns0:flowNodeRef>Task_ReceiveDelivery</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_AcceptGoods</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ConfirmAccept</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReportIssue</ns0:flowNodeRef>
+        <ns0:flowNodeRef>EndEvent_Delivered</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_ReceiveDelivery_1</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_System" name="Lazada System">
+        <ns0:flowNodeRef>Task_GenerateAWB</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_RealTimeTracking</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_NotifyBuyer</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReturnToSeller</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_RetryLimit</ns0:flowNodeRef>
+        <ns0:flowNodeRef>EndEvent_Returned</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Split_Task_GenerateAWB_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_NotifyBuyer_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_RealTimeTracking_1</ns0:flowNodeRef>
+      </ns0:lane>
+    </ns0:laneSet>
+    <ns0:startEvent id="StartEvent_OrderConfirmed" name="Đơn hàng đã được xác nhận">
+      <ns0:outgoing>Flow_S1_Pack</ns0:outgoing>
+    </ns0:startEvent>
+    <ns0:exclusiveGateway id="Join_Task_PackGoods_1" name="Gom luồng trước khi Đóng gói hàng hóa đạt chuẩn">
+      <ns0:incoming>Flow_S1_Pack</ns0:incoming>
+      <ns0:incoming>Flow_Rework_Pack</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_PackGoods_1_to_Task_PackGoods</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_Task_SchedulePickup_1" name="Gom luồng trước khi Yêu cầu auto-scheduling lấy hàng">
+      <ns0:incoming>Flow_Pack_Schedule</ns0:incoming>
+      <ns0:incoming>Flow_RetryNo_Reschedule</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_PackGoods" name="Đóng gói hàng hóa đạt chuẩn">
+      <ns0:incoming>Flow_Join_Task_PackGoods_1_to_Task_PackGoods</ns0:incoming>
+      <ns0:outgoing>Flow_Pack_Schedule</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_SchedulePickup" name="Yêu cầu auto-scheduling lấy hàng">
+      <ns0:incoming>Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup</ns0:incoming>
+      <ns0:outgoing>Flow_Schedule_PickupGate</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_PickupResult" name="Lấy hàng thành công?">
+      <ns0:incoming>Flow_Schedule_PickupGate</ns0:incoming>
+      <ns0:outgoing>Flow_PickupYes_Route</ns0:outgoing>
+      <ns0:outgoing>Flow_PickupNo_Rework</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_ReworkPackage" name="Đóng gói lại / đính chính thông tin">
+      <ns0:incoming>Flow_PickupNo_Rework</ns0:incoming>
+      <ns0:outgoing>Flow_Rework_Pack</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Split_Task_RouteOptimize_1" name="Phân luồng sau AI tối ưu lộ trình giao hàng real-time">
+      <ns0:incoming>Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1</ns0:incoming>
+      <ns0:outgoing>Flow_Route_Predict</ns0:outgoing>
+      <ns0:outgoing>Flow_Route_GenAWB</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_RouteOptimize" name="AI tối ưu lộ trình giao hàng real-time">
+      <ns0:incoming>Flow_PickupYes_Route</ns0:incoming>
+      <ns0:outgoing>Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_PredictDelivery" name="Dự báo thời gian giao hàng chính xác (ETA ML)">
+      <ns0:incoming>Flow_Route_Predict</ns0:incoming>
+      <ns0:outgoing>Flow_Predict_GateDrone</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Join_Task_SortHub_1" name="Gom luồng trước khi Phân loại hàng tại Hub trung chuyển">
+      <ns0:incoming>Flow_Drone_Sort</ns0:incoming>
+      <ns0:incoming>Flow_Standard_Sort</ns0:incoming>
+      <ns0:incoming>Flow_ReRouteNo_Resort</ns0:incoming>
+      <ns0:incoming>Flow_GenAWB_Sort</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_SortHub_1_to_Task_SortHub</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_DroneEligible" name="Đủ điều kiện giao bằng Drone?">
+      <ns0:incoming>Flow_Predict_GateDrone</ns0:incoming>
+      <ns0:outgoing>Flow_DroneYes_Drone</ns0:outgoing>
+      <ns0:outgoing>Flow_DroneNo_Standard</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_DroneDelivery" name="Phân bổ Drone Express giao hàng">
+      <ns0:incoming>Flow_DroneYes_Drone</ns0:incoming>
+      <ns0:outgoing>Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Join_Task_Transit_1" name="Gom luồng trước khi Vận chuyển liên tỉnh / đường hàng không">
+      <ns0:incoming>Flow_SortOK_Transit</ns0:incoming>
+      <ns0:incoming>Flow_ReRouteYes_Transit</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_Transit_1_to_Task_Transit</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Split_Task_DroneDelivery_1" name="Phân luồng sau Phân bổ Drone Express giao hàng">
+      <ns0:incoming>Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1</ns0:incoming>
+      <ns0:outgoing>Flow_Drone_Sort</ns0:outgoing>
+      <ns0:outgoing>Flow_Drone_Receive</ns0:outgoing>
+      <ns0:outgoing>Flow_Drone_Notify</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_StandardRouting" name="Phân bổ tuyến đường 3PL tiêu chuẩn">
+      <ns0:incoming>Flow_DroneNo_Standard</ns0:incoming>
+      <ns0:outgoing>Flow_Standard_Sort</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_SortHub" name="Phân loại hàng tại Hub trung chuyển">
+      <ns0:incoming>Flow_Join_Task_SortHub_1_to_Task_SortHub</ns0:incoming>
+      <ns0:outgoing>Flow_Sort_GateOK</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_HubSortOK" name="Phân loại đúng Hub?">
+      <ns0:incoming>Flow_Sort_GateOK</ns0:incoming>
+      <ns0:outgoing>Flow_SortOK_Transit</ns0:outgoing>
+      <ns0:outgoing>Flow_SortFail_ReRoute</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_ReRoute" name="Có hub thay thế gần nhất?">
+      <ns0:incoming>Flow_SortFail_ReRoute</ns0:incoming>
+      <ns0:outgoing>Flow_ReRouteYes_Transit</ns0:outgoing>
+      <ns0:outgoing>Flow_ReRouteNo_Resort</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_Transit" name="Vận chuyển liên tỉnh / đường hàng không">
+      <ns0:incoming>Flow_Join_Task_Transit_1_to_Task_Transit</ns0:incoming>
+      <ns0:outgoing>Flow_Transit_Out</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Join_Task_ReceiveDelivery_1" name="Gom luồng trước khi Nhận hàng &amp; kiểm tra trực tiếp">
+      <ns0:incoming>Flow_AttemptOK_Receive</ns0:incoming>
+      <ns0:incoming>Flow_Notify_Receive</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Split_Task_OutForDelivery_1" name="Phân luồng sau Shipper nhận kiện hàng — đi giao">
+      <ns0:incoming>Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1</ns0:incoming>
+      <ns0:outgoing>Flow_Out_DeliverGate</ns0:outgoing>
+      <ns0:outgoing>Flow_Out_Notify</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_OutForDelivery" name="Shipper nhận kiện hàng — đi giao">
+      <ns0:incoming>Flow_Transit_Out</ns0:incoming>
+      <ns0:outgoing>Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_DeliveryAttempt" name="Giao hàng lần đầu thành công?">
+      <ns0:incoming>Flow_Out_DeliverGate</ns0:incoming>
+      <ns0:outgoing>Flow_AttemptOK_Receive</ns0:outgoing>
+      <ns0:outgoing>Flow_AttemptFail_RetryGate</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_ReceiveDelivery" name="Nhận hàng &amp; kiểm tra trực tiếp">
+      <ns0:incoming>Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery</ns0:incoming>
+      <ns0:outgoing>Flow_Receive_GateAccept</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_AcceptGoods" name="Buyer chấp nhận hàng?">
+      <ns0:incoming>Flow_Receive_GateAccept</ns0:incoming>
+      <ns0:outgoing>Flow_AcceptYes_Confirm</ns0:outgoing>
+      <ns0:outgoing>Flow_AcceptNo_Report</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_ConfirmAccept" name="Xác nhận đã nhận hàng trên App">
+      <ns0:incoming>Flow_AcceptYes_Confirm</ns0:incoming>
+      <ns0:outgoing>Flow_Confirm_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_ReportIssue" name="Báo lỗi / yêu cầu đổi trả">
+      <ns0:incoming>Flow_AcceptNo_Report</ns0:incoming>
+      <ns0:outgoing>Flow_Report_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Join_Task_RealTimeTracking_1" name="Gom luồng trước khi Cập nhật vị trí real-time GPS cho Buyer">
+      <ns0:incoming>Flow_GenAWB_Track</ns0:incoming>
+      <ns0:incoming>Flow_Out_Notify</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_End_Event_Delivered_1" name="Gom nhánh kết thúc">
+      <ns0:incoming>Flow_Confirm_End</ns0:incoming>
+      <ns0:incoming>Flow_Report_End</ns0:incoming>
+      <ns0:incoming>Flow_Drone_Receive</ns0:incoming>
+      <ns0:outgoing>Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:endEvent id="EndEvent_Delivered" name="Đơn hàng đã giao thành công">
+      <ns0:incoming>Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:exclusiveGateway id="Split_Task_GenerateAWB_1" name="Phân luồng sau Tạo AWB tự động + Push tracking info">
+      <ns0:incoming>Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1</ns0:incoming>
+      <ns0:outgoing>Flow_GenAWB_Sort</ns0:outgoing>
+      <ns0:outgoing>Flow_GenAWB_Track</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_Task_NotifyBuyer_1" name="Gom luồng trước khi Push thông báo lịch giao + SMS/In-app alert">
+      <ns0:incoming>Flow_Track_Notify</ns0:incoming>
+      <ns0:incoming>Flow_Drone_Notify</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_GenerateAWB" name="Tạo AWB tự động + Push tracking info">
+      <ns0:incoming>Flow_Route_GenAWB</ns0:incoming>
+      <ns0:outgoing>Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_RealTimeTracking" name="Cập nhật vị trí real-time GPS cho Buyer">
+      <ns0:incoming>Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking</ns0:incoming>
+      <ns0:outgoing>Flow_Track_Notify</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_NotifyBuyer" name="Push thông báo lịch giao + SMS/In-app alert">
+      <ns0:incoming>Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer</ns0:incoming>
+      <ns0:outgoing>Flow_Notify_Receive</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_RetryLimit" name="Đã thử giao ≥ 3 lần?">
+      <ns0:incoming>Flow_AttemptFail_RetryGate</ns0:incoming>
+      <ns0:outgoing>Flow_RetryNo_Reschedule</ns0:outgoing>
+      <ns0:outgoing>Flow_RetryYes_Return</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_ReturnToSeller" name="Hàng hoàn về kho — cập nhật hệ thống">
+      <ns0:incoming>Flow_RetryYes_Return</ns0:incoming>
+      <ns0:outgoing>Flow_Return_End</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:endEvent id="EndEvent_Returned" name="Đơn hàng đã hoàn về Seller">
+      <ns0:incoming>Flow_Return_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:sequenceFlow id="Flow_S1_Pack" sourceRef="StartEvent_OrderConfirmed" targetRef="Join_Task_PackGoods_1" />
+    <ns0:sequenceFlow id="Flow_Pack_Schedule" sourceRef="Task_PackGoods" targetRef="Join_Task_SchedulePickup_1" />
+    <ns0:sequenceFlow id="Flow_Schedule_PickupGate" sourceRef="Task_SchedulePickup" targetRef="Gate_PickupResult" />
+    <ns0:sequenceFlow id="Flow_PickupYes_Route" name="Thành công" sourceRef="Gate_PickupResult" targetRef="Task_RouteOptimize" />
+    <ns0:sequenceFlow id="Flow_PickupNo_Rework" name="Thất bại" sourceRef="Gate_PickupResult" targetRef="Task_ReworkPackage" />
+    <ns0:sequenceFlow id="Flow_Rework_Pack" sourceRef="Task_ReworkPackage" targetRef="Join_Task_PackGoods_1" />
+    <ns0:sequenceFlow id="Flow_Route_Predict" sourceRef="Split_Task_RouteOptimize_1" targetRef="Task_PredictDelivery" name="Dự báo ETA" />
+    <ns0:sequenceFlow id="Flow_Predict_GateDrone" sourceRef="Task_PredictDelivery" targetRef="Gate_DroneEligible" />
+    <ns0:sequenceFlow id="Flow_DroneYes_Drone" name="Drone Express" sourceRef="Gate_DroneEligible" targetRef="Task_DroneDelivery" />
+    <ns0:sequenceFlow id="Flow_DroneNo_Standard" name="3PL tiêu chuẩn" sourceRef="Gate_DroneEligible" targetRef="Task_StandardRouting" />
+    <ns0:sequenceFlow id="Flow_Drone_Sort" sourceRef="Split_Task_DroneDelivery_1" targetRef="Join_Task_SortHub_1" name="Phân loại tại Hub" />
+    <ns0:sequenceFlow id="Flow_Standard_Sort" sourceRef="Task_StandardRouting" targetRef="Join_Task_SortHub_1" />
+    <ns0:sequenceFlow id="Flow_Sort_GateOK" sourceRef="Task_SortHub" targetRef="Gate_HubSortOK" />
+    <ns0:sequenceFlow id="Flow_SortOK_Transit" name="Đúng Hub" sourceRef="Gate_HubSortOK" targetRef="Join_Task_Transit_1" />
+    <ns0:sequenceFlow id="Flow_SortFail_ReRoute" name="Sai Hub" sourceRef="Gate_HubSortOK" targetRef="Gate_ReRoute" />
+    <ns0:sequenceFlow id="Flow_ReRouteYes_Transit" name="Có hub khác" sourceRef="Gate_ReRoute" targetRef="Join_Task_Transit_1" />
+    <ns0:sequenceFlow id="Flow_ReRouteNo_Resort" name="Không — phân loại lại" sourceRef="Gate_ReRoute" targetRef="Join_Task_SortHub_1" />
+    <ns0:sequenceFlow id="Flow_Transit_Out" sourceRef="Task_Transit" targetRef="Task_OutForDelivery" />
+    <ns0:sequenceFlow id="Flow_Out_DeliverGate" sourceRef="Split_Task_OutForDelivery_1" targetRef="Gate_DeliveryAttempt" name="Kiểm tra giao lần đầu" />
+    <ns0:sequenceFlow id="Flow_AttemptOK_Receive" name="Giao thành công" sourceRef="Gate_DeliveryAttempt" targetRef="Join_Task_ReceiveDelivery_1" />
+    <ns0:sequenceFlow id="Flow_AttemptFail_RetryGate" name="Giao thất bại" sourceRef="Gate_DeliveryAttempt" targetRef="Gate_RetryLimit" />
+    <ns0:sequenceFlow id="Flow_Receive_GateAccept" sourceRef="Task_ReceiveDelivery" targetRef="Gate_AcceptGoods" />
+    <ns0:sequenceFlow id="Flow_AcceptYes_Confirm" name="Chấp nhận" sourceRef="Gate_AcceptGoods" targetRef="Task_ConfirmAccept" />
+    <ns0:sequenceFlow id="Flow_AcceptNo_Report" name="Từ chối" sourceRef="Gate_AcceptGoods" targetRef="Task_ReportIssue" />
+    <ns0:sequenceFlow id="Flow_Confirm_End" sourceRef="Task_ConfirmAccept" targetRef="Join_End_Event_Delivered_1" />
+    <ns0:sequenceFlow id="Flow_Report_End" sourceRef="Task_ReportIssue" targetRef="Join_End_Event_Delivered_1" />
+    <ns0:sequenceFlow id="Flow_Drone_Receive" sourceRef="Split_Task_DroneDelivery_1" targetRef="Join_End_Event_Delivered_1" name="Drone nhận hàng" />
+    <ns0:sequenceFlow id="Flow_Route_GenAWB" sourceRef="Split_Task_RouteOptimize_1" targetRef="Task_GenerateAWB" name="Tạo AWB" />
+    <ns0:sequenceFlow id="Flow_GenAWB_Sort" sourceRef="Split_Task_GenerateAWB_1" targetRef="Join_Task_SortHub_1" name="Phân loại tại Hub" />
+    <ns0:sequenceFlow id="Flow_GenAWB_Track" sourceRef="Split_Task_GenerateAWB_1" targetRef="Join_Task_RealTimeTracking_1" name="Push tracking" />
+    <ns0:sequenceFlow id="Flow_Out_Notify" sourceRef="Split_Task_OutForDelivery_1" targetRef="Join_Task_RealTimeTracking_1" name="Cập nhật vị trí" />
+    <ns0:sequenceFlow id="Flow_Track_Notify" sourceRef="Task_RealTimeTracking" targetRef="Join_Task_NotifyBuyer_1" />
+    <ns0:sequenceFlow id="Flow_Drone_Notify" sourceRef="Split_Task_DroneDelivery_1" targetRef="Join_Task_NotifyBuyer_1" name="Thông báo lịch giao" />
+    <ns0:sequenceFlow id="Flow_Notify_Receive" sourceRef="Task_NotifyBuyer" targetRef="Join_Task_ReceiveDelivery_1" />
+    <ns0:sequenceFlow id="Flow_RetryNo_Reschedule" name="Chưa đủ 3 lần — hẹn lại" sourceRef="Gate_RetryLimit" targetRef="Join_Task_SchedulePickup_1" />
+    <ns0:sequenceFlow id="Flow_RetryYes_Return" name="≥ 3 lần — hoàn hàng" sourceRef="Gate_RetryLimit" targetRef="Task_ReturnToSeller" />
+    <ns0:sequenceFlow id="Flow_Return_End" sourceRef="Task_ReturnToSeller" targetRef="EndEvent_Returned" />
+    <ns0:sequenceFlow id="Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered" sourceRef="Join_End_Event_Delivered_1" targetRef="EndEvent_Delivered" name="" />
+    <ns0:sequenceFlow id="Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1" sourceRef="Task_DroneDelivery" targetRef="Split_Task_DroneDelivery_1" name="" />
+    <ns0:sequenceFlow id="Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1" sourceRef="Task_GenerateAWB" targetRef="Split_Task_GenerateAWB_1" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer" sourceRef="Join_Task_NotifyBuyer_1" targetRef="Task_NotifyBuyer" name="" />
+    <ns0:sequenceFlow id="Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1" sourceRef="Task_OutForDelivery" targetRef="Split_Task_OutForDelivery_1" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_PackGoods_1_to_Task_PackGoods" sourceRef="Join_Task_PackGoods_1" targetRef="Task_PackGoods" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking" sourceRef="Join_Task_RealTimeTracking_1" targetRef="Task_RealTimeTracking" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery" sourceRef="Join_Task_ReceiveDelivery_1" targetRef="Task_ReceiveDelivery" name="" />
+    <ns0:sequenceFlow id="Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1" sourceRef="Task_RouteOptimize" targetRef="Split_Task_RouteOptimize_1" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup" sourceRef="Join_Task_SchedulePickup_1" targetRef="Task_SchedulePickup" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_SortHub_1_to_Task_SortHub" sourceRef="Join_Task_SortHub_1" targetRef="Task_SortHub" name="" />
+    <ns0:sequenceFlow id="Flow_Join_Task_Transit_1_to_Task_Transit" sourceRef="Join_Task_Transit_1" targetRef="Task_Transit" name="" />
+  </ns0:process>
+  <ns1:BPMNDiagram id="BPMNDiagram_1">
+    <ns1:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_LogisticsDeliveryTOBE"><ns1:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><ns2:Bounds x="30" y="140" width="7100" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_AI_di" bpmnElement="Lane_AI"><ns2:Bounds x="30" y="350" width="7100" height="252" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_3PL_di" bpmnElement="Lane_3PL"><ns2:Bounds x="30" y="602" width="7100" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><ns2:Bounds x="30" y="812" width="7100" height="252" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><ns2:Bounds x="30" y="1064" width="7100" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="StartEvent_OrderConfirmed_di" bpmnElement="StartEvent_OrderConfirmed"><ns2:Bounds x="212" y="227" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_PackGoods_1_di" bpmnElement="Join_Task_PackGoods_1"><ns2:Bounds x="1645" y="220" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_SchedulePickup_1_di" bpmnElement="Join_Task_SchedulePickup_1"><ns2:Bounds x="685" y="220" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_PackGoods_di" bpmnElement="Task_PackGoods"><ns2:Bounds x="1848" y="209" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_SchedulePickup_di" bpmnElement="Task_SchedulePickup"><ns2:Bounds x="888" y="209" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_PickupResult_di" bpmnElement="Gate_PickupResult"><ns2:Bounds x="1165" y="220" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReworkPackage_di" bpmnElement="Task_ReworkPackage"><ns2:Bounds x="1368" y="209" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_RouteOptimize_1_di" bpmnElement="Split_Task_RouteOptimize_1"><ns2:Bounds x="1645" y="403" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_RouteOptimize_di" bpmnElement="Task_RouteOptimize"><ns2:Bounds x="1368" y="392" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_PredictDelivery_di" bpmnElement="Task_PredictDelivery"><ns2:Bounds x="1848" y="392" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_SortHub_1_di" bpmnElement="Join_Task_SortHub_1"><ns2:Bounds x="2845" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_DroneEligible_di" bpmnElement="Gate_DroneEligible"><ns2:Bounds x="2125" y="403" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_DroneDelivery_di" bpmnElement="Task_DroneDelivery"><ns2:Bounds x="2328" y="392" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_Transit_1_di" bpmnElement="Join_Task_Transit_1"><ns2:Bounds x="3805" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_DroneDelivery_1_di" bpmnElement="Split_Task_DroneDelivery_1"><ns2:Bounds x="2605" y="403" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_StandardRouting_di" bpmnElement="Task_StandardRouting"><ns2:Bounds x="2328" y="488" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_SortHub_di" bpmnElement="Task_SortHub"><ns2:Bounds x="3048" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_HubSortOK_di" bpmnElement="Gate_HubSortOK"><ns2:Bounds x="3325" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_ReRoute_di" bpmnElement="Gate_ReRoute"><ns2:Bounds x="3565" y="220" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_Transit_di" bpmnElement="Task_Transit"><ns2:Bounds x="4008" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_ReceiveDelivery_1_di" bpmnElement="Join_Task_ReceiveDelivery_1"><ns2:Bounds x="5725" y="865" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_OutForDelivery_1_di" bpmnElement="Split_Task_OutForDelivery_1"><ns2:Bounds x="4525" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_OutForDelivery_di" bpmnElement="Task_OutForDelivery"><ns2:Bounds x="4248" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_DeliveryAttempt_di" bpmnElement="Gate_DeliveryAttempt"><ns2:Bounds x="205" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReceiveDelivery_di" bpmnElement="Task_ReceiveDelivery"><ns2:Bounds x="5928" y="854" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_AcceptGoods_di" bpmnElement="Gate_AcceptGoods"><ns2:Bounds x="6205" y="865" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ConfirmAccept_di" bpmnElement="Task_ConfirmAccept"><ns2:Bounds x="6408" y="854" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReportIssue_di" bpmnElement="Task_ReportIssue"><ns2:Bounds x="6408" y="950" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_RealTimeTracking_1_di" bpmnElement="Join_Task_RealTimeTracking_1"><ns2:Bounds x="4765" y="1144" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_End_Event_Delivered_1_di" bpmnElement="Join_End_Event_Delivered_1"><ns2:Bounds x="6685" y="220" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="EndEvent_Delivered_di" bpmnElement="EndEvent_Delivered"><ns2:Bounds x="6932" y="872" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_GenerateAWB_1_di" bpmnElement="Split_Task_GenerateAWB_1"><ns2:Bounds x="2125" y="1144" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_NotifyBuyer_1_di" bpmnElement="Join_Task_NotifyBuyer_1"><ns2:Bounds x="5245" y="1144" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_GenerateAWB_di" bpmnElement="Task_GenerateAWB"><ns2:Bounds x="1848" y="1133" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_RealTimeTracking_di" bpmnElement="Task_RealTimeTracking"><ns2:Bounds x="4968" y="1133" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_NotifyBuyer_di" bpmnElement="Task_NotifyBuyer"><ns2:Bounds x="5448" y="1133" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_RetryLimit_di" bpmnElement="Gate_RetryLimit"><ns2:Bounds x="445" y="1144" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReturnToSeller_di" bpmnElement="Task_ReturnToSeller"><ns2:Bounds x="648" y="1133" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="EndEvent_Returned_di" bpmnElement="EndEvent_Returned"><ns2:Bounds x="932" y="1151" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNEdge id="Flow_AttemptFail_RetryGate_di" bpmnElement="Flow_AttemptFail_RetryGate"><ns3:waypoint x="255" y="707" /><ns3:waypoint x="310" y="707" /><ns3:waypoint x="310" y="812" /><ns3:waypoint x="310" y="1169" /><ns3:waypoint x="445" y="1169" /><ns1:BPMNLabel><ns2:Bounds x="320" y="984" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_AttemptOK_Receive_di" bpmnElement="Flow_AttemptOK_Receive"><ns3:waypoint x="255" y="707" /><ns3:waypoint x="310" y="707" /><ns3:waypoint x="310" y="812" /><ns3:waypoint x="5590" y="812" /><ns3:waypoint x="5590" y="890" /><ns3:waypoint x="5725" y="890" /><ns1:BPMNLabel><ns2:Bounds x="2915" y="788" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_S1_Pack_di" bpmnElement="Flow_S1_Pack"><ns3:waypoint x="248" y="245" /><ns3:waypoint x="310" y="245" /><ns3:waypoint x="310" y="197" /><ns3:waypoint x="1510" y="197" /><ns3:waypoint x="1510" y="245" /><ns3:waypoint x="1645" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_RetryNo_Reschedule_di" bpmnElement="Flow_RetryNo_Reschedule"><ns3:waypoint x="495" y="1169" /><ns3:waypoint x="550" y="1169" /><ns3:waypoint x="550" y="350" /><ns3:waypoint x="550" y="245" /><ns3:waypoint x="685" y="245" /><ns1:BPMNLabel><ns2:Bounds x="560" y="752" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_RetryYes_Return_di" bpmnElement="Flow_RetryYes_Return"><ns3:waypoint x="495" y="1169" /><ns3:waypoint x="648" y="1169" /><ns1:BPMNLabel><ns2:Bounds x="536" y="1145" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup_di" bpmnElement="Flow_Join_Task_SchedulePickup_1_to_Task_SchedulePickup"><ns3:waypoint x="735" y="245" /><ns3:waypoint x="888" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Return_End_di" bpmnElement="Flow_Return_End"><ns3:waypoint x="772" y="1169" /><ns3:waypoint x="932" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Schedule_PickupGate_di" bpmnElement="Flow_Schedule_PickupGate"><ns3:waypoint x="1012" y="245" /><ns3:waypoint x="1165" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_PickupNo_Rework_di" bpmnElement="Flow_PickupNo_Rework"><ns3:waypoint x="1215" y="245" /><ns3:waypoint x="1368" y="245" /><ns1:BPMNLabel><ns2:Bounds x="1256" y="221" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_PickupYes_Route_di" bpmnElement="Flow_PickupYes_Route"><ns3:waypoint x="1215" y="245" /><ns3:waypoint x="1270" y="245" /><ns3:waypoint x="1270" y="350" /><ns3:waypoint x="1270" y="428" /><ns3:waypoint x="1368" y="428" /><ns1:BPMNLabel><ns2:Bounds x="1280" y="290" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Rework_Pack_di" bpmnElement="Flow_Rework_Pack"><ns3:waypoint x="1492" y="245" /><ns3:waypoint x="1645" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1_di" bpmnElement="Flow_Task_RouteOptimize_to_Split_Task_RouteOptimize_1"><ns3:waypoint x="1492" y="428" /><ns3:waypoint x="1645" y="428" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_PackGoods_1_to_Task_PackGoods_di" bpmnElement="Flow_Join_Task_PackGoods_1_to_Task_PackGoods"><ns3:waypoint x="1695" y="245" /><ns3:waypoint x="1848" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Route_GenAWB_di" bpmnElement="Flow_Route_GenAWB"><ns3:waypoint x="1695" y="428" /><ns3:waypoint x="1750" y="428" /><ns3:waypoint x="1750" y="602" /><ns3:waypoint x="1750" y="1169" /><ns3:waypoint x="1848" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Route_Predict_di" bpmnElement="Flow_Route_Predict"><ns3:waypoint x="1695" y="428" /><ns3:waypoint x="1848" y="428" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Pack_Schedule_di" bpmnElement="Flow_Pack_Schedule"><ns3:waypoint x="1972" y="245" /><ns3:waypoint x="1990" y="245" /><ns3:waypoint x="1990" y="1356" /><ns3:waypoint x="550" y="1356" /><ns3:waypoint x="550" y="245" /><ns3:waypoint x="685" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Predict_GateDrone_di" bpmnElement="Flow_Predict_GateDrone"><ns3:waypoint x="1972" y="428" /><ns3:waypoint x="2125" y="428" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1_di" bpmnElement="Flow_Task_GenerateAWB_to_Split_Task_GenerateAWB_1"><ns3:waypoint x="1972" y="1169" /><ns3:waypoint x="2125" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_DroneNo_Standard_di" bpmnElement="Flow_DroneNo_Standard"><ns3:waypoint x="2175" y="428" /><ns3:waypoint x="2230" y="428" /><ns3:waypoint x="2230" y="476" /><ns3:waypoint x="2230" y="524" /><ns3:waypoint x="2328" y="524" /><ns1:BPMNLabel><ns2:Bounds x="2244" y="500" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_DroneYes_Drone_di" bpmnElement="Flow_DroneYes_Drone"><ns3:waypoint x="2175" y="428" /><ns3:waypoint x="2328" y="428" /><ns1:BPMNLabel><ns2:Bounds x="2216" y="404" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_GenAWB_Sort_di" bpmnElement="Flow_GenAWB_Sort"><ns3:waypoint x="2175" y="1169" /><ns3:waypoint x="2230" y="1169" /><ns3:waypoint x="2230" y="812" /><ns3:waypoint x="2710" y="812" /><ns3:waypoint x="2710" y="707" /><ns3:waypoint x="2845" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_GenAWB_Track_di" bpmnElement="Flow_GenAWB_Track"><ns3:waypoint x="2175" y="1169" /><ns3:waypoint x="4765" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Standard_Sort_di" bpmnElement="Flow_Standard_Sort"><ns3:waypoint x="2452" y="524" /><ns3:waypoint x="2470" y="524" /><ns3:waypoint x="2470" y="602" /><ns3:waypoint x="2710" y="602" /><ns3:waypoint x="2710" y="707" /><ns3:waypoint x="2845" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1_di" bpmnElement="Flow_Task_DroneDelivery_to_Split_Task_DroneDelivery_1"><ns3:waypoint x="2452" y="428" /><ns3:waypoint x="2605" y="428" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Drone_Notify_di" bpmnElement="Flow_Drone_Notify"><ns3:waypoint x="2655" y="428" /><ns3:waypoint x="2710" y="428" /><ns3:waypoint x="2710" y="602" /><ns3:waypoint x="5110" y="602" /><ns3:waypoint x="5110" y="1169" /><ns3:waypoint x="5245" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Drone_Receive_di" bpmnElement="Flow_Drone_Receive"><ns3:waypoint x="2655" y="428" /><ns3:waypoint x="2710" y="428" /><ns3:waypoint x="2710" y="350" /><ns3:waypoint x="6550" y="350" /><ns3:waypoint x="6550" y="245" /><ns3:waypoint x="6685" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Drone_Sort_di" bpmnElement="Flow_Drone_Sort"><ns3:waypoint x="2655" y="428" /><ns3:waypoint x="2710" y="428" /><ns3:waypoint x="2710" y="602" /><ns3:waypoint x="2710" y="707" /><ns3:waypoint x="2845" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_SortHub_1_to_Task_SortHub_di" bpmnElement="Flow_Join_Task_SortHub_1_to_Task_SortHub"><ns3:waypoint x="2895" y="707" /><ns3:waypoint x="3048" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Sort_GateOK_di" bpmnElement="Flow_Sort_GateOK"><ns3:waypoint x="3172" y="707" /><ns3:waypoint x="3325" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_SortFail_ReRoute_di" bpmnElement="Flow_SortFail_ReRoute"><ns3:waypoint x="3375" y="707" /><ns3:waypoint x="3430" y="707" /><ns3:waypoint x="3430" y="350" /><ns3:waypoint x="3430" y="245" /><ns3:waypoint x="3565" y="245" /><ns1:BPMNLabel><ns2:Bounds x="3440" y="522" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_SortOK_Transit_di" bpmnElement="Flow_SortOK_Transit"><ns3:waypoint x="3375" y="707" /><ns3:waypoint x="3805" y="707" /><ns1:BPMNLabel><ns2:Bounds x="3555" y="683" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_ReRouteNo_Resort_di" bpmnElement="Flow_ReRouteNo_Resort"><ns3:waypoint x="3615" y="245" /><ns3:waypoint x="3670" y="245" /><ns3:waypoint x="3670" y="1420" /><ns3:waypoint x="2710" y="1420" /><ns3:waypoint x="2710" y="707" /><ns3:waypoint x="2845" y="707" /><ns1:BPMNLabel><ns2:Bounds x="3680" y="826" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_ReRouteYes_Transit_di" bpmnElement="Flow_ReRouteYes_Transit"><ns3:waypoint x="3615" y="245" /><ns3:waypoint x="3670" y="245" /><ns3:waypoint x="3670" y="350" /><ns3:waypoint x="3670" y="707" /><ns3:waypoint x="3805" y="707" /><ns1:BPMNLabel><ns2:Bounds x="3680" y="522" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_Transit_1_to_Task_Transit_di" bpmnElement="Flow_Join_Task_Transit_1_to_Task_Transit"><ns3:waypoint x="3855" y="707" /><ns3:waypoint x="4008" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Transit_Out_di" bpmnElement="Flow_Transit_Out"><ns3:waypoint x="4132" y="707" /><ns3:waypoint x="4248" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1_di" bpmnElement="Flow_Task_OutForDelivery_to_Split_Task_OutForDelivery_1"><ns3:waypoint x="4372" y="707" /><ns3:waypoint x="4525" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Out_DeliverGate_di" bpmnElement="Flow_Out_DeliverGate"><ns3:waypoint x="4575" y="707" /><ns3:waypoint x="4630" y="707" /><ns3:waypoint x="4630" y="1308" /><ns3:waypoint x="70" y="1308" /><ns3:waypoint x="70" y="707" /><ns3:waypoint x="205" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Out_Notify_di" bpmnElement="Flow_Out_Notify"><ns3:waypoint x="4575" y="707" /><ns3:waypoint x="4630" y="707" /><ns3:waypoint x="4630" y="812" /><ns3:waypoint x="4630" y="1169" /><ns3:waypoint x="4765" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking_di" bpmnElement="Flow_Join_Task_RealTimeTracking_1_to_Task_RealTimeTracking"><ns3:waypoint x="4815" y="1169" /><ns3:waypoint x="4968" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Track_Notify_di" bpmnElement="Flow_Track_Notify"><ns3:waypoint x="5092" y="1169" /><ns3:waypoint x="5245" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer_di" bpmnElement="Flow_Join_Task_NotifyBuyer_1_to_Task_NotifyBuyer"><ns3:waypoint x="5295" y="1169" /><ns3:waypoint x="5448" y="1169" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Notify_Receive_di" bpmnElement="Flow_Notify_Receive"><ns3:waypoint x="5572" y="1169" /><ns3:waypoint x="5590" y="1169" /><ns3:waypoint x="5590" y="1064" /><ns3:waypoint x="5590" y="890" /><ns3:waypoint x="5725" y="890" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery_di" bpmnElement="Flow_Join_Task_ReceiveDelivery_1_to_Task_ReceiveDelivery"><ns3:waypoint x="5775" y="890" /><ns3:waypoint x="5928" y="890" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Receive_GateAccept_di" bpmnElement="Flow_Receive_GateAccept"><ns3:waypoint x="6052" y="890" /><ns3:waypoint x="6205" y="890" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_AcceptNo_Report_di" bpmnElement="Flow_AcceptNo_Report"><ns3:waypoint x="6255" y="890" /><ns3:waypoint x="6310" y="890" /><ns3:waypoint x="6310" y="938" /><ns3:waypoint x="6310" y="986" /><ns3:waypoint x="6408" y="986" /><ns1:BPMNLabel><ns2:Bounds x="6324" y="962" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_AcceptYes_Confirm_di" bpmnElement="Flow_AcceptYes_Confirm"><ns3:waypoint x="6255" y="890" /><ns3:waypoint x="6408" y="890" /><ns1:BPMNLabel><ns2:Bounds x="6296" y="866" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Confirm_End_di" bpmnElement="Flow_Confirm_End"><ns3:waypoint x="6532" y="890" /><ns3:waypoint x="6550" y="890" /><ns3:waypoint x="6550" y="350" /><ns3:waypoint x="6550" y="245" /><ns3:waypoint x="6685" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Report_End_di" bpmnElement="Flow_Report_End"><ns3:waypoint x="6532" y="986" /><ns3:waypoint x="6550" y="986" /><ns3:waypoint x="6550" y="350" /><ns3:waypoint x="6550" y="245" /><ns3:waypoint x="6685" y="245" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered_di" bpmnElement="Flow_Join_End_Event_Delivered_1_to_EndEvent_Delivered"><ns3:waypoint x="6735" y="245" /><ns3:waypoint x="6790" y="245" /><ns3:waypoint x="6790" y="350" /><ns3:waypoint x="6790" y="890" /><ns3:waypoint x="6932" y="890" /></ns1:BPMNEdge></ns1:BPMNPlane></ns1:BPMNDiagram>
+</ns0:definitions>

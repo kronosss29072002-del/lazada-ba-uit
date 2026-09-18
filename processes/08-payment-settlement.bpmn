@@ -1,279 +1,279 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_PaymentSettlement" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
-  <bpmn:process id="Process_PaymentSettlement" name="Quy trình Thanh toán &amp; Đối soát" isExecutable="true">
-    <bpmn:laneSet id="LaneSet_1">
-      <bpmn:lane id="Lane_Buyer" name="Buyer">
-        <bpmn:flowNodeRef>StartEvent_Checkout</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ChooseMethod</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_Method</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_PayCOD</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ConfirmOnline</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReceiveGoods</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReceiveRefund</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_PaymentGW" name="Payment Gateway (VNPay/MoMo/ZaloPay)">
-        <bpmn:flowNodeRef>Task_ProcessPayment</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_VerifyPayment</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_PaymentApproved</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_NotifyResult</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_CheckIPN</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_System" name="Lazada System (Escrow)">
-        <bpmn:flowNodeRef>Task_HoldEscrow</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_MatchOrder</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_OrderCompleted</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReleaseFunds</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReconcileCOD</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReconcileDaily</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_DiscrepancyFound</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_CalculateCommission</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_UpdateWallet</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Finance" name="Finance">
-        <bpmn:flowNodeRef>Task_HandleDiscrepancy</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_DiscrepancyResolved</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ConfirmStatement</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AdjustStatement</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_IssueInvoice</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Seller" name="Seller">
-        <bpmn:flowNodeRef>Task_CheckWallet</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Withdraw</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_BankReceived</bpmn:flowNodeRef>
-      </bpmn:lane>
-    </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_Checkout" name="Thanh toán đơn hàng">
-      <bpmn:outgoing>Flow_S1_Choose</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:userTask id="Task_ChooseMethod" name="Chọn phương thức thanh toán (COD/Online/Ví)">
-      <bpmn:incoming>Flow_S1_Choose</bpmn:incoming>
-      <bpmn:outgoing>Flow_Choose_GateMethod</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_PayCOD" name="Thanh toán COD khi nhận hàng">
-      <bpmn:incoming>Flow_MethodCOD_Pay</bpmn:incoming>
-      <bpmn:outgoing>Flow_COD_Receive</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_ConfirmOnline" name="Xác nhận thanh toán online qua cổng">
-      <bpmn:incoming>Flow_Join_Task_ConfirmOnline_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Confirm_Process</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_ReceiveGoods" name="Buyer nhận hàng &amp; hoàn tất đơn">
-      <bpmn:incoming>Flow_COD_Receive</bpmn:incoming>
-      <bpmn:outgoing>Flow_Receive_Reconcile</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_ReceiveRefund" name="Buyer nhận hoàn tiền khi hủy/hoàn trả">
-      <bpmn:incoming>Flow_Refund_Back</bpmn:incoming>
-      <bpmn:outgoing>Flow_Refund_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:serviceTask id="Task_ProcessPayment" name="Cổng thanh toán xử lý giao dịch">
-      <bpmn:incoming>Flow_Confirm_Process</bpmn:incoming>
-      <bpmn:outgoing>Flow_Process_GatePay</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_PaymentApproved" name="Giao dịch thanh toán thành công?">
-      <bpmn:incoming>Flow_Process_GatePay</bpmn:incoming>
-      <bpmn:outgoing>Flow_PayYes_Verify</bpmn:outgoing>
-      <bpmn:outgoing>Flow_PayNo_Retry</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_VerifyPayment" name="Xác minh chữ ký &amp; tính hợp lệ giao dịch">
-      <bpmn:incoming>Flow_PayYes_Verify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_NotifyResult" name="Gửi kết quả thanh toán về hệ thống">
-      <bpmn:incoming>Flow_ValidYes_Notify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Notify_Hold</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_CheckIPN" name="Kiểm tra IPN/Webhook đối soát giao dịch">
-      <bpmn:incoming>Flow_Verify_GateIPN</bpmn:incoming>
-      <bpmn:outgoing>Flow_IPN_Match</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_HoldEscrow" name="Hệ thống giữ tiền tạm thời trong Escrow">
-      <bpmn:incoming>Flow_Join_Task_HoldEscrow_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Hold_Match</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_MatchOrder" name="Đối chiếu giao dịch với mã đơn hàng">
-      <bpmn:incoming>Flow_Join_Task_MatchOrder_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Match_Complete</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_OrderCompleted" name="Đơn hàng hoàn tất giao dịch?">
-      <bpmn:incoming>Flow_Match_Complete</bpmn:incoming>
-      <bpmn:outgoing>Flow_Completed_Release</bpmn:outgoing>
-      <bpmn:outgoing>Flow_NotCompleted_Return</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Refund_Back</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_ReleaseFunds" name="Giải ngân tiền cho Seller (L+2 ngày)">
-      <bpmn:incoming>Flow_Completed_Release</bpmn:incoming>
-      <bpmn:outgoing>Flow_Release_Commission</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_ReconcileCOD" name="Đối soát COD với 3PL thu hộ">
-      <bpmn:incoming>Flow_Receive_Reconcile</bpmn:incoming>
-      <bpmn:outgoing>Flow_COD_ReconcileDaily</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_ReconcileDaily" name="Tổng hợp đối soát dòng tiền cuối ngày">
-      <bpmn:incoming>Flow_COD_ReconcileDaily</bpmn:incoming>
-      <bpmn:outgoing>Flow_Reconcile_GateDisc</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_DiscrepancyFound" name="Phát hiện lệch dòng tiền?">
-      <bpmn:incoming>Flow_Reconcile_GateDisc</bpmn:incoming>
-      <bpmn:outgoing>Flow_DiscYes_Handle</bpmn:outgoing>
-      <bpmn:outgoing>Flow_DiscNo_Statement</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="Task_CalculateCommission" name="Tính hoa hồng Lazada (1-8% theo danh mục)">
-      <bpmn:incoming>Flow_Release_Commission</bpmn:incoming>
-      <bpmn:outgoing>Flow_Commission_Wallet</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_UpdateWallet" name="Cập nhật số dư Ví Seller">
-      <bpmn:incoming>Flow_Commission_Wallet</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:userTask id="Task_HandleDiscrepancy" name="Phòng Tài chính xử lý lệch dòng tiền">
-      <bpmn:incoming>Flow_Join_Task_HandleDiscrepancy_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Handle_GateResolved</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_DiscrepancyResolved" name="Lệch dòng tiền đã xử lý xong?">
-      <bpmn:incoming>Flow_Handle_GateResolved</bpmn:incoming>
-      <bpmn:outgoing>Flow_Resolved_Adjust</bpmn:outgoing>
-      <bpmn:outgoing>Flow_NotResolved_Reopen</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:userTask id="Task_ConfirmStatement" name="Xác nhận bảng đối soát cuối kỳ">
-      <bpmn:incoming>Flow_Join_Task_ConfirmStatement_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Statement_Invoice</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_AdjustStatement" name="Điều chỉnh số liệu sai lệch trên bảng kê">
-      <bpmn:incoming>Flow_Resolved_Adjust</bpmn:incoming>
-      <bpmn:outgoing>Flow_Adjust_Statement</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_IssueInvoice" name="Xuất hóa đơn &amp; báo cáo tài chính">
-      <bpmn:incoming>Flow_Join_Task_IssueInvoice_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Invoice_End</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_CheckWallet" name="Seller kiểm tra số dư Ví trên Seller Centre">
-      <bpmn:incoming>Flow_Wallet_Check</bpmn:incoming>
-      <bpmn:outgoing>Flow_Check_Withdraw</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_Withdraw" name="Seller yêu cầu rút tiền về tài khoản ngân hàng">
-      <bpmn:incoming>Flow_Join_Task_Withdraw_in</bpmn:incoming>
-      <bpmn:outgoing>Flow_Withdraw_GateBank</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gate_BankReceived" name="Tiền về tài khoản ngân hàng thành công?">
-      <bpmn:incoming>Flow_Withdraw_GateBank</bpmn:incoming>
-      <bpmn:outgoing>Flow_BankYes_End</bpmn:outgoing>
-      <bpmn:outgoing>Flow_BankNo_Retry</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_Method" name="Chọn phương thức thanh toán?">
-      <bpmn:incoming>Flow_Choose_GateMethod</bpmn:incoming>
-      <bpmn:outgoing>Flow_MethodCOD_Pay</bpmn:outgoing>
-      <bpmn:outgoing>Flow_MethodOnline_Confirm</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_Valid" name="Giao dịch hợp lệ (chữ ký đúng)?">
-      <bpmn:incoming>Flow_Verify_GateValid</bpmn:incoming>
-      <bpmn:outgoing>Flow_ValidYes_Notify</bpmn:outgoing>
-      <bpmn:outgoing>Flow_ValidNo_Reject</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_S1_Choose" sourceRef="StartEvent_Checkout" targetRef="Task_ChooseMethod" />
-    <bpmn:sequenceFlow id="Flow_Choose_GateMethod" sourceRef="Task_ChooseMethod" targetRef="Gate_Method" />
-    <bpmn:sequenceFlow id="Flow_MethodCOD_Pay" name="COD" sourceRef="Gate_Method" targetRef="Task_PayCOD" />
-    <bpmn:sequenceFlow id="Flow_MethodOnline_Confirm" name="Thanh toán online" sourceRef="Gate_Method" targetRef="Join_Task_ConfirmOnline_1" />
-    <bpmn:sequenceFlow id="Flow_COD_Receive" sourceRef="Task_PayCOD" targetRef="Task_ReceiveGoods" />
-    <bpmn:sequenceFlow id="Flow_Receive_Reconcile" sourceRef="Task_ReceiveGoods" targetRef="Task_ReconcileCOD" />
-    <bpmn:sequenceFlow id="Flow_Confirm_Process" sourceRef="Task_ConfirmOnline" targetRef="Task_ProcessPayment" />
-    <bpmn:sequenceFlow id="Flow_Process_GatePay" sourceRef="Task_ProcessPayment" targetRef="Gate_PaymentApproved" />
-    <bpmn:sequenceFlow id="Flow_PayYes_Verify" name="Thành công" sourceRef="Gate_PaymentApproved" targetRef="Task_VerifyPayment" />
-    <bpmn:sequenceFlow id="Flow_PayNo_Retry" name="Thất bại — thử lại" sourceRef="Gate_PaymentApproved" targetRef="Join_Task_ConfirmOnline_1" />
-    <bpmn:sequenceFlow id="Flow_Verify_GateValid" sourceRef="Split_Task_VerifyPayment_1" targetRef="Gate_Valid" />
-    <bpmn:sequenceFlow id="Flow_ValidYes_Notify" name="Hợp lệ" sourceRef="Gate_Valid" targetRef="Task_NotifyResult" />
-    <bpmn:sequenceFlow id="Flow_ValidNo_Reject" name="Không hợp lệ — từ chối" sourceRef="Gate_Valid" targetRef="Join_Task_ConfirmOnline_1" />
-    <bpmn:sequenceFlow id="Flow_Notify_Hold" sourceRef="Task_NotifyResult" targetRef="Join_Task_HoldEscrow_1" />
-    <bpmn:sequenceFlow id="Flow_Verify_GateIPN" sourceRef="Split_Task_VerifyPayment_1" targetRef="Task_CheckIPN" />
-    <bpmn:sequenceFlow id="Flow_IPN_Match" sourceRef="Task_CheckIPN" targetRef="Join_Task_MatchOrder_1" />
-    <bpmn:sequenceFlow id="Flow_Hold_Match" sourceRef="Task_HoldEscrow" targetRef="Join_Task_MatchOrder_1" />
-    <bpmn:sequenceFlow id="Flow_Match_Complete" sourceRef="Task_MatchOrder" targetRef="Gate_OrderCompleted" />
-    <bpmn:sequenceFlow id="Flow_Completed_Release" name="Hoàn tất" sourceRef="Gate_OrderCompleted" targetRef="Task_ReleaseFunds" />
-    <bpmn:sequenceFlow id="Flow_NotCompleted_Return" name="Chưa hoàn tất — giữ tiền" sourceRef="Gate_OrderCompleted" targetRef="Join_Task_HoldEscrow_1" />
-    <bpmn:sequenceFlow id="Flow_Release_Commission" sourceRef="Task_ReleaseFunds" targetRef="Task_CalculateCommission" />
-    <bpmn:sequenceFlow id="Flow_Commission_Wallet" sourceRef="Task_CalculateCommission" targetRef="Task_UpdateWallet" />
-    <bpmn:sequenceFlow id="Flow_Wallet_Invoice" sourceRef="Split_Task_UpdateWallet_1" targetRef="Join_Task_IssueInvoice_1" />
-    <bpmn:sequenceFlow id="Flow_Wallet_Check" sourceRef="Split_Task_UpdateWallet_1" targetRef="Task_CheckWallet" />
-    <bpmn:sequenceFlow id="Flow_Check_Withdraw" sourceRef="Task_CheckWallet" targetRef="Join_Task_Withdraw_1" />
-    <bpmn:sequenceFlow id="Flow_Withdraw_GateBank" sourceRef="Task_Withdraw" targetRef="Gate_BankReceived" />
-    <bpmn:sequenceFlow id="Flow_BankYes_End" name="Nhận được tiền" sourceRef="Gate_BankReceived" targetRef="EndEvent_Paid" />
-    <bpmn:sequenceFlow id="Flow_BankNo_Retry" name="Thất bại — thử lại" sourceRef="Gate_BankReceived" targetRef="Join_Task_Withdraw_1" />
-    <bpmn:sequenceFlow id="Flow_COD_ReconcileDaily" sourceRef="Task_ReconcileCOD" targetRef="Task_ReconcileDaily" />
-    <bpmn:sequenceFlow id="Flow_Reconcile_GateDisc" sourceRef="Task_ReconcileDaily" targetRef="Gate_DiscrepancyFound" />
-    <bpmn:sequenceFlow id="Flow_DiscYes_Handle" name="Có lệch" sourceRef="Gate_DiscrepancyFound" targetRef="Join_Task_HandleDiscrepancy_1" />
-    <bpmn:sequenceFlow id="Flow_DiscNo_Statement" name="Khớp" sourceRef="Gate_DiscrepancyFound" targetRef="Join_Task_ConfirmStatement_1" />
-    <bpmn:sequenceFlow id="Flow_Handle_GateResolved" sourceRef="Task_HandleDiscrepancy" targetRef="Gate_DiscrepancyResolved" />
-    <bpmn:sequenceFlow id="Flow_Resolved_Adjust" name="Xử lý xong" sourceRef="Gate_DiscrepancyResolved" targetRef="Task_AdjustStatement" />
-    <bpmn:sequenceFlow id="Flow_NotResolved_Reopen" name="Chưa xong — xử lý tiếp" sourceRef="Gate_DiscrepancyResolved" targetRef="Join_Task_HandleDiscrepancy_1" />
-    <bpmn:sequenceFlow id="Flow_Adjust_Statement" sourceRef="Task_AdjustStatement" targetRef="Join_Task_ConfirmStatement_1" />
-    <bpmn:sequenceFlow id="Flow_Statement_Invoice" sourceRef="Task_ConfirmStatement" targetRef="Join_Task_IssueInvoice_1" />
-    <bpmn:sequenceFlow id="Flow_Invoice_End" sourceRef="Task_IssueInvoice" targetRef="EndEvent_Settled" />
-    <bpmn:sequenceFlow id="Flow_Refund_Back" sourceRef="Gate_OrderCompleted" targetRef="Task_ReceiveRefund" />
-    <bpmn:sequenceFlow id="Flow_Refund_End" sourceRef="Task_ReceiveRefund" targetRef="EndEvent_Refunded" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_ConfirmOnline_in" sourceRef="Join_Task_ConfirmOnline_1" targetRef="Task_ConfirmOnline" />
-    <bpmn:sequenceFlow id="Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1" sourceRef="Task_VerifyPayment" targetRef="Split_Task_VerifyPayment_1" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_HoldEscrow_in" sourceRef="Join_Task_HoldEscrow_1" targetRef="Task_HoldEscrow" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_MatchOrder_in" sourceRef="Join_Task_MatchOrder_1" targetRef="Task_MatchOrder" />
-    <bpmn:sequenceFlow id="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1" sourceRef="Task_UpdateWallet" targetRef="Split_Task_UpdateWallet_1" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_HandleDiscrepancy_in" sourceRef="Join_Task_HandleDiscrepancy_1" targetRef="Task_HandleDiscrepancy" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_ConfirmStatement_in" sourceRef="Join_Task_ConfirmStatement_1" targetRef="Task_ConfirmStatement" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_IssueInvoice_in" sourceRef="Join_Task_IssueInvoice_1" targetRef="Task_IssueInvoice" />
-    <bpmn:sequenceFlow id="Flow_Join_Task_Withdraw_in" sourceRef="Join_Task_Withdraw_1" targetRef="Task_Withdraw" />
-    <bpmn:endEvent id="EndEvent_Paid" name="Seller đã nhận tiền thanh toán">
-      <bpmn:incoming>Flow_BankYes_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_Settled" name="Đối soát đã hoàn tất">
-      <bpmn:incoming>Flow_Invoice_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_Refunded" name="Đã hoàn tiền về Buyer">
-      <bpmn:incoming>Flow_Refund_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:exclusiveGateway id="Join_Task_ConfirmOnline_1" name="Gom luồn trước khi Xác nhận online">
-      <bpmn:incoming>Flow_MethodOnline_Confirm</bpmn:incoming>
-      <bpmn:incoming>Flow_PayNo_Retry</bpmn:incoming>
-      <bpmn:incoming>Flow_ValidNo_Reject</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_ConfirmOnline_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:parallelGateway id="Split_Task_VerifyPayment_1" name="Phân luồn sau khi Xác minh">
-      <bpmn:incoming>Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_Verify_GateValid</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Verify_GateIPN</bpmn:outgoing>
-    </bpmn:parallelGateway>
-    <bpmn:exclusiveGateway id="Join_Task_HoldEscrow_1" name="Gom luồn trước khi giữ Escrow">
-      <bpmn:incoming>Flow_Notify_Hold</bpmn:incoming>
-      <bpmn:incoming>Flow_NotCompleted_Return</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_HoldEscrow_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_Task_MatchOrder_1" name="Gom luồn trước khi Đối chiếu">
-      <bpmn:incoming>Flow_IPN_Match</bpmn:incoming>
-      <bpmn:incoming>Flow_Hold_Match</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_MatchOrder_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:parallelGateway id="Split_Task_UpdateWallet_1" name="Phân luồn sau khi Cập nhật Ví">
-      <bpmn:incoming>Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_Wallet_Invoice</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Wallet_Check</bpmn:outgoing>
-    </bpmn:parallelGateway>
-    <bpmn:exclusiveGateway id="Join_Task_HandleDiscrepancy_1" name="Gom luồn trước khi Xử lý lệch dòng tiền">
-      <bpmn:incoming>Flow_DiscYes_Handle</bpmn:incoming>
-      <bpmn:incoming>Flow_NotResolved_Reopen</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_HandleDiscrepancy_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_Task_ConfirmStatement_1" name="Gom luồn trước khi Xác nhận bảng đối soát">
-      <bpmn:incoming>Flow_DiscNo_Statement</bpmn:incoming>
-      <bpmn:incoming>Flow_Adjust_Statement</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_ConfirmStatement_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_Task_IssueInvoice_1" name="Gom luồn trước khi Xuất hóa đơn">
-      <bpmn:incoming>Flow_Wallet_Invoice</bpmn:incoming>
-      <bpmn:incoming>Flow_Statement_Invoice</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_IssueInvoice_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Join_Task_Withdraw_1" name="Gom luồn trước khi Rút tiền">
-      <bpmn:incoming>Flow_Check_Withdraw</bpmn:incoming>
-      <bpmn:incoming>Flow_BankNo_Retry</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_Withdraw_in</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_PaymentSettlement"><bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><dc:Bounds x="30" y="140" width="5660" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_PaymentGW_di" bpmnElement="Lane_PaymentGW"><dc:Bounds x="30" y="392" width="5660" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="602" width="5660" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Finance_di" bpmnElement="Lane_Finance"><dc:Bounds x="30" y="812" width="5660" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="1022" width="5660" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Checkout_di" bpmnElement="StartEvent_Checkout"><dc:Bounds x="212" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ChooseMethod_di" bpmnElement="Task_ChooseMethod"><dc:Bounds x="408" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PayCOD_di" bpmnElement="Task_PayCOD"><dc:Bounds x="888" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfirmOnline_di" bpmnElement="Task_ConfirmOnline"><dc:Bounds x="1128" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods"><dc:Bounds x="1128" y="278" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReceiveRefund_di" bpmnElement="Task_ReceiveRefund"><dc:Bounds x="4008" y="182" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ProcessPayment_di" bpmnElement="Task_ProcessPayment"><dc:Bounds x="1368" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_PaymentApproved_di" bpmnElement="Gate_PaymentApproved"><dc:Bounds x="1645" y="472" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_VerifyPayment_di" bpmnElement="Task_VerifyPayment"><dc:Bounds x="1848" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifyResult_di" bpmnElement="Task_NotifyResult"><dc:Bounds x="2568" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CheckIPN_di" bpmnElement="Task_CheckIPN"><dc:Bounds x="2328" y="461" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_HoldEscrow_di" bpmnElement="Task_HoldEscrow"><dc:Bounds x="3048" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_MatchOrder_di" bpmnElement="Task_MatchOrder"><dc:Bounds x="3528" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_OrderCompleted_di" bpmnElement="Gate_OrderCompleted"><dc:Bounds x="3805" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReleaseFunds_di" bpmnElement="Task_ReleaseFunds"><dc:Bounds x="4008" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReconcileCOD_di" bpmnElement="Task_ReconcileCOD"><dc:Bounds x="1368" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReconcileDaily_di" bpmnElement="Task_ReconcileDaily"><dc:Bounds x="1608" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_DiscrepancyFound_di" bpmnElement="Gate_DiscrepancyFound"><dc:Bounds x="1885" y="682" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CalculateCommission_di" bpmnElement="Task_CalculateCommission"><dc:Bounds x="4248" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_UpdateWallet_di" bpmnElement="Task_UpdateWallet"><dc:Bounds x="4488" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_HandleDiscrepancy_di" bpmnElement="Task_HandleDiscrepancy"><dc:Bounds x="2328" y="881" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_DiscrepancyResolved_di" bpmnElement="Gate_DiscrepancyResolved"><dc:Bounds x="2605" y="892" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfirmStatement_di" bpmnElement="Task_ConfirmStatement"><dc:Bounds x="3288" y="881" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AdjustStatement_di" bpmnElement="Task_AdjustStatement"><dc:Bounds x="2808" y="881" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_IssueInvoice_di" bpmnElement="Task_IssueInvoice"><dc:Bounds x="5208" y="881" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_CheckWallet_di" bpmnElement="Task_CheckWallet"><dc:Bounds x="4968" y="1091" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Withdraw_di" bpmnElement="Task_Withdraw"><dc:Bounds x="5448" y="1091" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_BankReceived_di" bpmnElement="Gate_BankReceived"><dc:Bounds x="205" y="1102" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Method_di" bpmnElement="Gate_Method"><dc:Bounds x="685" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_Valid_di" bpmnElement="Gate_Valid"><dc:Bounds x="2365" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Paid_di" bpmnElement="EndEvent_Paid"><dc:Bounds x="452" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Settled_di" bpmnElement="EndEvent_Settled"><dc:Bounds x="5492" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="EndEvent_Refunded_di" bpmnElement="EndEvent_Refunded"><dc:Bounds x="4292" y="200" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ConfirmOnline_1_di" bpmnElement="Join_Task_ConfirmOnline_1"><dc:Bounds x="925" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_VerifyPayment_1_di" bpmnElement="Split_Task_VerifyPayment_1"><dc:Bounds x="2125" y="289" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_HoldEscrow_1_di" bpmnElement="Join_Task_HoldEscrow_1"><dc:Bounds x="2845" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_MatchOrder_1_di" bpmnElement="Join_Task_MatchOrder_1"><dc:Bounds x="3325" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_UpdateWallet_1_di" bpmnElement="Split_Task_UpdateWallet_1"><dc:Bounds x="4765" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_HandleDiscrepancy_1_di" bpmnElement="Join_Task_HandleDiscrepancy_1"><dc:Bounds x="2125" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ConfirmStatement_1_di" bpmnElement="Join_Task_ConfirmStatement_1"><dc:Bounds x="3085" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_IssueInvoice_1_di" bpmnElement="Join_Task_IssueInvoice_1"><dc:Bounds x="5005" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_Withdraw_1_di" bpmnElement="Join_Task_Withdraw_1"><dc:Bounds x="5245" y="193" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_BankNo_Retry_di" bpmnElement="Flow_BankNo_Retry"><di:waypoint x="255" y="1127" /><di:waypoint x="310" y="1127" /><di:waypoint x="310" y="392" /><di:waypoint x="5110" y="392" /><di:waypoint x="5110" y="218" /><di:waypoint x="5245" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="2675" y="368" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_BankYes_End_di" bpmnElement="Flow_BankYes_End"><di:waypoint x="255" y="1127" /><di:waypoint x="310" y="1127" /><di:waypoint x="310" y="392" /><di:waypoint x="310" y="218" /><di:waypoint x="452" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="320" y="752" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_S1_Choose_di" bpmnElement="Flow_S1_Choose"><di:waypoint x="248" y="218" /><di:waypoint x="310" y="218" /><di:waypoint x="310" y="266" /><di:waypoint x="310" y="314" /><di:waypoint x="408" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Choose_GateMethod_di" bpmnElement="Flow_Choose_GateMethod"><di:waypoint x="532" y="314" /><di:waypoint x="550" y="314" /><di:waypoint x="550" y="266" /><di:waypoint x="550" y="218" /><di:waypoint x="685" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_MethodCOD_Pay_di" bpmnElement="Flow_MethodCOD_Pay"><di:waypoint x="735" y="218" /><di:waypoint x="790" y="218" /><di:waypoint x="790" y="266" /><di:waypoint x="790" y="314" /><di:waypoint x="888" y="314" /><bpmndi:BPMNLabel><dc:Bounds x="804" y="290" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_MethodOnline_Confirm_di" bpmnElement="Flow_MethodOnline_Confirm"><di:waypoint x="735" y="218" /><di:waypoint x="925" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="795" y="194" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_COD_Receive_di" bpmnElement="Flow_COD_Receive"><di:waypoint x="1012" y="314" /><di:waypoint x="1128" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ConfirmOnline_in_di" bpmnElement="Flow_Join_Task_ConfirmOnline_in"><di:waypoint x="975" y="218" /><di:waypoint x="1128" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_Process_di" bpmnElement="Flow_Confirm_Process"><di:waypoint x="1252" y="218" /><di:waypoint x="1270" y="218" /><di:waypoint x="1270" y="392" /><di:waypoint x="1270" y="497" /><di:waypoint x="1368" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Receive_Reconcile_di" bpmnElement="Flow_Receive_Reconcile"><di:waypoint x="1252" y="314" /><di:waypoint x="1270" y="314" /><di:waypoint x="1270" y="392" /><di:waypoint x="1270" y="707" /><di:waypoint x="1368" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_COD_ReconcileDaily_di" bpmnElement="Flow_COD_ReconcileDaily"><di:waypoint x="1492" y="707" /><di:waypoint x="1608" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Process_GatePay_di" bpmnElement="Flow_Process_GatePay"><di:waypoint x="1492" y="497" /><di:waypoint x="1645" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PayNo_Retry_di" bpmnElement="Flow_PayNo_Retry"><di:waypoint x="1695" y="497" /><di:waypoint x="1750" y="497" /><di:waypoint x="1750" y="1266" /><di:waypoint x="790" y="1266" /><di:waypoint x="790" y="218" /><di:waypoint x="925" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="800" y="735" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PayYes_Verify_di" bpmnElement="Flow_PayYes_Verify"><di:waypoint x="1695" y="497" /><di:waypoint x="1848" y="497" /><bpmndi:BPMNLabel><dc:Bounds x="1736" y="473" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Reconcile_GateDisc_di" bpmnElement="Flow_Reconcile_GateDisc"><di:waypoint x="1732" y="707" /><di:waypoint x="1885" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_DiscNo_Statement_di" bpmnElement="Flow_DiscNo_Statement"><di:waypoint x="1935" y="707" /><di:waypoint x="1990" y="707" /><di:waypoint x="1990" y="392" /><di:waypoint x="2950" y="392" /><di:waypoint x="2950" y="218" /><di:waypoint x="3085" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="2435" y="368" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_DiscYes_Handle_di" bpmnElement="Flow_DiscYes_Handle"><di:waypoint x="1935" y="707" /><di:waypoint x="1990" y="707" /><di:waypoint x="1990" y="392" /><di:waypoint x="1990" y="218" /><di:waypoint x="2125" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="2000" y="542" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1_di" bpmnElement="Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1"><di:waypoint x="1972" y="497" /><di:waypoint x="1990" y="497" /><di:waypoint x="1990" y="392" /><di:waypoint x="1990" y="314" /><di:waypoint x="2125" y="314" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_HandleDiscrepancy_in_di" bpmnElement="Flow_Join_Task_HandleDiscrepancy_in"><di:waypoint x="2175" y="218" /><di:waypoint x="2230" y="218" /><di:waypoint x="2230" y="392" /><di:waypoint x="2230" y="917" /><di:waypoint x="2328" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Verify_GateIPN_di" bpmnElement="Flow_Verify_GateIPN"><di:waypoint x="2175" y="314" /><di:waypoint x="2230" y="314" /><di:waypoint x="2230" y="392" /><di:waypoint x="2230" y="497" /><di:waypoint x="2328" y="497" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Verify_GateValid_di" bpmnElement="Flow_Verify_GateValid"><di:waypoint x="2175" y="314" /><di:waypoint x="2230" y="314" /><di:waypoint x="2230" y="266" /><di:waypoint x="2230" y="218" /><di:waypoint x="2365" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Handle_GateResolved_di" bpmnElement="Flow_Handle_GateResolved"><di:waypoint x="2452" y="917" /><di:waypoint x="2605" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_IPN_Match_di" bpmnElement="Flow_IPN_Match"><di:waypoint x="2452" y="497" /><di:waypoint x="2470" y="497" /><di:waypoint x="2470" y="392" /><di:waypoint x="3190" y="392" /><di:waypoint x="3190" y="218" /><di:waypoint x="3325" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ValidNo_Reject_di" bpmnElement="Flow_ValidNo_Reject"><di:waypoint x="2415" y="218" /><di:waypoint x="2470" y="218" /><di:waypoint x="2470" y="1442" /><di:waypoint x="790" y="1442" /><di:waypoint x="790" y="218" /><di:waypoint x="925" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="1595" y="1418" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ValidYes_Notify_di" bpmnElement="Flow_ValidYes_Notify"><di:waypoint x="2415" y="218" /><di:waypoint x="2470" y="218" /><di:waypoint x="2470" y="392" /><di:waypoint x="2470" y="497" /><di:waypoint x="2568" y="497" /><bpmndi:BPMNLabel><dc:Bounds x="2480" y="298" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_NotResolved_Reopen_di" bpmnElement="Flow_NotResolved_Reopen"><di:waypoint x="2655" y="917" /><di:waypoint x="2710" y="917" /><di:waypoint x="2710" y="1282" /><di:waypoint x="1990" y="1282" /><di:waypoint x="1990" y="218" /><di:waypoint x="2125" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="2000" y="743" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_Hold_di" bpmnElement="Flow_Notify_Hold"><di:waypoint x="2692" y="497" /><di:waypoint x="2710" y="497" /><di:waypoint x="2710" y="392" /><di:waypoint x="2710" y="218" /><di:waypoint x="2845" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Resolved_Adjust_di" bpmnElement="Flow_Resolved_Adjust"><di:waypoint x="2655" y="917" /><di:waypoint x="2808" y="917" /><bpmndi:BPMNLabel><dc:Bounds x="2696" y="893" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Adjust_Statement_di" bpmnElement="Flow_Adjust_Statement"><di:waypoint x="2932" y="917" /><di:waypoint x="2950" y="917" /><di:waypoint x="2950" y="392" /><di:waypoint x="2950" y="218" /><di:waypoint x="3085" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_HoldEscrow_in_di" bpmnElement="Flow_Join_Task_HoldEscrow_in"><di:waypoint x="2895" y="218" /><di:waypoint x="2950" y="218" /><di:waypoint x="2950" y="392" /><di:waypoint x="2950" y="707" /><di:waypoint x="3048" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Hold_Match_di" bpmnElement="Flow_Hold_Match"><di:waypoint x="3172" y="707" /><di:waypoint x="3190" y="707" /><di:waypoint x="3190" y="392" /><di:waypoint x="3190" y="218" /><di:waypoint x="3325" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ConfirmStatement_in_di" bpmnElement="Flow_Join_Task_ConfirmStatement_in"><di:waypoint x="3135" y="218" /><di:waypoint x="3190" y="218" /><di:waypoint x="3190" y="392" /><di:waypoint x="3190" y="917" /><di:waypoint x="3288" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_MatchOrder_in_di" bpmnElement="Flow_Join_Task_MatchOrder_in"><di:waypoint x="3375" y="218" /><di:waypoint x="3430" y="218" /><di:waypoint x="3430" y="392" /><di:waypoint x="3430" y="707" /><di:waypoint x="3528" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Statement_Invoice_di" bpmnElement="Flow_Statement_Invoice"><di:waypoint x="3412" y="917" /><di:waypoint x="3430" y="917" /><di:waypoint x="3430" y="392" /><di:waypoint x="4870" y="392" /><di:waypoint x="4870" y="218" /><di:waypoint x="5005" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Match_Complete_di" bpmnElement="Flow_Match_Complete"><di:waypoint x="3652" y="707" /><di:waypoint x="3805" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Completed_Release_di" bpmnElement="Flow_Completed_Release"><di:waypoint x="3855" y="707" /><di:waypoint x="4008" y="707" /><bpmndi:BPMNLabel><dc:Bounds x="3896" y="683" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_NotCompleted_Return_di" bpmnElement="Flow_NotCompleted_Return"><di:waypoint x="3855" y="707" /><di:waypoint x="3910" y="707" /><di:waypoint x="3910" y="1266" /><di:waypoint x="2710" y="1266" /><di:waypoint x="2710" y="218" /><di:waypoint x="2845" y="218" /><bpmndi:BPMNLabel><dc:Bounds x="3275" y="1242" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Refund_Back_di" bpmnElement="Flow_Refund_Back"><di:waypoint x="3855" y="707" /><di:waypoint x="3910" y="707" /><di:waypoint x="3910" y="392" /><di:waypoint x="3910" y="218" /><di:waypoint x="4008" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End"><di:waypoint x="4132" y="218" /><di:waypoint x="4292" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Release_Commission_di" bpmnElement="Flow_Release_Commission"><di:waypoint x="4132" y="707" /><di:waypoint x="4248" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Commission_Wallet_di" bpmnElement="Flow_Commission_Wallet"><di:waypoint x="4372" y="707" /><di:waypoint x="4488" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1_di" bpmnElement="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1"><di:waypoint x="4612" y="707" /><di:waypoint x="4630" y="707" /><di:waypoint x="4630" y="392" /><di:waypoint x="4630" y="218" /><di:waypoint x="4765" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Wallet_Check_di" bpmnElement="Flow_Wallet_Check"><di:waypoint x="4815" y="218" /><di:waypoint x="4870" y="218" /><di:waypoint x="4870" y="392" /><di:waypoint x="4870" y="1127" /><di:waypoint x="4968" y="1127" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Wallet_Invoice_di" bpmnElement="Flow_Wallet_Invoice"><di:waypoint x="4815" y="218" /><di:waypoint x="5005" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Check_Withdraw_di" bpmnElement="Flow_Check_Withdraw"><di:waypoint x="5092" y="1127" /><di:waypoint x="5110" y="1127" /><di:waypoint x="5110" y="392" /><di:waypoint x="5110" y="218" /><di:waypoint x="5245" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_IssueInvoice_in_di" bpmnElement="Flow_Join_Task_IssueInvoice_in"><di:waypoint x="5055" y="218" /><di:waypoint x="5110" y="218" /><di:waypoint x="5110" y="392" /><di:waypoint x="5110" y="917" /><di:waypoint x="5208" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Invoice_End_di" bpmnElement="Flow_Invoice_End"><di:waypoint x="5332" y="917" /><di:waypoint x="5350" y="917" /><di:waypoint x="5350" y="392" /><di:waypoint x="5350" y="218" /><di:waypoint x="5492" y="218" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_Withdraw_in_di" bpmnElement="Flow_Join_Task_Withdraw_in"><di:waypoint x="5295" y="218" /><di:waypoint x="5350" y="218" /><di:waypoint x="5350" y="392" /><di:waypoint x="5350" y="1127" /><di:waypoint x="5448" y="1127" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Withdraw_GateBank_di" bpmnElement="Flow_Withdraw_GateBank"><di:waypoint x="5572" y="1127" /><di:waypoint x="5590" y="1127" /><di:waypoint x="5590" y="1266" /><di:waypoint x="70" y="1266" /><di:waypoint x="70" y="1127" /><di:waypoint x="205" y="1127" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
-</bpmn:definitions>
+<ns0:definitions xmlns:ns0="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:ns1="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:ns2="http://www.omg.org/spec/DD/20100524/DC" xmlns:ns3="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_PaymentSettlement" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <ns0:process id="Process_PaymentSettlement" name="Quy trình Thanh toán &amp; Đối soát" isExecutable="true">
+    <ns0:laneSet id="LaneSet_1">
+      <ns0:lane id="Lane_Buyer" name="Buyer">
+        <ns0:flowNodeRef>StartEvent_Checkout</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ChooseMethod</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_Method</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_PayCOD</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ConfirmOnline</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReceiveGoods</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReceiveRefund</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_PaymentGW" name="Payment Gateway (VNPay/MoMo/ZaloPay)">
+        <ns0:flowNodeRef>Task_ProcessPayment</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_VerifyPayment</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_PaymentApproved</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_NotifyResult</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_CheckIPN</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_System" name="Lazada System (Escrow)">
+        <ns0:flowNodeRef>Task_HoldEscrow</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_MatchOrder</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_OrderCompleted</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReleaseFunds</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReconcileCOD</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReconcileDaily</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_DiscrepancyFound</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_CalculateCommission</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_UpdateWallet</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Finance" name="Finance">
+        <ns0:flowNodeRef>Task_HandleDiscrepancy</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_DiscrepancyResolved</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ConfirmStatement</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AdjustStatement</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_IssueInvoice</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Seller" name="Seller">
+        <ns0:flowNodeRef>Task_CheckWallet</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Withdraw</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_BankReceived</ns0:flowNodeRef>
+      </ns0:lane>
+    </ns0:laneSet>
+    <ns0:startEvent id="StartEvent_Checkout" name="Thanh toán đơn hàng">
+      <ns0:outgoing>Flow_S1_Choose</ns0:outgoing>
+    </ns0:startEvent>
+    <ns0:userTask id="Task_ChooseMethod" name="Chọn phương thức thanh toán (COD/Online/Ví)">
+      <ns0:incoming>Flow_S1_Choose</ns0:incoming>
+      <ns0:outgoing>Flow_Choose_GateMethod</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_PayCOD" name="Thanh toán COD khi nhận hàng">
+      <ns0:incoming>Flow_MethodCOD_Pay</ns0:incoming>
+      <ns0:outgoing>Flow_COD_Receive</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_ConfirmOnline" name="Xác nhận thanh toán online qua cổng">
+      <ns0:incoming>Flow_Join_Task_ConfirmOnline_in</ns0:incoming>
+      <ns0:outgoing>Flow_Confirm_Process</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_ReceiveGoods" name="Buyer nhận hàng &amp; hoàn tất đơn">
+      <ns0:incoming>Flow_COD_Receive</ns0:incoming>
+      <ns0:outgoing>Flow_Receive_Reconcile</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_ReceiveRefund" name="Buyer nhận hoàn tiền khi hủy/hoàn trả">
+      <ns0:incoming>Flow_Refund_Back</ns0:incoming>
+      <ns0:outgoing>Flow_Refund_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:serviceTask id="Task_ProcessPayment" name="Cổng thanh toán xử lý giao dịch">
+      <ns0:incoming>Flow_Confirm_Process</ns0:incoming>
+      <ns0:outgoing>Flow_Process_GatePay</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_PaymentApproved" name="Giao dịch thanh toán thành công?">
+      <ns0:incoming>Flow_Process_GatePay</ns0:incoming>
+      <ns0:outgoing>Flow_PayYes_Verify</ns0:outgoing>
+      <ns0:outgoing>Flow_PayNo_Retry</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_VerifyPayment" name="Xác minh chữ ký &amp; tính hợp lệ giao dịch">
+      <ns0:incoming>Flow_PayYes_Verify</ns0:incoming>
+      <ns0:outgoing>Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_NotifyResult" name="Gửi kết quả thanh toán về hệ thống">
+      <ns0:incoming>Flow_ValidYes_Notify</ns0:incoming>
+      <ns0:outgoing>Flow_Notify_Hold</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_CheckIPN" name="Kiểm tra IPN/Webhook đối soát giao dịch">
+      <ns0:incoming>Flow_Verify_GateIPN</ns0:incoming>
+      <ns0:outgoing>Flow_IPN_Match</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_HoldEscrow" name="Hệ thống giữ tiền tạm thời trong Escrow">
+      <ns0:incoming>Flow_Join_Task_HoldEscrow_in</ns0:incoming>
+      <ns0:outgoing>Flow_Hold_Match</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_MatchOrder" name="Đối chiếu giao dịch với mã đơn hàng">
+      <ns0:incoming>Flow_Join_Task_MatchOrder_in</ns0:incoming>
+      <ns0:outgoing>Flow_Match_Complete</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_OrderCompleted" name="Đơn hàng hoàn tất giao dịch?">
+      <ns0:incoming>Flow_Match_Complete</ns0:incoming>
+      <ns0:outgoing>Flow_Completed_Release</ns0:outgoing>
+      <ns0:outgoing>Flow_NotCompleted_Return</ns0:outgoing>
+      <ns0:outgoing>Flow_Refund_Back</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_ReleaseFunds" name="Giải ngân tiền cho Seller (L+2 ngày)">
+      <ns0:incoming>Flow_Completed_Release</ns0:incoming>
+      <ns0:outgoing>Flow_Release_Commission</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_ReconcileCOD" name="Đối soát COD với 3PL thu hộ">
+      <ns0:incoming>Flow_Receive_Reconcile</ns0:incoming>
+      <ns0:outgoing>Flow_COD_ReconcileDaily</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_ReconcileDaily" name="Tổng hợp đối soát dòng tiền cuối ngày">
+      <ns0:incoming>Flow_COD_ReconcileDaily</ns0:incoming>
+      <ns0:outgoing>Flow_Reconcile_GateDisc</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_DiscrepancyFound" name="Phát hiện lệch dòng tiền?">
+      <ns0:incoming>Flow_Reconcile_GateDisc</ns0:incoming>
+      <ns0:outgoing>Flow_DiscYes_Handle</ns0:outgoing>
+      <ns0:outgoing>Flow_DiscNo_Statement</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:serviceTask id="Task_CalculateCommission" name="Tính hoa hồng Lazada (1-8% theo danh mục)">
+      <ns0:incoming>Flow_Release_Commission</ns0:incoming>
+      <ns0:outgoing>Flow_Commission_Wallet</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_UpdateWallet" name="Cập nhật số dư Ví Seller">
+      <ns0:incoming>Flow_Commission_Wallet</ns0:incoming>
+      <ns0:outgoing>Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:userTask id="Task_HandleDiscrepancy" name="Phòng Tài chính xử lý lệch dòng tiền">
+      <ns0:incoming>Flow_Join_Task_HandleDiscrepancy_in</ns0:incoming>
+      <ns0:outgoing>Flow_Handle_GateResolved</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_DiscrepancyResolved" name="Lệch dòng tiền đã xử lý xong?">
+      <ns0:incoming>Flow_Handle_GateResolved</ns0:incoming>
+      <ns0:outgoing>Flow_Resolved_Adjust</ns0:outgoing>
+      <ns0:outgoing>Flow_NotResolved_Reopen</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:userTask id="Task_ConfirmStatement" name="Xác nhận bảng đối soát cuối kỳ">
+      <ns0:incoming>Flow_Join_Task_ConfirmStatement_in</ns0:incoming>
+      <ns0:outgoing>Flow_Statement_Invoice</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_AdjustStatement" name="Điều chỉnh số liệu sai lệch trên bảng kê">
+      <ns0:incoming>Flow_Resolved_Adjust</ns0:incoming>
+      <ns0:outgoing>Flow_Adjust_Statement</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_IssueInvoice" name="Xuất hóa đơn &amp; báo cáo tài chính">
+      <ns0:incoming>Flow_Join_Task_IssueInvoice_in</ns0:incoming>
+      <ns0:outgoing>Flow_Invoice_End</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_CheckWallet" name="Seller kiểm tra số dư Ví trên Seller Centre">
+      <ns0:incoming>Flow_Wallet_Check</ns0:incoming>
+      <ns0:outgoing>Flow_Check_Withdraw</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_Withdraw" name="Seller yêu cầu rút tiền về tài khoản ngân hàng">
+      <ns0:incoming>Flow_Join_Task_Withdraw_in</ns0:incoming>
+      <ns0:outgoing>Flow_Withdraw_GateBank</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:exclusiveGateway id="Gate_BankReceived" name="Tiền về tài khoản ngân hàng thành công?">
+      <ns0:incoming>Flow_Withdraw_GateBank</ns0:incoming>
+      <ns0:outgoing>Flow_BankYes_End</ns0:outgoing>
+      <ns0:outgoing>Flow_BankNo_Retry</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_Method" name="Chọn phương thức thanh toán?">
+      <ns0:incoming>Flow_Choose_GateMethod</ns0:incoming>
+      <ns0:outgoing>Flow_MethodCOD_Pay</ns0:outgoing>
+      <ns0:outgoing>Flow_MethodOnline_Confirm</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_Valid" name="Giao dịch hợp lệ (chữ ký đúng)?">
+      <ns0:incoming>Flow_Verify_GateValid</ns0:incoming>
+      <ns0:outgoing>Flow_ValidYes_Notify</ns0:outgoing>
+      <ns0:outgoing>Flow_ValidNo_Reject</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_S1_Choose" sourceRef="StartEvent_Checkout" targetRef="Task_ChooseMethod" />
+    <ns0:sequenceFlow id="Flow_Choose_GateMethod" sourceRef="Task_ChooseMethod" targetRef="Gate_Method" />
+    <ns0:sequenceFlow id="Flow_MethodCOD_Pay" name="COD" sourceRef="Gate_Method" targetRef="Task_PayCOD" />
+    <ns0:sequenceFlow id="Flow_MethodOnline_Confirm" name="Thanh toán online" sourceRef="Gate_Method" targetRef="Join_Task_ConfirmOnline_1" />
+    <ns0:sequenceFlow id="Flow_COD_Receive" sourceRef="Task_PayCOD" targetRef="Task_ReceiveGoods" />
+    <ns0:sequenceFlow id="Flow_Receive_Reconcile" sourceRef="Task_ReceiveGoods" targetRef="Task_ReconcileCOD" />
+    <ns0:sequenceFlow id="Flow_Confirm_Process" sourceRef="Task_ConfirmOnline" targetRef="Task_ProcessPayment" />
+    <ns0:sequenceFlow id="Flow_Process_GatePay" sourceRef="Task_ProcessPayment" targetRef="Gate_PaymentApproved" />
+    <ns0:sequenceFlow id="Flow_PayYes_Verify" name="Thành công" sourceRef="Gate_PaymentApproved" targetRef="Task_VerifyPayment" />
+    <ns0:sequenceFlow id="Flow_PayNo_Retry" name="Thất bại — thử lại" sourceRef="Gate_PaymentApproved" targetRef="Join_Task_ConfirmOnline_1" />
+    <ns0:sequenceFlow id="Flow_Verify_GateValid" sourceRef="Split_Task_VerifyPayment_1" targetRef="Gate_Valid" name="Giao dịch hợp lệ" />
+    <ns0:sequenceFlow id="Flow_ValidYes_Notify" name="Hợp lệ" sourceRef="Gate_Valid" targetRef="Task_NotifyResult" />
+    <ns0:sequenceFlow id="Flow_ValidNo_Reject" name="Không hợp lệ — từ chối" sourceRef="Gate_Valid" targetRef="Join_Task_ConfirmOnline_1" />
+    <ns0:sequenceFlow id="Flow_Notify_Hold" sourceRef="Task_NotifyResult" targetRef="Join_Task_HoldEscrow_1" />
+    <ns0:sequenceFlow id="Flow_Verify_GateIPN" sourceRef="Split_Task_VerifyPayment_1" targetRef="Task_CheckIPN" name="Đối soát IPN/Webhook" />
+    <ns0:sequenceFlow id="Flow_IPN_Match" sourceRef="Task_CheckIPN" targetRef="Join_Task_MatchOrder_1" />
+    <ns0:sequenceFlow id="Flow_Hold_Match" sourceRef="Task_HoldEscrow" targetRef="Join_Task_MatchOrder_1" />
+    <ns0:sequenceFlow id="Flow_Match_Complete" sourceRef="Task_MatchOrder" targetRef="Gate_OrderCompleted" />
+    <ns0:sequenceFlow id="Flow_Completed_Release" name="Hoàn tất" sourceRef="Gate_OrderCompleted" targetRef="Task_ReleaseFunds" />
+    <ns0:sequenceFlow id="Flow_NotCompleted_Return" name="Chưa hoàn tất — giữ tiền" sourceRef="Gate_OrderCompleted" targetRef="Join_Task_HoldEscrow_1" />
+    <ns0:sequenceFlow id="Flow_Release_Commission" sourceRef="Task_ReleaseFunds" targetRef="Task_CalculateCommission" />
+    <ns0:sequenceFlow id="Flow_Commission_Wallet" sourceRef="Task_CalculateCommission" targetRef="Task_UpdateWallet" />
+    <ns0:sequenceFlow id="Flow_Wallet_Invoice" sourceRef="Split_Task_UpdateWallet_1" targetRef="Join_Task_IssueInvoice_1" name="Xuất hóa đơn" />
+    <ns0:sequenceFlow id="Flow_Wallet_Check" sourceRef="Split_Task_UpdateWallet_1" targetRef="Task_CheckWallet" name="Seller kiểm tra Ví" />
+    <ns0:sequenceFlow id="Flow_Check_Withdraw" sourceRef="Task_CheckWallet" targetRef="Join_Task_Withdraw_1" />
+    <ns0:sequenceFlow id="Flow_Withdraw_GateBank" sourceRef="Task_Withdraw" targetRef="Gate_BankReceived" />
+    <ns0:sequenceFlow id="Flow_BankYes_End" name="Nhận được tiền" sourceRef="Gate_BankReceived" targetRef="EndEvent_Paid" />
+    <ns0:sequenceFlow id="Flow_BankNo_Retry" name="Thất bại — thử lại" sourceRef="Gate_BankReceived" targetRef="Join_Task_Withdraw_1" />
+    <ns0:sequenceFlow id="Flow_COD_ReconcileDaily" sourceRef="Task_ReconcileCOD" targetRef="Task_ReconcileDaily" />
+    <ns0:sequenceFlow id="Flow_Reconcile_GateDisc" sourceRef="Task_ReconcileDaily" targetRef="Gate_DiscrepancyFound" />
+    <ns0:sequenceFlow id="Flow_DiscYes_Handle" name="Có lệch" sourceRef="Gate_DiscrepancyFound" targetRef="Join_Task_HandleDiscrepancy_1" />
+    <ns0:sequenceFlow id="Flow_DiscNo_Statement" name="Khớp" sourceRef="Gate_DiscrepancyFound" targetRef="Join_Task_ConfirmStatement_1" />
+    <ns0:sequenceFlow id="Flow_Handle_GateResolved" sourceRef="Task_HandleDiscrepancy" targetRef="Gate_DiscrepancyResolved" />
+    <ns0:sequenceFlow id="Flow_Resolved_Adjust" name="Xử lý xong" sourceRef="Gate_DiscrepancyResolved" targetRef="Task_AdjustStatement" />
+    <ns0:sequenceFlow id="Flow_NotResolved_Reopen" name="Chưa xong — xử lý tiếp" sourceRef="Gate_DiscrepancyResolved" targetRef="Join_Task_HandleDiscrepancy_1" />
+    <ns0:sequenceFlow id="Flow_Adjust_Statement" sourceRef="Task_AdjustStatement" targetRef="Join_Task_ConfirmStatement_1" />
+    <ns0:sequenceFlow id="Flow_Statement_Invoice" sourceRef="Task_ConfirmStatement" targetRef="Join_Task_IssueInvoice_1" />
+    <ns0:sequenceFlow id="Flow_Invoice_End" sourceRef="Task_IssueInvoice" targetRef="EndEvent_Settled" />
+    <ns0:sequenceFlow id="Flow_Refund_Back" sourceRef="Gate_OrderCompleted" targetRef="Task_ReceiveRefund" name="Hoàn tiền cho Buyer" />
+    <ns0:sequenceFlow id="Flow_Refund_End" sourceRef="Task_ReceiveRefund" targetRef="EndEvent_Refunded" />
+    <ns0:sequenceFlow id="Flow_Join_Task_ConfirmOnline_in" sourceRef="Join_Task_ConfirmOnline_1" targetRef="Task_ConfirmOnline" />
+    <ns0:sequenceFlow id="Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1" sourceRef="Task_VerifyPayment" targetRef="Split_Task_VerifyPayment_1" />
+    <ns0:sequenceFlow id="Flow_Join_Task_HoldEscrow_in" sourceRef="Join_Task_HoldEscrow_1" targetRef="Task_HoldEscrow" />
+    <ns0:sequenceFlow id="Flow_Join_Task_MatchOrder_in" sourceRef="Join_Task_MatchOrder_1" targetRef="Task_MatchOrder" />
+    <ns0:sequenceFlow id="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1" sourceRef="Task_UpdateWallet" targetRef="Split_Task_UpdateWallet_1" />
+    <ns0:sequenceFlow id="Flow_Join_Task_HandleDiscrepancy_in" sourceRef="Join_Task_HandleDiscrepancy_1" targetRef="Task_HandleDiscrepancy" />
+    <ns0:sequenceFlow id="Flow_Join_Task_ConfirmStatement_in" sourceRef="Join_Task_ConfirmStatement_1" targetRef="Task_ConfirmStatement" />
+    <ns0:sequenceFlow id="Flow_Join_Task_IssueInvoice_in" sourceRef="Join_Task_IssueInvoice_1" targetRef="Task_IssueInvoice" />
+    <ns0:sequenceFlow id="Flow_Join_Task_Withdraw_in" sourceRef="Join_Task_Withdraw_1" targetRef="Task_Withdraw" />
+    <ns0:endEvent id="EndEvent_Paid" name="Seller đã nhận tiền thanh toán">
+      <ns0:incoming>Flow_BankYes_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="EndEvent_Settled" name="Đối soát đã hoàn tất">
+      <ns0:incoming>Flow_Invoice_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="EndEvent_Refunded" name="Đã hoàn tiền về Buyer">
+      <ns0:incoming>Flow_Refund_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:exclusiveGateway id="Join_Task_ConfirmOnline_1" name="Gom luồn trước khi Xác nhận online">
+      <ns0:incoming>Flow_MethodOnline_Confirm</ns0:incoming>
+      <ns0:incoming>Flow_PayNo_Retry</ns0:incoming>
+      <ns0:incoming>Flow_ValidNo_Reject</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_ConfirmOnline_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:parallelGateway id="Split_Task_VerifyPayment_1" name="Phân luồn sau khi Xác minh">
+      <ns0:incoming>Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1</ns0:incoming>
+      <ns0:outgoing>Flow_Verify_GateValid</ns0:outgoing>
+      <ns0:outgoing>Flow_Verify_GateIPN</ns0:outgoing>
+    </ns0:parallelGateway>
+    <ns0:exclusiveGateway id="Join_Task_HoldEscrow_1" name="Gom luồn trước khi giữ Escrow">
+      <ns0:incoming>Flow_Notify_Hold</ns0:incoming>
+      <ns0:incoming>Flow_NotCompleted_Return</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_HoldEscrow_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_Task_MatchOrder_1" name="Gom luồn trước khi Đối chiếu">
+      <ns0:incoming>Flow_IPN_Match</ns0:incoming>
+      <ns0:incoming>Flow_Hold_Match</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_MatchOrder_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:parallelGateway id="Split_Task_UpdateWallet_1" name="Phân luồn sau khi Cập nhật Ví">
+      <ns0:incoming>Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1</ns0:incoming>
+      <ns0:outgoing>Flow_Wallet_Invoice</ns0:outgoing>
+      <ns0:outgoing>Flow_Wallet_Check</ns0:outgoing>
+    </ns0:parallelGateway>
+    <ns0:exclusiveGateway id="Join_Task_HandleDiscrepancy_1" name="Gom luồn trước khi Xử lý lệch dòng tiền">
+      <ns0:incoming>Flow_DiscYes_Handle</ns0:incoming>
+      <ns0:incoming>Flow_NotResolved_Reopen</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_HandleDiscrepancy_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_Task_ConfirmStatement_1" name="Gom luồn trước khi Xác nhận bảng đối soát">
+      <ns0:incoming>Flow_DiscNo_Statement</ns0:incoming>
+      <ns0:incoming>Flow_Adjust_Statement</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_ConfirmStatement_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_Task_IssueInvoice_1" name="Gom luồn trước khi Xuất hóa đơn">
+      <ns0:incoming>Flow_Wallet_Invoice</ns0:incoming>
+      <ns0:incoming>Flow_Statement_Invoice</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_IssueInvoice_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Join_Task_Withdraw_1" name="Gom luồn trước khi Rút tiền">
+      <ns0:incoming>Flow_Check_Withdraw</ns0:incoming>
+      <ns0:incoming>Flow_BankNo_Retry</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_Withdraw_in</ns0:outgoing>
+    </ns0:exclusiveGateway>
+  </ns0:process>
+  <ns1:BPMNDiagram id="BPMNDiagram_1">
+    <ns1:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_PaymentSettlement"><ns1:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><ns2:Bounds x="30" y="140" width="5660" height="252" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_PaymentGW_di" bpmnElement="Lane_PaymentGW"><ns2:Bounds x="30" y="392" width="5660" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><ns2:Bounds x="30" y="602" width="5660" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_Finance_di" bpmnElement="Lane_Finance"><ns2:Bounds x="30" y="812" width="5660" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><ns2:Bounds x="30" y="1022" width="5660" height="210" /></ns1:BPMNShape><ns1:BPMNShape id="StartEvent_Checkout_di" bpmnElement="StartEvent_Checkout"><ns2:Bounds x="212" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ChooseMethod_di" bpmnElement="Task_ChooseMethod"><ns2:Bounds x="408" y="278" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_PayCOD_di" bpmnElement="Task_PayCOD"><ns2:Bounds x="888" y="278" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ConfirmOnline_di" bpmnElement="Task_ConfirmOnline"><ns2:Bounds x="1128" y="182" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods"><ns2:Bounds x="1128" y="278" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReceiveRefund_di" bpmnElement="Task_ReceiveRefund"><ns2:Bounds x="4008" y="182" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ProcessPayment_di" bpmnElement="Task_ProcessPayment"><ns2:Bounds x="1368" y="461" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_PaymentApproved_di" bpmnElement="Gate_PaymentApproved"><ns2:Bounds x="1645" y="472" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_VerifyPayment_di" bpmnElement="Task_VerifyPayment"><ns2:Bounds x="1848" y="461" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_NotifyResult_di" bpmnElement="Task_NotifyResult"><ns2:Bounds x="2568" y="461" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_CheckIPN_di" bpmnElement="Task_CheckIPN"><ns2:Bounds x="2328" y="461" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_HoldEscrow_di" bpmnElement="Task_HoldEscrow"><ns2:Bounds x="3048" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_MatchOrder_di" bpmnElement="Task_MatchOrder"><ns2:Bounds x="3528" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_OrderCompleted_di" bpmnElement="Gate_OrderCompleted"><ns2:Bounds x="3805" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReleaseFunds_di" bpmnElement="Task_ReleaseFunds"><ns2:Bounds x="4008" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReconcileCOD_di" bpmnElement="Task_ReconcileCOD"><ns2:Bounds x="1368" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ReconcileDaily_di" bpmnElement="Task_ReconcileDaily"><ns2:Bounds x="1608" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_DiscrepancyFound_di" bpmnElement="Gate_DiscrepancyFound"><ns2:Bounds x="1885" y="682" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_CalculateCommission_di" bpmnElement="Task_CalculateCommission"><ns2:Bounds x="4248" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_UpdateWallet_di" bpmnElement="Task_UpdateWallet"><ns2:Bounds x="4488" y="671" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_HandleDiscrepancy_di" bpmnElement="Task_HandleDiscrepancy"><ns2:Bounds x="2328" y="881" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_DiscrepancyResolved_di" bpmnElement="Gate_DiscrepancyResolved"><ns2:Bounds x="2605" y="892" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Task_ConfirmStatement_di" bpmnElement="Task_ConfirmStatement"><ns2:Bounds x="3288" y="881" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_AdjustStatement_di" bpmnElement="Task_AdjustStatement"><ns2:Bounds x="2808" y="881" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_IssueInvoice_di" bpmnElement="Task_IssueInvoice"><ns2:Bounds x="5208" y="881" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_CheckWallet_di" bpmnElement="Task_CheckWallet"><ns2:Bounds x="4968" y="1091" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Task_Withdraw_di" bpmnElement="Task_Withdraw"><ns2:Bounds x="5448" y="1091" width="124" height="72" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_BankReceived_di" bpmnElement="Gate_BankReceived"><ns2:Bounds x="205" y="1102" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_Method_di" bpmnElement="Gate_Method"><ns2:Bounds x="685" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Gate_Valid_di" bpmnElement="Gate_Valid"><ns2:Bounds x="2365" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="EndEvent_Paid_di" bpmnElement="EndEvent_Paid"><ns2:Bounds x="452" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="EndEvent_Settled_di" bpmnElement="EndEvent_Settled"><ns2:Bounds x="5492" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="EndEvent_Refunded_di" bpmnElement="EndEvent_Refunded"><ns2:Bounds x="4292" y="200" width="36" height="36" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_ConfirmOnline_1_di" bpmnElement="Join_Task_ConfirmOnline_1"><ns2:Bounds x="925" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_VerifyPayment_1_di" bpmnElement="Split_Task_VerifyPayment_1"><ns2:Bounds x="2125" y="289" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_HoldEscrow_1_di" bpmnElement="Join_Task_HoldEscrow_1"><ns2:Bounds x="2845" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_MatchOrder_1_di" bpmnElement="Join_Task_MatchOrder_1"><ns2:Bounds x="3325" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Split_Task_UpdateWallet_1_di" bpmnElement="Split_Task_UpdateWallet_1"><ns2:Bounds x="4765" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_HandleDiscrepancy_1_di" bpmnElement="Join_Task_HandleDiscrepancy_1"><ns2:Bounds x="2125" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_ConfirmStatement_1_di" bpmnElement="Join_Task_ConfirmStatement_1"><ns2:Bounds x="3085" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_IssueInvoice_1_di" bpmnElement="Join_Task_IssueInvoice_1"><ns2:Bounds x="5005" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNShape id="Join_Task_Withdraw_1_di" bpmnElement="Join_Task_Withdraw_1"><ns2:Bounds x="5245" y="193" width="50" height="50" /></ns1:BPMNShape><ns1:BPMNEdge id="Flow_BankNo_Retry_di" bpmnElement="Flow_BankNo_Retry"><ns3:waypoint x="255" y="1127" /><ns3:waypoint x="310" y="1127" /><ns3:waypoint x="310" y="392" /><ns3:waypoint x="5110" y="392" /><ns3:waypoint x="5110" y="218" /><ns3:waypoint x="5245" y="218" /><ns1:BPMNLabel><ns2:Bounds x="2675" y="368" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_BankYes_End_di" bpmnElement="Flow_BankYes_End"><ns3:waypoint x="255" y="1127" /><ns3:waypoint x="310" y="1127" /><ns3:waypoint x="310" y="392" /><ns3:waypoint x="310" y="218" /><ns3:waypoint x="452" y="218" /><ns1:BPMNLabel><ns2:Bounds x="320" y="752" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_S1_Choose_di" bpmnElement="Flow_S1_Choose"><ns3:waypoint x="248" y="218" /><ns3:waypoint x="310" y="218" /><ns3:waypoint x="310" y="266" /><ns3:waypoint x="310" y="314" /><ns3:waypoint x="408" y="314" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Choose_GateMethod_di" bpmnElement="Flow_Choose_GateMethod"><ns3:waypoint x="532" y="314" /><ns3:waypoint x="550" y="314" /><ns3:waypoint x="550" y="266" /><ns3:waypoint x="550" y="218" /><ns3:waypoint x="685" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_MethodCOD_Pay_di" bpmnElement="Flow_MethodCOD_Pay"><ns3:waypoint x="735" y="218" /><ns3:waypoint x="790" y="218" /><ns3:waypoint x="790" y="266" /><ns3:waypoint x="790" y="314" /><ns3:waypoint x="888" y="314" /><ns1:BPMNLabel><ns2:Bounds x="804" y="290" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_MethodOnline_Confirm_di" bpmnElement="Flow_MethodOnline_Confirm"><ns3:waypoint x="735" y="218" /><ns3:waypoint x="925" y="218" /><ns1:BPMNLabel><ns2:Bounds x="795" y="194" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_COD_Receive_di" bpmnElement="Flow_COD_Receive"><ns3:waypoint x="1012" y="314" /><ns3:waypoint x="1128" y="314" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_ConfirmOnline_in_di" bpmnElement="Flow_Join_Task_ConfirmOnline_in"><ns3:waypoint x="975" y="218" /><ns3:waypoint x="1128" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Confirm_Process_di" bpmnElement="Flow_Confirm_Process"><ns3:waypoint x="1252" y="218" /><ns3:waypoint x="1270" y="218" /><ns3:waypoint x="1270" y="392" /><ns3:waypoint x="1270" y="497" /><ns3:waypoint x="1368" y="497" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Receive_Reconcile_di" bpmnElement="Flow_Receive_Reconcile"><ns3:waypoint x="1252" y="314" /><ns3:waypoint x="1270" y="314" /><ns3:waypoint x="1270" y="392" /><ns3:waypoint x="1270" y="707" /><ns3:waypoint x="1368" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_COD_ReconcileDaily_di" bpmnElement="Flow_COD_ReconcileDaily"><ns3:waypoint x="1492" y="707" /><ns3:waypoint x="1608" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Process_GatePay_di" bpmnElement="Flow_Process_GatePay"><ns3:waypoint x="1492" y="497" /><ns3:waypoint x="1645" y="497" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_PayNo_Retry_di" bpmnElement="Flow_PayNo_Retry"><ns3:waypoint x="1695" y="497" /><ns3:waypoint x="1750" y="497" /><ns3:waypoint x="1750" y="1266" /><ns3:waypoint x="790" y="1266" /><ns3:waypoint x="790" y="218" /><ns3:waypoint x="925" y="218" /><ns1:BPMNLabel><ns2:Bounds x="800" y="735" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_PayYes_Verify_di" bpmnElement="Flow_PayYes_Verify"><ns3:waypoint x="1695" y="497" /><ns3:waypoint x="1848" y="497" /><ns1:BPMNLabel><ns2:Bounds x="1736" y="473" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Reconcile_GateDisc_di" bpmnElement="Flow_Reconcile_GateDisc"><ns3:waypoint x="1732" y="707" /><ns3:waypoint x="1885" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_DiscNo_Statement_di" bpmnElement="Flow_DiscNo_Statement"><ns3:waypoint x="1935" y="707" /><ns3:waypoint x="1990" y="707" /><ns3:waypoint x="1990" y="392" /><ns3:waypoint x="2950" y="392" /><ns3:waypoint x="2950" y="218" /><ns3:waypoint x="3085" y="218" /><ns1:BPMNLabel><ns2:Bounds x="2435" y="368" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_DiscYes_Handle_di" bpmnElement="Flow_DiscYes_Handle"><ns3:waypoint x="1935" y="707" /><ns3:waypoint x="1990" y="707" /><ns3:waypoint x="1990" y="392" /><ns3:waypoint x="1990" y="218" /><ns3:waypoint x="2125" y="218" /><ns1:BPMNLabel><ns2:Bounds x="2000" y="542" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1_di" bpmnElement="Flow_Task_VerifyPayment_to_Split_Task_VerifyPayment_1"><ns3:waypoint x="1972" y="497" /><ns3:waypoint x="1990" y="497" /><ns3:waypoint x="1990" y="392" /><ns3:waypoint x="1990" y="314" /><ns3:waypoint x="2125" y="314" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_HandleDiscrepancy_in_di" bpmnElement="Flow_Join_Task_HandleDiscrepancy_in"><ns3:waypoint x="2175" y="218" /><ns3:waypoint x="2230" y="218" /><ns3:waypoint x="2230" y="392" /><ns3:waypoint x="2230" y="917" /><ns3:waypoint x="2328" y="917" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Verify_GateIPN_di" bpmnElement="Flow_Verify_GateIPN"><ns3:waypoint x="2175" y="314" /><ns3:waypoint x="2230" y="314" /><ns3:waypoint x="2230" y="392" /><ns3:waypoint x="2230" y="497" /><ns3:waypoint x="2328" y="497" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Verify_GateValid_di" bpmnElement="Flow_Verify_GateValid"><ns3:waypoint x="2175" y="314" /><ns3:waypoint x="2230" y="314" /><ns3:waypoint x="2230" y="266" /><ns3:waypoint x="2230" y="218" /><ns3:waypoint x="2365" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Handle_GateResolved_di" bpmnElement="Flow_Handle_GateResolved"><ns3:waypoint x="2452" y="917" /><ns3:waypoint x="2605" y="917" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_IPN_Match_di" bpmnElement="Flow_IPN_Match"><ns3:waypoint x="2452" y="497" /><ns3:waypoint x="2470" y="497" /><ns3:waypoint x="2470" y="392" /><ns3:waypoint x="3190" y="392" /><ns3:waypoint x="3190" y="218" /><ns3:waypoint x="3325" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_ValidNo_Reject_di" bpmnElement="Flow_ValidNo_Reject"><ns3:waypoint x="2415" y="218" /><ns3:waypoint x="2470" y="218" /><ns3:waypoint x="2470" y="1442" /><ns3:waypoint x="790" y="1442" /><ns3:waypoint x="790" y="218" /><ns3:waypoint x="925" y="218" /><ns1:BPMNLabel><ns2:Bounds x="1595" y="1418" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_ValidYes_Notify_di" bpmnElement="Flow_ValidYes_Notify"><ns3:waypoint x="2415" y="218" /><ns3:waypoint x="2470" y="218" /><ns3:waypoint x="2470" y="392" /><ns3:waypoint x="2470" y="497" /><ns3:waypoint x="2568" y="497" /><ns1:BPMNLabel><ns2:Bounds x="2480" y="298" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_NotResolved_Reopen_di" bpmnElement="Flow_NotResolved_Reopen"><ns3:waypoint x="2655" y="917" /><ns3:waypoint x="2710" y="917" /><ns3:waypoint x="2710" y="1282" /><ns3:waypoint x="1990" y="1282" /><ns3:waypoint x="1990" y="218" /><ns3:waypoint x="2125" y="218" /><ns1:BPMNLabel><ns2:Bounds x="2000" y="743" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Notify_Hold_di" bpmnElement="Flow_Notify_Hold"><ns3:waypoint x="2692" y="497" /><ns3:waypoint x="2710" y="497" /><ns3:waypoint x="2710" y="392" /><ns3:waypoint x="2710" y="218" /><ns3:waypoint x="2845" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Resolved_Adjust_di" bpmnElement="Flow_Resolved_Adjust"><ns3:waypoint x="2655" y="917" /><ns3:waypoint x="2808" y="917" /><ns1:BPMNLabel><ns2:Bounds x="2696" y="893" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Adjust_Statement_di" bpmnElement="Flow_Adjust_Statement"><ns3:waypoint x="2932" y="917" /><ns3:waypoint x="2950" y="917" /><ns3:waypoint x="2950" y="392" /><ns3:waypoint x="2950" y="218" /><ns3:waypoint x="3085" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_HoldEscrow_in_di" bpmnElement="Flow_Join_Task_HoldEscrow_in"><ns3:waypoint x="2895" y="218" /><ns3:waypoint x="2950" y="218" /><ns3:waypoint x="2950" y="392" /><ns3:waypoint x="2950" y="707" /><ns3:waypoint x="3048" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Hold_Match_di" bpmnElement="Flow_Hold_Match"><ns3:waypoint x="3172" y="707" /><ns3:waypoint x="3190" y="707" /><ns3:waypoint x="3190" y="392" /><ns3:waypoint x="3190" y="218" /><ns3:waypoint x="3325" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_ConfirmStatement_in_di" bpmnElement="Flow_Join_Task_ConfirmStatement_in"><ns3:waypoint x="3135" y="218" /><ns3:waypoint x="3190" y="218" /><ns3:waypoint x="3190" y="392" /><ns3:waypoint x="3190" y="917" /><ns3:waypoint x="3288" y="917" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_MatchOrder_in_di" bpmnElement="Flow_Join_Task_MatchOrder_in"><ns3:waypoint x="3375" y="218" /><ns3:waypoint x="3430" y="218" /><ns3:waypoint x="3430" y="392" /><ns3:waypoint x="3430" y="707" /><ns3:waypoint x="3528" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Statement_Invoice_di" bpmnElement="Flow_Statement_Invoice"><ns3:waypoint x="3412" y="917" /><ns3:waypoint x="3430" y="917" /><ns3:waypoint x="3430" y="392" /><ns3:waypoint x="4870" y="392" /><ns3:waypoint x="4870" y="218" /><ns3:waypoint x="5005" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Match_Complete_di" bpmnElement="Flow_Match_Complete"><ns3:waypoint x="3652" y="707" /><ns3:waypoint x="3805" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Completed_Release_di" bpmnElement="Flow_Completed_Release"><ns3:waypoint x="3855" y="707" /><ns3:waypoint x="4008" y="707" /><ns1:BPMNLabel><ns2:Bounds x="3896" y="683" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_NotCompleted_Return_di" bpmnElement="Flow_NotCompleted_Return"><ns3:waypoint x="3855" y="707" /><ns3:waypoint x="3910" y="707" /><ns3:waypoint x="3910" y="1266" /><ns3:waypoint x="2710" y="1266" /><ns3:waypoint x="2710" y="218" /><ns3:waypoint x="2845" y="218" /><ns1:BPMNLabel><ns2:Bounds x="3275" y="1242" width="70" height="14" /></ns1:BPMNLabel></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Refund_Back_di" bpmnElement="Flow_Refund_Back"><ns3:waypoint x="3855" y="707" /><ns3:waypoint x="3910" y="707" /><ns3:waypoint x="3910" y="392" /><ns3:waypoint x="3910" y="218" /><ns3:waypoint x="4008" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End"><ns3:waypoint x="4132" y="218" /><ns3:waypoint x="4292" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Release_Commission_di" bpmnElement="Flow_Release_Commission"><ns3:waypoint x="4132" y="707" /><ns3:waypoint x="4248" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Commission_Wallet_di" bpmnElement="Flow_Commission_Wallet"><ns3:waypoint x="4372" y="707" /><ns3:waypoint x="4488" y="707" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1_di" bpmnElement="Flow_Task_UpdateWallet_to_Split_Task_UpdateWallet_1"><ns3:waypoint x="4612" y="707" /><ns3:waypoint x="4630" y="707" /><ns3:waypoint x="4630" y="392" /><ns3:waypoint x="4630" y="218" /><ns3:waypoint x="4765" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Wallet_Check_di" bpmnElement="Flow_Wallet_Check"><ns3:waypoint x="4815" y="218" /><ns3:waypoint x="4870" y="218" /><ns3:waypoint x="4870" y="392" /><ns3:waypoint x="4870" y="1127" /><ns3:waypoint x="4968" y="1127" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Wallet_Invoice_di" bpmnElement="Flow_Wallet_Invoice"><ns3:waypoint x="4815" y="218" /><ns3:waypoint x="5005" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Check_Withdraw_di" bpmnElement="Flow_Check_Withdraw"><ns3:waypoint x="5092" y="1127" /><ns3:waypoint x="5110" y="1127" /><ns3:waypoint x="5110" y="392" /><ns3:waypoint x="5110" y="218" /><ns3:waypoint x="5245" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_IssueInvoice_in_di" bpmnElement="Flow_Join_Task_IssueInvoice_in"><ns3:waypoint x="5055" y="218" /><ns3:waypoint x="5110" y="218" /><ns3:waypoint x="5110" y="392" /><ns3:waypoint x="5110" y="917" /><ns3:waypoint x="5208" y="917" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Invoice_End_di" bpmnElement="Flow_Invoice_End"><ns3:waypoint x="5332" y="917" /><ns3:waypoint x="5350" y="917" /><ns3:waypoint x="5350" y="392" /><ns3:waypoint x="5350" y="218" /><ns3:waypoint x="5492" y="218" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Join_Task_Withdraw_in_di" bpmnElement="Flow_Join_Task_Withdraw_in"><ns3:waypoint x="5295" y="218" /><ns3:waypoint x="5350" y="218" /><ns3:waypoint x="5350" y="392" /><ns3:waypoint x="5350" y="1127" /><ns3:waypoint x="5448" y="1127" /></ns1:BPMNEdge><ns1:BPMNEdge id="Flow_Withdraw_GateBank_di" bpmnElement="Flow_Withdraw_GateBank"><ns3:waypoint x="5572" y="1127" /><ns3:waypoint x="5590" y="1127" /><ns3:waypoint x="5590" y="1266" /><ns3:waypoint x="70" y="1266" /><ns3:waypoint x="70" y="1127" /><ns3:waypoint x="205" y="1127" /></ns1:BPMNEdge></ns1:BPMNPlane></ns1:BPMNDiagram>
+</ns0:definitions>

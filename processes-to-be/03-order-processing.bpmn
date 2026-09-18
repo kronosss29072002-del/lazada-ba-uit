@@ -1,265 +1,265 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_OrderProcessingToBe" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
-  <bpmn:process id="Process_OrderProcessingToBe" name="Xử lý Đơn hàng Online TO-BE" isExecutable="true">
-    <bpmn:laneSet id="LaneSet_1">
-      <bpmn:lane id="Lane_Buyer" name="Buyer">
-        <bpmn:flowNodeRef>StartEvent_Checkout</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_Pay</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReceiveGoods</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ConfirmReceipt</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_System" name="Lazada System (Automated)">
-        <bpmn:flowNodeRef>Task_ValidateOrder</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_LockInventory</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_SellerConfirm</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Timer_2h</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AutoAccept</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_ConfirmResult</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_SellerAccepted</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_GenerateLabelQR</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AutoPickupSched</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AI_ETA</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Timer_ETA30</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_PreDeliveryContact</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_TrackDelivery</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_DeliverySuccess</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gate_BuyerConfirm</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Timer_7d</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AutoConfirm</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ReleasePayment</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AutoCancel</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_NotifyCancel</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_AutoRefund</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_ReleasePayment_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_AutoCancel_2</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Seller" name="Seller">
-        <bpmn:flowNodeRef>Task_ConfirmOrder</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_PackageGoods</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_3PL" name="3PL/Shipper">
-        <bpmn:flowNodeRef>Task_Pickup</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_DeliverAttempt</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Join_Task_DeliverAttempt_3</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Split_Task_DeliverAttempt_1</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Payment" name="Payment Gateway">
-        <bpmn:flowNodeRef>Task_VerifyPayment</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ExecuteRefund</bpmn:flowNodeRef>
-      </bpmn:lane>
-    </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_Checkout" name="Yêu cầu đặt hàng">
-      <bpmn:outgoing>Flow_Checkout_Validate</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:userTask id="Task_Pay" name="Thanh toán đơn hàng (COD / Thẻ / Ví / Chuyển khoản)">
-      <bpmn:incoming>Flow_Validate_Pay</bpmn:incoming>
-      <bpmn:outgoing>Flow_Pay_Verify</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:task id="Task_ReceiveGoods" name="Nhận hàng từ shipper">
-      <bpmn:incoming>Flow_Deliver_Success</bpmn:incoming>
-      <bpmn:outgoing>Flow_Receive_Confirm</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:userTask id="Task_ConfirmReceipt" name="Xác nhận đã nhận hàng">
-      <bpmn:incoming>Flow_Receive_Confirm</bpmn:incoming>
-      <bpmn:outgoing>Flow_Confirm_Gate</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:serviceTask id="Task_ValidateOrder" name="Tự động xác thực thông tin đơn">
-      <bpmn:incoming>Flow_Checkout_Validate</bpmn:incoming>
-      <bpmn:outgoing>Flow_Validate_Pay</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_LockInventory" name="Khóa tồn kho + tạo đơn">
-      <bpmn:incoming>Flow_Verify_Process</bpmn:incoming>
-      <bpmn:outgoing>Flow_Lock_SellerConfirm</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:intermediateCatchEvent id="Timer_2h" name="Hết 2h SLA - chờ phản hồi Seller">
-      <bpmn:incoming>Flow_GateSeller_Timer</bpmn:incoming>
-      <bpmn:outgoing>Flow_Timer_AutoAccept</bpmn:outgoing>
-      <bpmn:timerEventDefinition id="TimerDef_2h">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:intermediateCatchEvent>
-    <bpmn:serviceTask id="Task_AutoAccept" name="Tự động chấp nhận đơn sau 2h">
-      <bpmn:incoming>Flow_Timer_AutoAccept</bpmn:incoming>
-      <bpmn:outgoing>Flow_AutoAccept_Merge</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_GenerateLabelQR" name="Tạo nhãn vận đơn QR số hóa">
-      <bpmn:incoming>Flow_Package_Label</bpmn:incoming>
-      <bpmn:outgoing>Flow_Label_PickupSched</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_AutoPickupSched" name="Tự động lên lịch lấy hàng với 3PL">
-      <bpmn:incoming>Flow_Label_PickupSched</bpmn:incoming>
-      <bpmn:outgoing>Flow_PickupSched_Pickup</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_AI_ETA" name="Dự đoán thời gian giao (AI ETA)">
-      <bpmn:incoming>Flow_Pickup_ETA</bpmn:incoming>
-      <bpmn:outgoing>Flow_ETA_Timer</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:intermediateCatchEvent id="Timer_ETA30" name="Trước giao 30 phút">
-      <bpmn:incoming>Flow_ETA_Timer</bpmn:incoming>
-      <bpmn:outgoing>Flow_Timer_Contact</bpmn:outgoing>
-      <bpmn:timerEventDefinition id="TimerDef_ETA30">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT30M</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:intermediateCatchEvent>
-    <bpmn:serviceTask id="Task_PreDeliveryContact" name="Liên hệ trước giao hàng (gọi/nhắn 30 phút)">
-      <bpmn:incoming>Flow_Timer_Contact</bpmn:incoming>
-      <bpmn:outgoing>Flow_Contact_Track</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_TrackDelivery" name="Cập nhật định vị đơn hàng realtime">
-      <bpmn:incoming>Flow_Contact_Track</bpmn:incoming>
-      <bpmn:outgoing>Flow_Track_Deliver</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:intermediateCatchEvent id="Timer_7d" name="Hết 7 ngày SLA - xác nhận nhận hàng">
-      <bpmn:incoming>Flow_Buyer_Timer</bpmn:incoming>
-      <bpmn:outgoing>Flow_Timer_AutoConfirm</bpmn:outgoing>
-      <bpmn:timerEventDefinition id="TimerDef_7d">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P7D</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:intermediateCatchEvent>
-    <bpmn:serviceTask id="Task_AutoConfirm" name="Tự động xác nhận đã nhận hàng">
-      <bpmn:incoming>Flow_Timer_AutoConfirm</bpmn:incoming>
-      <bpmn:outgoing>Flow_AutoConfirm_Release</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_ReleasePayment" name="Giải ngân cho Seller">
-      <bpmn:outgoing>Flow_Release_End</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment</bpmn:incoming>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_AutoCancel" name="Tự động hủy đơn">
-      <bpmn:outgoing>Flow_Cancel_Notify</bpmn:outgoing>
-      <bpmn:incoming>Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel</bpmn:incoming>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_NotifyCancel" name="Thông báo hủy đơn">
-      <bpmn:incoming>Flow_Cancel_Notify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Notify_Refund</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_AutoRefund" name="Tự động hoàn tiền Buyer">
-      <bpmn:incoming>Flow_Notify_Refund</bpmn:incoming>
-      <bpmn:outgoing>Flow_Refund_Execute</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:userTask id="Task_ConfirmOrder" name="Xác nhận đơn (thủ công)">
-      <bpmn:incoming>Flow_GateSeller_Manual</bpmn:incoming>
-      <bpmn:outgoing>Flow_Confirm_Result</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_PackageGoods" name="Đóng gói hàng">
-      <bpmn:incoming>Flow_SellerAccepted_Package</bpmn:incoming>
-      <bpmn:outgoing>Flow_Package_Label</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:task id="Task_Pickup" name="3PL lấy hàng (theo lịch tự động)">
-      <bpmn:incoming>Flow_PickupSched_Pickup</bpmn:incoming>
-      <bpmn:outgoing>Flow_Pickup_ETA</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:userTask id="Task_DeliverAttempt" name="Giao hàng (attempt)">
-      <bpmn:incoming>Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt</bpmn:incoming>
-      <bpmn:outgoing>Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:serviceTask id="Task_VerifyPayment" name="Gateway verify thanh toán">
-      <bpmn:incoming>Flow_Pay_Verify</bpmn:incoming>
-      <bpmn:outgoing>Flow_Verify_Process</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Task_ExecuteRefund" name="Cổng thanh toán xử lý hoàn tiền">
-      <bpmn:incoming>Flow_Refund_Execute</bpmn:incoming>
-      <bpmn:outgoing>Flow_Refund_End</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:exclusiveGateway id="Gate_SellerConfirm" name="Seller phản hồi?" default="Flow_GateSeller_Timer">
-      <bpmn:incoming>Flow_Lock_SellerConfirm</bpmn:incoming>
-      <bpmn:outgoing>Flow_GateSeller_Manual</bpmn:outgoing>
-      <bpmn:outgoing>Flow_GateSeller_Timer</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_ConfirmResult" name="Chấp nhận đơn?" default="Flow_ConfirmResult_Refuse">
-      <bpmn:incoming>Flow_Confirm_Result</bpmn:incoming>
-      <bpmn:outgoing>Flow_ConfirmResult_Accept</bpmn:outgoing>
-      <bpmn:outgoing>Flow_ConfirmResult_Refuse</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_SellerAccepted" name="Đã chấp nhận">
-      <bpmn:incoming>Flow_ConfirmResult_Accept</bpmn:incoming>
-      <bpmn:incoming>Flow_AutoAccept_Merge</bpmn:incoming>
-      <bpmn:outgoing>Flow_SellerAccepted_Package</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_DeliverySuccess" name="Giao thành công?" default="Flow_Fail_Cancel">
-      <bpmn:incoming>Flow_Deliver_Fail</bpmn:incoming>
-      <bpmn:outgoing>Flow_Retry_Deliver</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Fail_Cancel</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gate_BuyerConfirm" name="Buyer đã xác nhận?" default="Flow_Buyer_Timer">
-      <bpmn:incoming>Flow_Confirm_Gate</bpmn:incoming>
-      <bpmn:outgoing>Flow_Buyer_Release</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Buyer_Timer</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:endEvent id="End_Delivered" name="Đơn hàng đã hoàn tất">
-      <bpmn:incoming>Flow_Release_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="End_Refunded" name="Đã hoàn tiền cho Buyer">
-      <bpmn:incoming>Flow_Refund_End</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_Checkout_Validate" sourceRef="StartEvent_Checkout" targetRef="Task_ValidateOrder" />
-    <bpmn:sequenceFlow id="Flow_Validate_Pay" sourceRef="Task_ValidateOrder" targetRef="Task_Pay" />
-    <bpmn:sequenceFlow id="Flow_Pay_Verify" sourceRef="Task_Pay" targetRef="Task_VerifyPayment" />
-    <bpmn:sequenceFlow id="Flow_Verify_Process" sourceRef="Task_VerifyPayment" targetRef="Task_LockInventory" />
-    <bpmn:sequenceFlow id="Flow_Lock_SellerConfirm" sourceRef="Task_LockInventory" targetRef="Gate_SellerConfirm" />
-    <bpmn:sequenceFlow id="Flow_GateSeller_Manual" sourceRef="Gate_SellerConfirm" targetRef="Task_ConfirmOrder" name="Chưa phản hồi trong 2h">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${sellerResponded}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_GateSeller_Timer" sourceRef="Gate_SellerConfirm" targetRef="Timer_2h" name="Đã quá 2h SLA" />
-    <bpmn:sequenceFlow id="Flow_Confirm_Result" sourceRef="Task_ConfirmOrder" targetRef="Gate_ConfirmResult" />
-    <bpmn:sequenceFlow id="Flow_ConfirmResult_Accept" sourceRef="Gate_ConfirmResult" targetRef="Gate_SellerAccepted" name="Chấp nhận">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${accepted}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_ConfirmResult_Refuse" sourceRef="Gate_ConfirmResult" targetRef="Join_Task_AutoCancel_2" name="Từ chối" />
-    <bpmn:sequenceFlow id="Flow_Timer_AutoAccept" sourceRef="Timer_2h" targetRef="Task_AutoAccept" />
-    <bpmn:sequenceFlow id="Flow_AutoAccept_Merge" sourceRef="Task_AutoAccept" targetRef="Gate_SellerAccepted" />
-    <bpmn:sequenceFlow id="Flow_SellerAccepted_Package" sourceRef="Gate_SellerAccepted" targetRef="Task_PackageGoods" />
-    <bpmn:sequenceFlow id="Flow_Package_Label" sourceRef="Task_PackageGoods" targetRef="Task_GenerateLabelQR" />
-    <bpmn:sequenceFlow id="Flow_Label_PickupSched" sourceRef="Task_GenerateLabelQR" targetRef="Task_AutoPickupSched" />
-    <bpmn:sequenceFlow id="Flow_PickupSched_Pickup" sourceRef="Task_AutoPickupSched" targetRef="Task_Pickup" />
-    <bpmn:sequenceFlow id="Flow_Pickup_ETA" sourceRef="Task_Pickup" targetRef="Task_AI_ETA" />
-    <bpmn:sequenceFlow id="Flow_ETA_Timer" sourceRef="Task_AI_ETA" targetRef="Timer_ETA30" />
-    <bpmn:sequenceFlow id="Flow_Timer_Contact" sourceRef="Timer_ETA30" targetRef="Task_PreDeliveryContact" />
-    <bpmn:sequenceFlow id="Flow_Contact_Track" sourceRef="Task_PreDeliveryContact" targetRef="Task_TrackDelivery" />
-    <bpmn:sequenceFlow id="Flow_Track_Deliver" sourceRef="Task_TrackDelivery" targetRef="Join_Task_DeliverAttempt_3" />
-    <bpmn:sequenceFlow id="Flow_Deliver_Success" sourceRef="Split_Task_DeliverAttempt_1" targetRef="Task_ReceiveGoods" />
-    <bpmn:sequenceFlow id="Flow_Deliver_Fail" sourceRef="Split_Task_DeliverAttempt_1" targetRef="Gate_DeliverySuccess" />
-    <bpmn:sequenceFlow id="Flow_Retry_Deliver" sourceRef="Gate_DeliverySuccess" targetRef="Join_Task_DeliverAttempt_3" name="Giao thất bại (≤3 lần)">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${attempts &lt; maxAttempts}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_Fail_Cancel" sourceRef="Gate_DeliverySuccess" targetRef="Join_Task_AutoCancel_2" name="Giao thất bại hết giới hạn" />
-    <bpmn:sequenceFlow id="Flow_Receive_Confirm" sourceRef="Task_ReceiveGoods" targetRef="Task_ConfirmReceipt" />
-    <bpmn:sequenceFlow id="Flow_Confirm_Gate" sourceRef="Task_ConfirmReceipt" targetRef="Gate_BuyerConfirm" />
-    <bpmn:sequenceFlow id="Flow_Buyer_Release" sourceRef="Gate_BuyerConfirm" targetRef="Join_Task_ReleasePayment_1" name="Buyer xác nhận / quá hạn">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${buyerConfirmed}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_Buyer_Timer" sourceRef="Gate_BuyerConfirm" targetRef="Timer_7d" name="Đã quá 7 ngày xác nhận" />
-    <bpmn:sequenceFlow id="Flow_Timer_AutoConfirm" sourceRef="Timer_7d" targetRef="Task_AutoConfirm" />
-    <bpmn:sequenceFlow id="Flow_AutoConfirm_Release" sourceRef="Task_AutoConfirm" targetRef="Join_Task_ReleasePayment_1" />
-    <bpmn:sequenceFlow id="Flow_Release_End" sourceRef="Task_ReleasePayment" targetRef="End_Delivered" />
-    <bpmn:sequenceFlow id="Flow_Cancel_Notify" sourceRef="Task_AutoCancel" targetRef="Task_NotifyCancel" />
-    <bpmn:sequenceFlow id="Flow_Notify_Refund" sourceRef="Task_NotifyCancel" targetRef="Task_AutoRefund" />
-    <bpmn:sequenceFlow id="Flow_Refund_Execute" sourceRef="Task_AutoRefund" targetRef="Task_ExecuteRefund" />
-    <bpmn:sequenceFlow id="Flow_Refund_End" sourceRef="Task_ExecuteRefund" targetRef="End_Refunded" />
-    <bpmn:exclusiveGateway id="Join_Task_ReleasePayment_1" name="Gom luồng trước khi Giải ngân cho Seller">
-      <bpmn:incoming>Flow_Buyer_Release</bpmn:incoming>
-      <bpmn:incoming>Flow_AutoConfirm_Release</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment" sourceRef="Join_Task_ReleasePayment_1" targetRef="Task_ReleasePayment" />
-    <bpmn:exclusiveGateway id="Join_Task_AutoCancel_2" name="Gom luồng trước khi Tự động hủy đơn">
-      <bpmn:incoming>Flow_ConfirmResult_Refuse</bpmn:incoming>
-      <bpmn:incoming>Flow_Fail_Cancel</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel" sourceRef="Join_Task_AutoCancel_2" targetRef="Task_AutoCancel" />
-    <bpmn:exclusiveGateway id="Join_Task_DeliverAttempt_3" name="Gom luồng trước khi Giao hàng (attempt)">
-      <bpmn:incoming>Flow_Track_Deliver</bpmn:incoming>
-      <bpmn:incoming>Flow_Retry_Deliver</bpmn:incoming>
-      <bpmn:outgoing>Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt" sourceRef="Join_Task_DeliverAttempt_3" targetRef="Task_DeliverAttempt" />
-    <bpmn:exclusiveGateway id="Split_Task_DeliverAttempt_1" name="Phân luồng sau Giao hàng (attempt)">
-      <bpmn:outgoing>Flow_Deliver_Success</bpmn:outgoing>
-      <bpmn:outgoing>Flow_Deliver_Fail</bpmn:outgoing>
-      <bpmn:incoming>Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1</bpmn:incoming>
-    </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1" sourceRef="Task_DeliverAttempt" targetRef="Split_Task_DeliverAttempt_1" />
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_OrderProcessingToBe"><bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><dc:Bounds x="30" y="140" width="6860" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><dc:Bounds x="30" y="350" width="6860" height="252" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><dc:Bounds x="30" y="602" width="6860" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_3PL_di" bpmnElement="Lane_3PL"><dc:Bounds x="30" y="812" width="6860" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Lane_Payment_di" bpmnElement="Lane_Payment"><dc:Bounds x="30" y="1022" width="6860" height="210" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="StartEvent_Checkout_di" bpmnElement="StartEvent_Checkout"><dc:Bounds x="212" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Pay_di" bpmnElement="Task_Pay"><dc:Bounds x="648" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods"><dc:Bounds x="4968" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfirmReceipt_di" bpmnElement="Task_ConfirmReceipt"><dc:Bounds x="5208" y="209" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ValidateOrder_di" bpmnElement="Task_ValidateOrder"><dc:Bounds x="408" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_LockInventory_di" bpmnElement="Task_LockInventory"><dc:Bounds x="1128" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Timer_2h_di" bpmnElement="Timer_2h"><dc:Bounds x="1652" y="410" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoAccept_di" bpmnElement="Task_AutoAccept"><dc:Bounds x="1848" y="488" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_GenerateLabelQR_di" bpmnElement="Task_GenerateLabelQR"><dc:Bounds x="2568" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoPickupSched_di" bpmnElement="Task_AutoPickupSched"><dc:Bounds x="2808" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AI_ETA_di" bpmnElement="Task_AI_ETA"><dc:Bounds x="3288" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Timer_ETA30_di" bpmnElement="Timer_ETA30"><dc:Bounds x="3572" y="410" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PreDeliveryContact_di" bpmnElement="Task_PreDeliveryContact"><dc:Bounds x="3768" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_TrackDelivery_di" bpmnElement="Task_TrackDelivery"><dc:Bounds x="4008" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Timer_7d_di" bpmnElement="Timer_7d"><dc:Bounds x="5732" y="506" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoConfirm_di" bpmnElement="Task_AutoConfirm"><dc:Bounds x="5928" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ReleasePayment_di" bpmnElement="Task_ReleasePayment"><dc:Bounds x="6408" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoCancel_di" bpmnElement="Task_AutoCancel"><dc:Bounds x="5448" y="488" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_NotifyCancel_di" bpmnElement="Task_NotifyCancel"><dc:Bounds x="5688" y="392" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_AutoRefund_di" bpmnElement="Task_AutoRefund"><dc:Bounds x="5928" y="488" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ConfirmOrder_di" bpmnElement="Task_ConfirmOrder"><dc:Bounds x="1608" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_PackageGoods_di" bpmnElement="Task_PackageGoods"><dc:Bounds x="2328" y="671" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_Pickup_di" bpmnElement="Task_Pickup"><dc:Bounds x="3048" y="881" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_DeliverAttempt_di" bpmnElement="Task_DeliverAttempt"><dc:Bounds x="4488" y="881" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_VerifyPayment_di" bpmnElement="Task_VerifyPayment"><dc:Bounds x="888" y="1091" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Task_ExecuteRefund_di" bpmnElement="Task_ExecuteRefund"><dc:Bounds x="6168" y="1091" width="124" height="72" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SellerConfirm_di" bpmnElement="Gate_SellerConfirm"><dc:Bounds x="1405" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_ConfirmResult_di" bpmnElement="Gate_ConfirmResult"><dc:Bounds x="1885" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_SellerAccepted_di" bpmnElement="Gate_SellerAccepted"><dc:Bounds x="2125" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_DeliverySuccess_di" bpmnElement="Gate_DeliverySuccess"><dc:Bounds x="5005" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Gate_BuyerConfirm_di" bpmnElement="Gate_BuyerConfirm"><dc:Bounds x="5485" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Delivered_di" bpmnElement="End_Delivered"><dc:Bounds x="6692" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="End_Refunded_di" bpmnElement="End_Refunded"><dc:Bounds x="6452" y="227" width="36" height="36" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_ReleasePayment_1_di" bpmnElement="Join_Task_ReleasePayment_1"><dc:Bounds x="6205" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_AutoCancel_2_di" bpmnElement="Join_Task_AutoCancel_2"><dc:Bounds x="5245" y="403" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Join_Task_DeliverAttempt_3_di" bpmnElement="Join_Task_DeliverAttempt_3"><dc:Bounds x="4285" y="892" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNShape id="Split_Task_DeliverAttempt_1_di" bpmnElement="Split_Task_DeliverAttempt_1"><dc:Bounds x="4765" y="892" width="50" height="50" /></bpmndi:BPMNShape><bpmndi:BPMNEdge id="Flow_Checkout_Validate_di" bpmnElement="Flow_Checkout_Validate"><di:waypoint x="248" y="245" /><di:waypoint x="310" y="245" /><di:waypoint x="310" y="350" /><di:waypoint x="310" y="428" /><di:waypoint x="408" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Validate_Pay_di" bpmnElement="Flow_Validate_Pay"><di:waypoint x="532" y="428" /><di:waypoint x="550" y="428" /><di:waypoint x="550" y="350" /><di:waypoint x="550" y="245" /><di:waypoint x="648" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pay_Verify_di" bpmnElement="Flow_Pay_Verify"><di:waypoint x="772" y="245" /><di:waypoint x="790" y="245" /><di:waypoint x="790" y="350" /><di:waypoint x="790" y="1127" /><di:waypoint x="888" y="1127" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Verify_Process_di" bpmnElement="Flow_Verify_Process"><di:waypoint x="1012" y="1127" /><di:waypoint x="1030" y="1127" /><di:waypoint x="1030" y="602" /><di:waypoint x="1030" y="428" /><di:waypoint x="1128" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Lock_SellerConfirm_di" bpmnElement="Flow_Lock_SellerConfirm"><di:waypoint x="1252" y="428" /><di:waypoint x="1405" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_GateSeller_Manual_di" bpmnElement="Flow_GateSeller_Manual"><di:waypoint x="1455" y="428" /><di:waypoint x="1510" y="428" /><di:waypoint x="1510" y="602" /><di:waypoint x="1510" y="707" /><di:waypoint x="1608" y="707" /><bpmndi:BPMNLabel><dc:Bounds x="1520" y="508" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_GateSeller_Timer_di" bpmnElement="Flow_GateSeller_Timer"><di:waypoint x="1455" y="428" /><di:waypoint x="1652" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="1518" y="404" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_Result_di" bpmnElement="Flow_Confirm_Result"><di:waypoint x="1732" y="707" /><di:waypoint x="1750" y="707" /><di:waypoint x="1750" y="602" /><di:waypoint x="1750" y="428" /><di:waypoint x="1885" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Timer_AutoAccept_di" bpmnElement="Flow_Timer_AutoAccept"><di:waypoint x="1688" y="428" /><di:waypoint x="1750" y="428" /><di:waypoint x="1750" y="476" /><di:waypoint x="1750" y="524" /><di:waypoint x="1848" y="524" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AutoAccept_Merge_di" bpmnElement="Flow_AutoAccept_Merge"><di:waypoint x="1972" y="524" /><di:waypoint x="1990" y="524" /><di:waypoint x="1990" y="476" /><di:waypoint x="1990" y="428" /><di:waypoint x="2125" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ConfirmResult_Accept_di" bpmnElement="Flow_ConfirmResult_Accept"><di:waypoint x="1935" y="428" /><di:waypoint x="2125" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="1995" y="404" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ConfirmResult_Refuse_di" bpmnElement="Flow_ConfirmResult_Refuse"><di:waypoint x="1935" y="428" /><di:waypoint x="1990" y="428" /><di:waypoint x="1990" y="380" /><di:waypoint x="5110" y="380" /><di:waypoint x="5110" y="428" /><di:waypoint x="5245" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="3515" y="356" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_SellerAccepted_Package_di" bpmnElement="Flow_SellerAccepted_Package"><di:waypoint x="2175" y="428" /><di:waypoint x="2230" y="428" /><di:waypoint x="2230" y="602" /><di:waypoint x="2230" y="707" /><di:waypoint x="2328" y="707" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Package_Label_di" bpmnElement="Flow_Package_Label"><di:waypoint x="2452" y="707" /><di:waypoint x="2470" y="707" /><di:waypoint x="2470" y="602" /><di:waypoint x="2470" y="428" /><di:waypoint x="2568" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Label_PickupSched_di" bpmnElement="Flow_Label_PickupSched"><di:waypoint x="2692" y="428" /><di:waypoint x="2808" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_PickupSched_Pickup_di" bpmnElement="Flow_PickupSched_Pickup"><di:waypoint x="2932" y="428" /><di:waypoint x="2950" y="428" /><di:waypoint x="2950" y="602" /><di:waypoint x="2950" y="917" /><di:waypoint x="3048" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Pickup_ETA_di" bpmnElement="Flow_Pickup_ETA"><di:waypoint x="3172" y="917" /><di:waypoint x="3190" y="917" /><di:waypoint x="3190" y="602" /><di:waypoint x="3190" y="428" /><di:waypoint x="3288" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_ETA_Timer_di" bpmnElement="Flow_ETA_Timer"><di:waypoint x="3412" y="428" /><di:waypoint x="3572" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Timer_Contact_di" bpmnElement="Flow_Timer_Contact"><di:waypoint x="3608" y="428" /><di:waypoint x="3768" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Contact_Track_di" bpmnElement="Flow_Contact_Track"><di:waypoint x="3892" y="428" /><di:waypoint x="4008" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Track_Deliver_di" bpmnElement="Flow_Track_Deliver"><di:waypoint x="4132" y="428" /><di:waypoint x="4150" y="428" /><di:waypoint x="4150" y="602" /><di:waypoint x="4150" y="917" /><di:waypoint x="4285" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt_di" bpmnElement="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt"><di:waypoint x="4335" y="917" /><di:waypoint x="4488" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1_di" bpmnElement="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1"><di:waypoint x="4612" y="917" /><di:waypoint x="4765" y="917" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Deliver_Fail_di" bpmnElement="Flow_Deliver_Fail"><di:waypoint x="4815" y="917" /><di:waypoint x="4870" y="917" /><di:waypoint x="4870" y="602" /><di:waypoint x="4870" y="428" /><di:waypoint x="5005" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Deliver_Success_di" bpmnElement="Flow_Deliver_Success"><di:waypoint x="4815" y="917" /><di:waypoint x="4870" y="917" /><di:waypoint x="4870" y="350" /><di:waypoint x="4870" y="245" /><di:waypoint x="4968" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Fail_Cancel_di" bpmnElement="Flow_Fail_Cancel"><di:waypoint x="5055" y="428" /><di:waypoint x="5245" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="5115" y="404" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Receive_Confirm_di" bpmnElement="Flow_Receive_Confirm"><di:waypoint x="5092" y="245" /><di:waypoint x="5208" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Retry_Deliver_di" bpmnElement="Flow_Retry_Deliver"><di:waypoint x="5055" y="428" /><di:waypoint x="5110" y="428" /><di:waypoint x="5110" y="1314" /><di:waypoint x="4150" y="1314" /><di:waypoint x="4150" y="917" /><di:waypoint x="4285" y="917" /><bpmndi:BPMNLabel><dc:Bounds x="4595" y="1290" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Confirm_Gate_di" bpmnElement="Flow_Confirm_Gate"><di:waypoint x="5332" y="245" /><di:waypoint x="5350" y="245" /><di:waypoint x="5350" y="350" /><di:waypoint x="5350" y="428" /><di:waypoint x="5485" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel_di" bpmnElement="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel"><di:waypoint x="5295" y="428" /><di:waypoint x="5350" y="428" /><di:waypoint x="5350" y="476" /><di:waypoint x="5350" y="524" /><di:waypoint x="5448" y="524" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Buyer_Release_di" bpmnElement="Flow_Buyer_Release"><di:waypoint x="5535" y="428" /><di:waypoint x="5590" y="428" /><di:waypoint x="5590" y="380" /><di:waypoint x="6070" y="380" /><di:waypoint x="6070" y="428" /><di:waypoint x="6205" y="428" /><bpmndi:BPMNLabel><dc:Bounds x="5795" y="356" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Buyer_Timer_di" bpmnElement="Flow_Buyer_Timer"><di:waypoint x="5535" y="428" /><di:waypoint x="5590" y="428" /><di:waypoint x="5590" y="476" /><di:waypoint x="5590" y="524" /><di:waypoint x="5732" y="524" /><bpmndi:BPMNLabel><dc:Bounds x="5626" y="500" width="70" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Cancel_Notify_di" bpmnElement="Flow_Cancel_Notify"><di:waypoint x="5572" y="524" /><di:waypoint x="5590" y="524" /><di:waypoint x="5590" y="476" /><di:waypoint x="5590" y="428" /><di:waypoint x="5688" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Notify_Refund_di" bpmnElement="Flow_Notify_Refund"><di:waypoint x="5812" y="428" /><di:waypoint x="5830" y="428" /><di:waypoint x="5830" y="476" /><di:waypoint x="5830" y="524" /><di:waypoint x="5928" y="524" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Timer_AutoConfirm_di" bpmnElement="Flow_Timer_AutoConfirm"><di:waypoint x="5768" y="524" /><di:waypoint x="5830" y="524" /><di:waypoint x="5830" y="476" /><di:waypoint x="5830" y="428" /><di:waypoint x="5928" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_AutoConfirm_Release_di" bpmnElement="Flow_AutoConfirm_Release"><di:waypoint x="6052" y="428" /><di:waypoint x="6205" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Refund_Execute_di" bpmnElement="Flow_Refund_Execute"><di:waypoint x="6052" y="524" /><di:waypoint x="6070" y="524" /><di:waypoint x="6070" y="602" /><di:waypoint x="6070" y="1127" /><di:waypoint x="6168" y="1127" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment_di" bpmnElement="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment"><di:waypoint x="6255" y="428" /><di:waypoint x="6408" y="428" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End"><di:waypoint x="6292" y="1127" /><di:waypoint x="6310" y="1127" /><di:waypoint x="6310" y="350" /><di:waypoint x="6310" y="245" /><di:waypoint x="6452" y="245" /></bpmndi:BPMNEdge><bpmndi:BPMNEdge id="Flow_Release_End_di" bpmnElement="Flow_Release_End"><di:waypoint x="6532" y="428" /><di:waypoint x="6550" y="428" /><di:waypoint x="6550" y="350" /><di:waypoint x="6550" y="245" /><di:waypoint x="6692" y="245" /></bpmndi:BPMNEdge></bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
-</bpmn:definitions>
+<ns0:definitions xmlns:ns0="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:ns2="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:ns3="http://www.omg.org/spec/DD/20100524/DC" xmlns:ns4="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_OrderProcessingToBe" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0">
+  <ns0:process id="Process_OrderProcessingToBe" name="Xử lý Đơn hàng Online TO-BE" isExecutable="true">
+    <ns0:laneSet id="LaneSet_1">
+      <ns0:lane id="Lane_Buyer" name="Buyer">
+        <ns0:flowNodeRef>StartEvent_Checkout</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_Pay</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReceiveGoods</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ConfirmReceipt</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_System" name="Lazada System (Automated)">
+        <ns0:flowNodeRef>Task_ValidateOrder</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_LockInventory</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_SellerConfirm</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Timer_2h</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AutoAccept</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_ConfirmResult</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_SellerAccepted</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_GenerateLabelQR</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AutoPickupSched</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AI_ETA</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Timer_ETA30</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_PreDeliveryContact</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_TrackDelivery</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_DeliverySuccess</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Gate_BuyerConfirm</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Timer_7d</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AutoConfirm</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ReleasePayment</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AutoCancel</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_NotifyCancel</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_AutoRefund</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_ReleasePayment_1</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_AutoCancel_2</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Seller" name="Seller">
+        <ns0:flowNodeRef>Task_ConfirmOrder</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_PackageGoods</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_3PL" name="3PL/Shipper">
+        <ns0:flowNodeRef>Task_Pickup</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_DeliverAttempt</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Join_Task_DeliverAttempt_3</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Split_Task_DeliverAttempt_1</ns0:flowNodeRef>
+      </ns0:lane>
+      <ns0:lane id="Lane_Payment" name="Payment Gateway">
+        <ns0:flowNodeRef>Task_VerifyPayment</ns0:flowNodeRef>
+        <ns0:flowNodeRef>Task_ExecuteRefund</ns0:flowNodeRef>
+      </ns0:lane>
+    </ns0:laneSet>
+    <ns0:startEvent id="StartEvent_Checkout" name="Yêu cầu đặt hàng">
+      <ns0:outgoing>Flow_Checkout_Validate</ns0:outgoing>
+    </ns0:startEvent>
+    <ns0:userTask id="Task_Pay" name="Thanh toán đơn hàng (COD / Thẻ / Ví / Chuyển khoản)">
+      <ns0:incoming>Flow_Validate_Pay</ns0:incoming>
+      <ns0:outgoing>Flow_Pay_Verify</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:task id="Task_ReceiveGoods" name="Nhận hàng từ shipper">
+      <ns0:incoming>Flow_Deliver_Success</ns0:incoming>
+      <ns0:outgoing>Flow_Receive_Confirm</ns0:outgoing>
+    </ns0:task>
+    <ns0:userTask id="Task_ConfirmReceipt" name="Xác nhận đã nhận hàng">
+      <ns0:incoming>Flow_Receive_Confirm</ns0:incoming>
+      <ns0:outgoing>Flow_Confirm_Gate</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:serviceTask id="Task_ValidateOrder" name="Tự động xác thực thông tin đơn">
+      <ns0:incoming>Flow_Checkout_Validate</ns0:incoming>
+      <ns0:outgoing>Flow_Validate_Pay</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_LockInventory" name="Khóa tồn kho + tạo đơn">
+      <ns0:incoming>Flow_Verify_Process</ns0:incoming>
+      <ns0:outgoing>Flow_Lock_SellerConfirm</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:intermediateCatchEvent id="Timer_2h" name="Hết 2h SLA - chờ phản hồi Seller">
+      <ns0:incoming>Flow_GateSeller_Timer</ns0:incoming>
+      <ns0:outgoing>Flow_Timer_AutoAccept</ns0:outgoing>
+      <ns0:timerEventDefinition id="TimerDef_2h">
+        <ns0:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</ns0:timeDuration>
+      </ns0:timerEventDefinition>
+    </ns0:intermediateCatchEvent>
+    <ns0:serviceTask id="Task_AutoAccept" name="Tự động chấp nhận đơn sau 2h">
+      <ns0:incoming>Flow_Timer_AutoAccept</ns0:incoming>
+      <ns0:outgoing>Flow_AutoAccept_Merge</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_GenerateLabelQR" name="Tạo nhãn vận đơn QR số hóa">
+      <ns0:incoming>Flow_Package_Label</ns0:incoming>
+      <ns0:outgoing>Flow_Label_PickupSched</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_AutoPickupSched" name="Tự động lên lịch lấy hàng với 3PL">
+      <ns0:incoming>Flow_Label_PickupSched</ns0:incoming>
+      <ns0:outgoing>Flow_PickupSched_Pickup</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_AI_ETA" name="Dự đoán thời gian giao (AI ETA)">
+      <ns0:incoming>Flow_Pickup_ETA</ns0:incoming>
+      <ns0:outgoing>Flow_ETA_Timer</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:intermediateCatchEvent id="Timer_ETA30" name="Trước giao 30 phút">
+      <ns0:incoming>Flow_ETA_Timer</ns0:incoming>
+      <ns0:outgoing>Flow_Timer_Contact</ns0:outgoing>
+      <ns0:timerEventDefinition id="TimerDef_ETA30">
+        <ns0:timeDuration xsi:type="bpmn:tFormalExpression">PT30M</ns0:timeDuration>
+      </ns0:timerEventDefinition>
+    </ns0:intermediateCatchEvent>
+    <ns0:serviceTask id="Task_PreDeliveryContact" name="Liên hệ trước giao hàng (gọi/nhắn 30 phút)">
+      <ns0:incoming>Flow_Timer_Contact</ns0:incoming>
+      <ns0:outgoing>Flow_Contact_Track</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_TrackDelivery" name="Cập nhật định vị đơn hàng realtime">
+      <ns0:incoming>Flow_Contact_Track</ns0:incoming>
+      <ns0:outgoing>Flow_Track_Deliver</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:intermediateCatchEvent id="Timer_7d" name="Hết 7 ngày SLA - xác nhận nhận hàng">
+      <ns0:incoming>Flow_Buyer_Timer</ns0:incoming>
+      <ns0:outgoing>Flow_Timer_AutoConfirm</ns0:outgoing>
+      <ns0:timerEventDefinition id="TimerDef_7d">
+        <ns0:timeDuration xsi:type="bpmn:tFormalExpression">P7D</ns0:timeDuration>
+      </ns0:timerEventDefinition>
+    </ns0:intermediateCatchEvent>
+    <ns0:serviceTask id="Task_AutoConfirm" name="Tự động xác nhận đã nhận hàng">
+      <ns0:incoming>Flow_Timer_AutoConfirm</ns0:incoming>
+      <ns0:outgoing>Flow_AutoConfirm_Release</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_ReleasePayment" name="Giải ngân cho Seller">
+      <ns0:outgoing>Flow_Release_End</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment</ns0:incoming>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_AutoCancel" name="Tự động hủy đơn">
+      <ns0:outgoing>Flow_Cancel_Notify</ns0:outgoing>
+      <ns0:incoming>Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel</ns0:incoming>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_NotifyCancel" name="Thông báo hủy đơn">
+      <ns0:incoming>Flow_Cancel_Notify</ns0:incoming>
+      <ns0:outgoing>Flow_Notify_Refund</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_AutoRefund" name="Tự động hoàn tiền Buyer">
+      <ns0:incoming>Flow_Notify_Refund</ns0:incoming>
+      <ns0:outgoing>Flow_Refund_Execute</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:userTask id="Task_ConfirmOrder" name="Xác nhận đơn (thủ công)">
+      <ns0:incoming>Flow_GateSeller_Manual</ns0:incoming>
+      <ns0:outgoing>Flow_Confirm_Result</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:userTask id="Task_PackageGoods" name="Đóng gói hàng">
+      <ns0:incoming>Flow_SellerAccepted_Package</ns0:incoming>
+      <ns0:outgoing>Flow_Package_Label</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:task id="Task_Pickup" name="3PL lấy hàng (theo lịch tự động)">
+      <ns0:incoming>Flow_PickupSched_Pickup</ns0:incoming>
+      <ns0:outgoing>Flow_Pickup_ETA</ns0:outgoing>
+    </ns0:task>
+    <ns0:userTask id="Task_DeliverAttempt" name="Giao hàng (attempt)">
+      <ns0:incoming>Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt</ns0:incoming>
+      <ns0:outgoing>Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1</ns0:outgoing>
+    </ns0:userTask>
+    <ns0:serviceTask id="Task_VerifyPayment" name="Gateway verify thanh toán">
+      <ns0:incoming>Flow_Pay_Verify</ns0:incoming>
+      <ns0:outgoing>Flow_Verify_Process</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:serviceTask id="Task_ExecuteRefund" name="Cổng thanh toán xử lý hoàn tiền">
+      <ns0:incoming>Flow_Refund_Execute</ns0:incoming>
+      <ns0:outgoing>Flow_Refund_End</ns0:outgoing>
+    </ns0:serviceTask>
+    <ns0:exclusiveGateway id="Gate_SellerConfirm" name="Seller phản hồi?" default="Flow_GateSeller_Timer">
+      <ns0:incoming>Flow_Lock_SellerConfirm</ns0:incoming>
+      <ns0:outgoing>Flow_GateSeller_Manual</ns0:outgoing>
+      <ns0:outgoing>Flow_GateSeller_Timer</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_ConfirmResult" name="Chấp nhận đơn?" default="Flow_ConfirmResult_Refuse">
+      <ns0:incoming>Flow_Confirm_Result</ns0:incoming>
+      <ns0:outgoing>Flow_ConfirmResult_Accept</ns0:outgoing>
+      <ns0:outgoing>Flow_ConfirmResult_Refuse</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_SellerAccepted" name="Đã chấp nhận">
+      <ns0:incoming>Flow_ConfirmResult_Accept</ns0:incoming>
+      <ns0:incoming>Flow_AutoAccept_Merge</ns0:incoming>
+      <ns0:outgoing>Flow_SellerAccepted_Package</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_DeliverySuccess" name="Giao thành công?" default="Flow_Fail_Cancel">
+      <ns0:incoming>Flow_Deliver_Fail</ns0:incoming>
+      <ns0:outgoing>Flow_Retry_Deliver</ns0:outgoing>
+      <ns0:outgoing>Flow_Fail_Cancel</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:exclusiveGateway id="Gate_BuyerConfirm" name="Buyer đã xác nhận?" default="Flow_Buyer_Timer">
+      <ns0:incoming>Flow_Confirm_Gate</ns0:incoming>
+      <ns0:outgoing>Flow_Buyer_Release</ns0:outgoing>
+      <ns0:outgoing>Flow_Buyer_Timer</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:endEvent id="End_Delivered" name="Đơn hàng đã hoàn tất">
+      <ns0:incoming>Flow_Release_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:endEvent id="End_Refunded" name="Đã hoàn tiền cho Buyer">
+      <ns0:incoming>Flow_Refund_End</ns0:incoming>
+    </ns0:endEvent>
+    <ns0:sequenceFlow id="Flow_Checkout_Validate" sourceRef="StartEvent_Checkout" targetRef="Task_ValidateOrder" />
+    <ns0:sequenceFlow id="Flow_Validate_Pay" sourceRef="Task_ValidateOrder" targetRef="Task_Pay" />
+    <ns0:sequenceFlow id="Flow_Pay_Verify" sourceRef="Task_Pay" targetRef="Task_VerifyPayment" />
+    <ns0:sequenceFlow id="Flow_Verify_Process" sourceRef="Task_VerifyPayment" targetRef="Task_LockInventory" />
+    <ns0:sequenceFlow id="Flow_Lock_SellerConfirm" sourceRef="Task_LockInventory" targetRef="Gate_SellerConfirm" />
+    <ns0:sequenceFlow id="Flow_GateSeller_Manual" sourceRef="Gate_SellerConfirm" targetRef="Task_ConfirmOrder" name="Chưa phản hồi trong 2h">
+      <ns0:conditionExpression xsi:type="bpmn:tFormalExpression">${sellerResponded}</ns0:conditionExpression>
+    </ns0:sequenceFlow>
+    <ns0:sequenceFlow id="Flow_GateSeller_Timer" sourceRef="Gate_SellerConfirm" targetRef="Timer_2h" name="Đã quá 2h SLA" />
+    <ns0:sequenceFlow id="Flow_Confirm_Result" sourceRef="Task_ConfirmOrder" targetRef="Gate_ConfirmResult" />
+    <ns0:sequenceFlow id="Flow_ConfirmResult_Accept" sourceRef="Gate_ConfirmResult" targetRef="Gate_SellerAccepted" name="Chấp nhận">
+      <ns0:conditionExpression xsi:type="bpmn:tFormalExpression">${accepted}</ns0:conditionExpression>
+    </ns0:sequenceFlow>
+    <ns0:sequenceFlow id="Flow_ConfirmResult_Refuse" sourceRef="Gate_ConfirmResult" targetRef="Join_Task_AutoCancel_2" name="Từ chối" />
+    <ns0:sequenceFlow id="Flow_Timer_AutoAccept" sourceRef="Timer_2h" targetRef="Task_AutoAccept" />
+    <ns0:sequenceFlow id="Flow_AutoAccept_Merge" sourceRef="Task_AutoAccept" targetRef="Gate_SellerAccepted" />
+    <ns0:sequenceFlow id="Flow_SellerAccepted_Package" sourceRef="Gate_SellerAccepted" targetRef="Task_PackageGoods" />
+    <ns0:sequenceFlow id="Flow_Package_Label" sourceRef="Task_PackageGoods" targetRef="Task_GenerateLabelQR" />
+    <ns0:sequenceFlow id="Flow_Label_PickupSched" sourceRef="Task_GenerateLabelQR" targetRef="Task_AutoPickupSched" />
+    <ns0:sequenceFlow id="Flow_PickupSched_Pickup" sourceRef="Task_AutoPickupSched" targetRef="Task_Pickup" />
+    <ns0:sequenceFlow id="Flow_Pickup_ETA" sourceRef="Task_Pickup" targetRef="Task_AI_ETA" />
+    <ns0:sequenceFlow id="Flow_ETA_Timer" sourceRef="Task_AI_ETA" targetRef="Timer_ETA30" />
+    <ns0:sequenceFlow id="Flow_Timer_Contact" sourceRef="Timer_ETA30" targetRef="Task_PreDeliveryContact" />
+    <ns0:sequenceFlow id="Flow_Contact_Track" sourceRef="Task_PreDeliveryContact" targetRef="Task_TrackDelivery" />
+    <ns0:sequenceFlow id="Flow_Track_Deliver" sourceRef="Task_TrackDelivery" targetRef="Join_Task_DeliverAttempt_3" />
+    <ns0:sequenceFlow id="Flow_Deliver_Success" sourceRef="Split_Task_DeliverAttempt_1" targetRef="Task_ReceiveGoods" name="Giao thành công" />
+    <ns0:sequenceFlow id="Flow_Deliver_Fail" sourceRef="Split_Task_DeliverAttempt_1" targetRef="Gate_DeliverySuccess" name="Giao thất bại" />
+    <ns0:sequenceFlow id="Flow_Retry_Deliver" sourceRef="Gate_DeliverySuccess" targetRef="Join_Task_DeliverAttempt_3" name="Giao thất bại (≤3 lần)">
+      <ns0:conditionExpression xsi:type="bpmn:tFormalExpression">${attempts &lt; maxAttempts}</ns0:conditionExpression>
+    </ns0:sequenceFlow>
+    <ns0:sequenceFlow id="Flow_Fail_Cancel" sourceRef="Gate_DeliverySuccess" targetRef="Join_Task_AutoCancel_2" name="Giao thất bại hết giới hạn" />
+    <ns0:sequenceFlow id="Flow_Receive_Confirm" sourceRef="Task_ReceiveGoods" targetRef="Task_ConfirmReceipt" />
+    <ns0:sequenceFlow id="Flow_Confirm_Gate" sourceRef="Task_ConfirmReceipt" targetRef="Gate_BuyerConfirm" />
+    <ns0:sequenceFlow id="Flow_Buyer_Release" sourceRef="Gate_BuyerConfirm" targetRef="Join_Task_ReleasePayment_1" name="Buyer xác nhận / quá hạn">
+      <ns0:conditionExpression xsi:type="bpmn:tFormalExpression">${buyerConfirmed}</ns0:conditionExpression>
+    </ns0:sequenceFlow>
+    <ns0:sequenceFlow id="Flow_Buyer_Timer" sourceRef="Gate_BuyerConfirm" targetRef="Timer_7d" name="Đã quá 7 ngày xác nhận" />
+    <ns0:sequenceFlow id="Flow_Timer_AutoConfirm" sourceRef="Timer_7d" targetRef="Task_AutoConfirm" />
+    <ns0:sequenceFlow id="Flow_AutoConfirm_Release" sourceRef="Task_AutoConfirm" targetRef="Join_Task_ReleasePayment_1" />
+    <ns0:sequenceFlow id="Flow_Release_End" sourceRef="Task_ReleasePayment" targetRef="End_Delivered" />
+    <ns0:sequenceFlow id="Flow_Cancel_Notify" sourceRef="Task_AutoCancel" targetRef="Task_NotifyCancel" />
+    <ns0:sequenceFlow id="Flow_Notify_Refund" sourceRef="Task_NotifyCancel" targetRef="Task_AutoRefund" />
+    <ns0:sequenceFlow id="Flow_Refund_Execute" sourceRef="Task_AutoRefund" targetRef="Task_ExecuteRefund" />
+    <ns0:sequenceFlow id="Flow_Refund_End" sourceRef="Task_ExecuteRefund" targetRef="End_Refunded" />
+    <ns0:exclusiveGateway id="Join_Task_ReleasePayment_1" name="Gom luồng trước khi Giải ngân cho Seller">
+      <ns0:incoming>Flow_Buyer_Release</ns0:incoming>
+      <ns0:incoming>Flow_AutoConfirm_Release</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment" sourceRef="Join_Task_ReleasePayment_1" targetRef="Task_ReleasePayment" />
+    <ns0:exclusiveGateway id="Join_Task_AutoCancel_2" name="Gom luồng trước khi Tự động hủy đơn">
+      <ns0:incoming>Flow_ConfirmResult_Refuse</ns0:incoming>
+      <ns0:incoming>Flow_Fail_Cancel</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel" sourceRef="Join_Task_AutoCancel_2" targetRef="Task_AutoCancel" />
+    <ns0:exclusiveGateway id="Join_Task_DeliverAttempt_3" name="Gom luồng trước khi Giao hàng (attempt)">
+      <ns0:incoming>Flow_Track_Deliver</ns0:incoming>
+      <ns0:incoming>Flow_Retry_Deliver</ns0:incoming>
+      <ns0:outgoing>Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt</ns0:outgoing>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt" sourceRef="Join_Task_DeliverAttempt_3" targetRef="Task_DeliverAttempt" />
+    <ns0:exclusiveGateway id="Split_Task_DeliverAttempt_1" name="Phân luồng sau Giao hàng (attempt)">
+      <ns0:outgoing>Flow_Deliver_Success</ns0:outgoing>
+      <ns0:outgoing>Flow_Deliver_Fail</ns0:outgoing>
+      <ns0:incoming>Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1</ns0:incoming>
+    </ns0:exclusiveGateway>
+    <ns0:sequenceFlow id="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1" sourceRef="Task_DeliverAttempt" targetRef="Split_Task_DeliverAttempt_1" />
+  </ns0:process>
+  <ns2:BPMNDiagram id="BPMNDiagram_1">
+    <ns2:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_OrderProcessingToBe"><ns2:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer"><ns3:Bounds x="30" y="140" width="6860" height="210" /></ns2:BPMNShape><ns2:BPMNShape id="Lane_System_di" bpmnElement="Lane_System"><ns3:Bounds x="30" y="350" width="6860" height="252" /></ns2:BPMNShape><ns2:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller"><ns3:Bounds x="30" y="602" width="6860" height="210" /></ns2:BPMNShape><ns2:BPMNShape id="Lane_3PL_di" bpmnElement="Lane_3PL"><ns3:Bounds x="30" y="812" width="6860" height="210" /></ns2:BPMNShape><ns2:BPMNShape id="Lane_Payment_di" bpmnElement="Lane_Payment"><ns3:Bounds x="30" y="1022" width="6860" height="210" /></ns2:BPMNShape><ns2:BPMNShape id="StartEvent_Checkout_di" bpmnElement="StartEvent_Checkout"><ns3:Bounds x="212" y="227" width="36" height="36" /></ns2:BPMNShape><ns2:BPMNShape id="Task_Pay_di" bpmnElement="Task_Pay"><ns3:Bounds x="648" y="209" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_ReceiveGoods_di" bpmnElement="Task_ReceiveGoods"><ns3:Bounds x="4968" y="209" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_ConfirmReceipt_di" bpmnElement="Task_ConfirmReceipt"><ns3:Bounds x="5208" y="209" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_ValidateOrder_di" bpmnElement="Task_ValidateOrder"><ns3:Bounds x="408" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_LockInventory_di" bpmnElement="Task_LockInventory"><ns3:Bounds x="1128" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Timer_2h_di" bpmnElement="Timer_2h"><ns3:Bounds x="1652" y="410" width="36" height="36" /></ns2:BPMNShape><ns2:BPMNShape id="Task_AutoAccept_di" bpmnElement="Task_AutoAccept"><ns3:Bounds x="1848" y="488" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_GenerateLabelQR_di" bpmnElement="Task_GenerateLabelQR"><ns3:Bounds x="2568" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_AutoPickupSched_di" bpmnElement="Task_AutoPickupSched"><ns3:Bounds x="2808" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_AI_ETA_di" bpmnElement="Task_AI_ETA"><ns3:Bounds x="3288" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Timer_ETA30_di" bpmnElement="Timer_ETA30"><ns3:Bounds x="3572" y="410" width="36" height="36" /></ns2:BPMNShape><ns2:BPMNShape id="Task_PreDeliveryContact_di" bpmnElement="Task_PreDeliveryContact"><ns3:Bounds x="3768" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_TrackDelivery_di" bpmnElement="Task_TrackDelivery"><ns3:Bounds x="4008" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Timer_7d_di" bpmnElement="Timer_7d"><ns3:Bounds x="5732" y="506" width="36" height="36" /></ns2:BPMNShape><ns2:BPMNShape id="Task_AutoConfirm_di" bpmnElement="Task_AutoConfirm"><ns3:Bounds x="5928" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_ReleasePayment_di" bpmnElement="Task_ReleasePayment"><ns3:Bounds x="6408" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_AutoCancel_di" bpmnElement="Task_AutoCancel"><ns3:Bounds x="5448" y="488" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_NotifyCancel_di" bpmnElement="Task_NotifyCancel"><ns3:Bounds x="5688" y="392" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_AutoRefund_di" bpmnElement="Task_AutoRefund"><ns3:Bounds x="5928" y="488" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_ConfirmOrder_di" bpmnElement="Task_ConfirmOrder"><ns3:Bounds x="1608" y="671" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_PackageGoods_di" bpmnElement="Task_PackageGoods"><ns3:Bounds x="2328" y="671" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_Pickup_di" bpmnElement="Task_Pickup"><ns3:Bounds x="3048" y="881" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_DeliverAttempt_di" bpmnElement="Task_DeliverAttempt"><ns3:Bounds x="4488" y="881" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_VerifyPayment_di" bpmnElement="Task_VerifyPayment"><ns3:Bounds x="888" y="1091" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Task_ExecuteRefund_di" bpmnElement="Task_ExecuteRefund"><ns3:Bounds x="6168" y="1091" width="124" height="72" /></ns2:BPMNShape><ns2:BPMNShape id="Gate_SellerConfirm_di" bpmnElement="Gate_SellerConfirm"><ns3:Bounds x="1405" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Gate_ConfirmResult_di" bpmnElement="Gate_ConfirmResult"><ns3:Bounds x="1885" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Gate_SellerAccepted_di" bpmnElement="Gate_SellerAccepted"><ns3:Bounds x="2125" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Gate_DeliverySuccess_di" bpmnElement="Gate_DeliverySuccess"><ns3:Bounds x="5005" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Gate_BuyerConfirm_di" bpmnElement="Gate_BuyerConfirm"><ns3:Bounds x="5485" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="End_Delivered_di" bpmnElement="End_Delivered"><ns3:Bounds x="6692" y="227" width="36" height="36" /></ns2:BPMNShape><ns2:BPMNShape id="End_Refunded_di" bpmnElement="End_Refunded"><ns3:Bounds x="6452" y="227" width="36" height="36" /></ns2:BPMNShape><ns2:BPMNShape id="Join_Task_ReleasePayment_1_di" bpmnElement="Join_Task_ReleasePayment_1"><ns3:Bounds x="6205" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Join_Task_AutoCancel_2_di" bpmnElement="Join_Task_AutoCancel_2"><ns3:Bounds x="5245" y="403" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Join_Task_DeliverAttempt_3_di" bpmnElement="Join_Task_DeliverAttempt_3"><ns3:Bounds x="4285" y="892" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNShape id="Split_Task_DeliverAttempt_1_di" bpmnElement="Split_Task_DeliverAttempt_1"><ns3:Bounds x="4765" y="892" width="50" height="50" /></ns2:BPMNShape><ns2:BPMNEdge id="Flow_Checkout_Validate_di" bpmnElement="Flow_Checkout_Validate"><ns4:waypoint x="248" y="245" /><ns4:waypoint x="310" y="245" /><ns4:waypoint x="310" y="350" /><ns4:waypoint x="310" y="428" /><ns4:waypoint x="408" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Validate_Pay_di" bpmnElement="Flow_Validate_Pay"><ns4:waypoint x="532" y="428" /><ns4:waypoint x="550" y="428" /><ns4:waypoint x="550" y="350" /><ns4:waypoint x="550" y="245" /><ns4:waypoint x="648" y="245" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Pay_Verify_di" bpmnElement="Flow_Pay_Verify"><ns4:waypoint x="772" y="245" /><ns4:waypoint x="790" y="245" /><ns4:waypoint x="790" y="350" /><ns4:waypoint x="790" y="1127" /><ns4:waypoint x="888" y="1127" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Verify_Process_di" bpmnElement="Flow_Verify_Process"><ns4:waypoint x="1012" y="1127" /><ns4:waypoint x="1030" y="1127" /><ns4:waypoint x="1030" y="602" /><ns4:waypoint x="1030" y="428" /><ns4:waypoint x="1128" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Lock_SellerConfirm_di" bpmnElement="Flow_Lock_SellerConfirm"><ns4:waypoint x="1252" y="428" /><ns4:waypoint x="1405" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_GateSeller_Manual_di" bpmnElement="Flow_GateSeller_Manual"><ns4:waypoint x="1455" y="428" /><ns4:waypoint x="1510" y="428" /><ns4:waypoint x="1510" y="602" /><ns4:waypoint x="1510" y="707" /><ns4:waypoint x="1608" y="707" /><ns2:BPMNLabel><ns3:Bounds x="1520" y="508" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_GateSeller_Timer_di" bpmnElement="Flow_GateSeller_Timer"><ns4:waypoint x="1455" y="428" /><ns4:waypoint x="1652" y="428" /><ns2:BPMNLabel><ns3:Bounds x="1518" y="404" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Confirm_Result_di" bpmnElement="Flow_Confirm_Result"><ns4:waypoint x="1732" y="707" /><ns4:waypoint x="1750" y="707" /><ns4:waypoint x="1750" y="602" /><ns4:waypoint x="1750" y="428" /><ns4:waypoint x="1885" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Timer_AutoAccept_di" bpmnElement="Flow_Timer_AutoAccept"><ns4:waypoint x="1688" y="428" /><ns4:waypoint x="1750" y="428" /><ns4:waypoint x="1750" y="476" /><ns4:waypoint x="1750" y="524" /><ns4:waypoint x="1848" y="524" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_AutoAccept_Merge_di" bpmnElement="Flow_AutoAccept_Merge"><ns4:waypoint x="1972" y="524" /><ns4:waypoint x="1990" y="524" /><ns4:waypoint x="1990" y="476" /><ns4:waypoint x="1990" y="428" /><ns4:waypoint x="2125" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_ConfirmResult_Accept_di" bpmnElement="Flow_ConfirmResult_Accept"><ns4:waypoint x="1935" y="428" /><ns4:waypoint x="2125" y="428" /><ns2:BPMNLabel><ns3:Bounds x="1995" y="404" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_ConfirmResult_Refuse_di" bpmnElement="Flow_ConfirmResult_Refuse"><ns4:waypoint x="1935" y="428" /><ns4:waypoint x="1990" y="428" /><ns4:waypoint x="1990" y="380" /><ns4:waypoint x="5110" y="380" /><ns4:waypoint x="5110" y="428" /><ns4:waypoint x="5245" y="428" /><ns2:BPMNLabel><ns3:Bounds x="3515" y="356" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_SellerAccepted_Package_di" bpmnElement="Flow_SellerAccepted_Package"><ns4:waypoint x="2175" y="428" /><ns4:waypoint x="2230" y="428" /><ns4:waypoint x="2230" y="602" /><ns4:waypoint x="2230" y="707" /><ns4:waypoint x="2328" y="707" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Package_Label_di" bpmnElement="Flow_Package_Label"><ns4:waypoint x="2452" y="707" /><ns4:waypoint x="2470" y="707" /><ns4:waypoint x="2470" y="602" /><ns4:waypoint x="2470" y="428" /><ns4:waypoint x="2568" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Label_PickupSched_di" bpmnElement="Flow_Label_PickupSched"><ns4:waypoint x="2692" y="428" /><ns4:waypoint x="2808" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_PickupSched_Pickup_di" bpmnElement="Flow_PickupSched_Pickup"><ns4:waypoint x="2932" y="428" /><ns4:waypoint x="2950" y="428" /><ns4:waypoint x="2950" y="602" /><ns4:waypoint x="2950" y="917" /><ns4:waypoint x="3048" y="917" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Pickup_ETA_di" bpmnElement="Flow_Pickup_ETA"><ns4:waypoint x="3172" y="917" /><ns4:waypoint x="3190" y="917" /><ns4:waypoint x="3190" y="602" /><ns4:waypoint x="3190" y="428" /><ns4:waypoint x="3288" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_ETA_Timer_di" bpmnElement="Flow_ETA_Timer"><ns4:waypoint x="3412" y="428" /><ns4:waypoint x="3572" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Timer_Contact_di" bpmnElement="Flow_Timer_Contact"><ns4:waypoint x="3608" y="428" /><ns4:waypoint x="3768" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Contact_Track_di" bpmnElement="Flow_Contact_Track"><ns4:waypoint x="3892" y="428" /><ns4:waypoint x="4008" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Track_Deliver_di" bpmnElement="Flow_Track_Deliver"><ns4:waypoint x="4132" y="428" /><ns4:waypoint x="4150" y="428" /><ns4:waypoint x="4150" y="602" /><ns4:waypoint x="4150" y="917" /><ns4:waypoint x="4285" y="917" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt_di" bpmnElement="Flow_Join_Task_DeliverAttempt_3_to_Task_DeliverAttempt"><ns4:waypoint x="4335" y="917" /><ns4:waypoint x="4488" y="917" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1_di" bpmnElement="Flow_Task_DeliverAttempt_to_Split_Task_DeliverAttempt_1"><ns4:waypoint x="4612" y="917" /><ns4:waypoint x="4765" y="917" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Deliver_Fail_di" bpmnElement="Flow_Deliver_Fail"><ns4:waypoint x="4815" y="917" /><ns4:waypoint x="4870" y="917" /><ns4:waypoint x="4870" y="602" /><ns4:waypoint x="4870" y="428" /><ns4:waypoint x="5005" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Deliver_Success_di" bpmnElement="Flow_Deliver_Success"><ns4:waypoint x="4815" y="917" /><ns4:waypoint x="4870" y="917" /><ns4:waypoint x="4870" y="350" /><ns4:waypoint x="4870" y="245" /><ns4:waypoint x="4968" y="245" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Fail_Cancel_di" bpmnElement="Flow_Fail_Cancel"><ns4:waypoint x="5055" y="428" /><ns4:waypoint x="5245" y="428" /><ns2:BPMNLabel><ns3:Bounds x="5115" y="404" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Receive_Confirm_di" bpmnElement="Flow_Receive_Confirm"><ns4:waypoint x="5092" y="245" /><ns4:waypoint x="5208" y="245" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Retry_Deliver_di" bpmnElement="Flow_Retry_Deliver"><ns4:waypoint x="5055" y="428" /><ns4:waypoint x="5110" y="428" /><ns4:waypoint x="5110" y="1314" /><ns4:waypoint x="4150" y="1314" /><ns4:waypoint x="4150" y="917" /><ns4:waypoint x="4285" y="917" /><ns2:BPMNLabel><ns3:Bounds x="4595" y="1290" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Confirm_Gate_di" bpmnElement="Flow_Confirm_Gate"><ns4:waypoint x="5332" y="245" /><ns4:waypoint x="5350" y="245" /><ns4:waypoint x="5350" y="350" /><ns4:waypoint x="5350" y="428" /><ns4:waypoint x="5485" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel_di" bpmnElement="Flow_Join_Task_AutoCancel_2_to_Task_AutoCancel"><ns4:waypoint x="5295" y="428" /><ns4:waypoint x="5350" y="428" /><ns4:waypoint x="5350" y="476" /><ns4:waypoint x="5350" y="524" /><ns4:waypoint x="5448" y="524" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Buyer_Release_di" bpmnElement="Flow_Buyer_Release"><ns4:waypoint x="5535" y="428" /><ns4:waypoint x="5590" y="428" /><ns4:waypoint x="5590" y="380" /><ns4:waypoint x="6070" y="380" /><ns4:waypoint x="6070" y="428" /><ns4:waypoint x="6205" y="428" /><ns2:BPMNLabel><ns3:Bounds x="5795" y="356" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Buyer_Timer_di" bpmnElement="Flow_Buyer_Timer"><ns4:waypoint x="5535" y="428" /><ns4:waypoint x="5590" y="428" /><ns4:waypoint x="5590" y="476" /><ns4:waypoint x="5590" y="524" /><ns4:waypoint x="5732" y="524" /><ns2:BPMNLabel><ns3:Bounds x="5626" y="500" width="70" height="14" /></ns2:BPMNLabel></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Cancel_Notify_di" bpmnElement="Flow_Cancel_Notify"><ns4:waypoint x="5572" y="524" /><ns4:waypoint x="5590" y="524" /><ns4:waypoint x="5590" y="476" /><ns4:waypoint x="5590" y="428" /><ns4:waypoint x="5688" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Notify_Refund_di" bpmnElement="Flow_Notify_Refund"><ns4:waypoint x="5812" y="428" /><ns4:waypoint x="5830" y="428" /><ns4:waypoint x="5830" y="476" /><ns4:waypoint x="5830" y="524" /><ns4:waypoint x="5928" y="524" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Timer_AutoConfirm_di" bpmnElement="Flow_Timer_AutoConfirm"><ns4:waypoint x="5768" y="524" /><ns4:waypoint x="5830" y="524" /><ns4:waypoint x="5830" y="476" /><ns4:waypoint x="5830" y="428" /><ns4:waypoint x="5928" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_AutoConfirm_Release_di" bpmnElement="Flow_AutoConfirm_Release"><ns4:waypoint x="6052" y="428" /><ns4:waypoint x="6205" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Refund_Execute_di" bpmnElement="Flow_Refund_Execute"><ns4:waypoint x="6052" y="524" /><ns4:waypoint x="6070" y="524" /><ns4:waypoint x="6070" y="602" /><ns4:waypoint x="6070" y="1127" /><ns4:waypoint x="6168" y="1127" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment_di" bpmnElement="Flow_Join_Task_ReleasePayment_1_to_Task_ReleasePayment"><ns4:waypoint x="6255" y="428" /><ns4:waypoint x="6408" y="428" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Refund_End_di" bpmnElement="Flow_Refund_End"><ns4:waypoint x="6292" y="1127" /><ns4:waypoint x="6310" y="1127" /><ns4:waypoint x="6310" y="350" /><ns4:waypoint x="6310" y="245" /><ns4:waypoint x="6452" y="245" /></ns2:BPMNEdge><ns2:BPMNEdge id="Flow_Release_End_di" bpmnElement="Flow_Release_End"><ns4:waypoint x="6532" y="428" /><ns4:waypoint x="6550" y="428" /><ns4:waypoint x="6550" y="350" /><ns4:waypoint x="6550" y="245" /><ns4:waypoint x="6692" y="245" /></ns2:BPMNEdge></ns2:BPMNPlane></ns2:BPMNDiagram>
+</ns0:definitions>
